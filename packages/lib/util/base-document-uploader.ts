@@ -36,6 +36,16 @@ export abstract class BaseDocumentsUploader {
 	): Promise<ValidationError[]> {
 		const allErrors: ValidationError[] = [];
 
+		if (config.maxFilesPerUpload !== undefined && files.length > config.maxFilesPerUpload) {
+			// nothing is uploaded, so there's no point checking each file
+			return [
+				{
+					text: config.messages?.tooManyFiles ?? `You can only upload ${config.maxFilesPerUpload} files at a time`,
+					href: '#upload-form'
+				}
+			];
+		}
+
 		const validationErrors = (
 			await Promise.all(files.map((file) => this.fileValidator.validateSingleFile(file, config, existingNameSet)))
 		).flat();
@@ -45,7 +55,9 @@ export abstract class BaseDocumentsUploader {
 		const newFilesSize = files.reduce((acc, file) => acc + file.size, 0);
 		if (currentTotalSize + newFilesSize > config.totalUploadLimit) {
 			allErrors.push({
-				text: `Total file size of all attachments must not exceed ${formatBytes(config.totalUploadLimit)}`,
+				text:
+					config.messages?.totalTooLarge ??
+					`Total file size of all attachments must not exceed ${formatBytes(config.totalUploadLimit)}`,
 				href: '#upload-form'
 			});
 		}
@@ -58,7 +70,7 @@ export abstract class BaseDocumentsUploader {
 
 		if (hasDuplicatesInDraft) {
 			allErrors.push({
-				text: 'A file with this name has already been uploaded',
+				text: config.messages?.duplicateName ?? 'A file with this name has already been uploaded',
 				href: '#upload-form'
 			});
 		}

@@ -163,6 +163,14 @@ export type MultiFileUploaderQuestionProps = CrownCommonQuestionProps & {
 	showUploadWarning?: boolean;
 	filesAddedText?: string;
 	summaryDownloadUrlComponent?: string;
+	/** Most files that can be chosen in one go, checked in the browser (the server checks it too) */
+	maximumFilesPerUpload?: number;
+	maximumFilesPerUploadMessage?: string;
+	/** Replace the MOJ upload's 'Drag and drop files here or' and 'Choose files' */
+	dropzoneHintText?: string;
+	dropzoneButtonText?: string;
+	/** Defaults to 'Save and continue' */
+	submitButtonText?: string;
 };
 
 type CardManageListQuestionProps = CardManageListQuestionParams & {

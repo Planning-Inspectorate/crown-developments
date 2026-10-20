@@ -2,8 +2,11 @@ import path from 'node:path';
 import { loadEnvFile } from 'node:process';
 import type { BaseConfig } from '@planning-inspectorate/core/app';
 import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
+import type { BlobStoreConfig } from '@pins/crowndev-lib/blob-store/types.ts';
 
 export interface Config extends BaseConfig {
+	/** Have your say attachments are uploaded to the blob store */
+	blobStore: BlobStoreConfig;
 	featureFlags: {
 		isLive: boolean;
 	};
@@ -40,12 +43,34 @@ export function loadConfig(): Config {
 		SESSION_SECRETS,
 		SQL_CONNECTION_STRING,
 		S62A_DEV_CONTACT_EMAIL,
-		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE
+		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
+		BLOB_STORE_DISABLED,
+		BLOB_STORE_HOST,
+		BLOB_STORE_CONTAINER,
+		BLOB_STORE_CONNECTION_STRING
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
 
 	const secrets: string[] = parseSessionSecrets(SESSION_SECRETS);
+
+	// same checks as the manage app, which uses the same blob store
+	const blobStoreDisabled = BLOB_STORE_DISABLED === 'true';
+	if (!blobStoreDisabled) {
+		const props = {
+			BLOB_STORE_HOST,
+			BLOB_STORE_CONTAINER
+		};
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+
+		if (NODE_ENV === 'production' && BLOB_STORE_CONNECTION_STRING) {
+			throw new Error('BLOB_STORE_CONNECTION_STRING must only be used for local development');
+		}
+	}
 
 	let httpPort = 8081;
 	if (PORT) {
@@ -57,6 +82,12 @@ export function loadConfig(): Config {
 	}
 
 	config = {
+		blobStore: {
+			disabled: blobStoreDisabled,
+			host: BLOB_STORE_HOST || '',
+			container: BLOB_STORE_CONTAINER || '',
+			connectionString: BLOB_STORE_CONNECTION_STRING || ''
+		},
 		cacheControl: {
 			maxAge: CACHE_CONTROL_MAX_AGE || '1d'
 		},

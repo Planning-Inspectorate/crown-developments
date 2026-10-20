@@ -22,7 +22,7 @@ import { viewReviewRedirect } from '@pins/crowndev-lib/forms/representations/rev
 import { JOURNEY_ID } from './view/journey.ts';
 import multer from 'multer';
 import { FileValidator } from '@pins/crowndev-lib/validators/file-validator.ts';
-import { RepresentationDocumentsUploader } from './add/representation-document-uploader.ts';
+import { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/representation-document-uploader.ts';
 import {
 	buildDownloadDocument,
 	deleteDocumentController,

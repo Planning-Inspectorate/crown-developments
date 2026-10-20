@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
-import type { RepresentationDocumentsUploader } from './representation-document-uploader.ts';
+import type { RepresentationDocumentsUploader } from '@pins/crowndev-lib/util/representation-document-uploader.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { ManageService } from '#service';
@@ -24,9 +24,9 @@ export function uploadRepresentationDocumentsController(
 	return async (req: Request, res: Response) => {
 		const { id, question } = getStringParams(req.params, ['id', 'question']);
 
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) {
+		if (files.length === 0) {
 			return res.status(400).json({ error: { message: 'No file received.' } });
 		}
 
@@ -65,9 +65,9 @@ export function uploadRepresentationDocumentsController(
 
 export function validateUploads(config: ValidationConfig, documentUploader: RepresentationDocumentsUploader) {
 	return async (req: Request, res: Response, next: NextFunction) => {
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) return res.redirect(req.baseUrl);
+		if (files.length === 0) return res.redirect(req.baseUrl);
 
 		const validationErrors = await documentUploader.validateUploadBatch(req.sessionID, files, config);
 

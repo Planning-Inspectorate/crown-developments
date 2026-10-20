@@ -24,6 +24,9 @@ const STARTED_SESSION_FIELD = 'haveYourSay';
 const STARTED_AT = 'startedAt';
 /** Session field the dynamic-forms session answer store keeps answers in */
 const ANSWERS_SESSION_FIELD = 'forms';
+/** Session field the upload question keeps uploaded attachments in, by question url */
+const FILES_SESSION_FIELD = 'files';
+const ATTACHMENTS_QUESTION_URL = 'attachments';
 
 /**
  * The case details the Have your say pages need, stored on res.locals by buildLoadHaveYourSayCase
@@ -256,6 +259,7 @@ function isHaveYourSayInProgress(req: Request, applicationId: string): boolean {
 function clearHaveYourSaySession(req: Request, applicationId: string) {
 	clearSessionData(req, applicationId, JOURNEY_ID, ANSWERS_SESSION_FIELD);
 	clearSessionData(req, applicationId, STARTED_AT, STARTED_SESSION_FIELD);
+	clearSessionData(req, applicationId, ATTACHMENTS_QUESTION_URL, FILES_SESSION_FIELD);
 }
 
 function applicationInformationUrl(applicationId: string) {

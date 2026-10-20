@@ -209,7 +209,7 @@ export function buildUploadDocuments(service: ManageService, documentUploader: R
 			'documentId',
 			'representationRef'
 		]);
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
 		try {
 			const insertedDocuments = await documentUploader.processAndDraftUploads(id, files, req.sessionID, documentId);
@@ -325,9 +325,9 @@ export function validateUploads(
 			return;
 		}
 
-		const files = req.files as Express.Multer.File[];
+		const files: Express.Multer.File[] = Array.isArray(req.files) ? req.files : [];
 
-		if (!files || files.length === 0) return res.redirect(req.baseUrl);
+		if (files.length === 0) return res.redirect(req.baseUrl);
 
 		const validationErrors = await documentUploader.validateUploadBatch(req.sessionID, files, config);
 

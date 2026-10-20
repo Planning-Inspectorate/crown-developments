@@ -112,7 +112,7 @@ describe('MultiFileUploadQuestion', () => {
 
 			assert.strictEqual(uploadedFile.originalFileName, 'test-document.pdf');
 			assert.strictEqual(uploadedFile.fileName, 'mock-uuid-123');
-			assert.strictEqual(uploadedFile.deleteButton.text, 'Delete');
+			assert.strictEqual(uploadedFile.deleteButton.text, 'Remove');
 
 			assert.strictEqual(
 				uploadedFile.message.html,
@@ -177,6 +177,114 @@ describe('MultiFileUploadQuestion', () => {
 
 			assert.deepStrictEqual(result.answers.multi_upload_field, []);
 			assert.deepStrictEqual(mockJourneyResponse.answers[question.fieldName], []);
+		});
+
+		it('should read files kept under the application id in the S62A portal', async () => {
+			const uploadedFiles = [{ itemId: 'draft-1', fileName: 'report.pdf' }];
+			const req = {
+				params: { applicationId: 'application-1', question: 'attachments' },
+				session: { files: { 'application-1': { attachments: { uploadedFiles } } } }
+			} as unknown as Request;
+
+			const result = await question.getDataToSave(req, mockJourneyResponse);
+
+			assert.deepStrictEqual(result.answers.multi_upload_field, uploadedFiles);
+		});
+	});
+
+	describe('portal options', () => {
+		it('should leave the MOJ and button defaults alone when not set', () => {
+			const result = question.toViewModel({
+				params: { id: 'case-1', question: 'multi_upload_field' },
+				section: mockSection,
+				journey: mockJourney
+			});
+
+			assert.deepStrictEqual(result.question.dropzoneAttributes, {});
+			assert.strictEqual(result.question.maximumFilesPerUpload, undefined);
+			assert.strictEqual(result.question.submitButtonText, undefined);
+		});
+		it('should pass the options to the view', () => {
+			const portalQuestion = new MultiFileUploadQuestion({
+				...questionParams,
+				maximumFilesPerUpload: 3,
+				maximumFilesPerUploadMessage: 'You can only upload 3 attachments at a time',
+				dropzoneHintText: 'Drag and drop attachments here or',
+				dropzoneButtonText: 'Choose attachments',
+				submitButtonText: 'Continue'
+			} as any);
+
+			const result = portalQuestion.toViewModel({
+				params: { applicationId: 'application-1', question: 'attachments' },
+				section: mockSection,
+				journey: mockJourney,
+				customViewData: {
+					files: {
+						'application-1': { attachments: { uploadedFiles: [{ id: 'd', itemId: 'd', fileName: 'a.pdf', size: 1 }] } }
+					}
+				}
+			});
+
+			assert.strictEqual(result.question.uploadedFiles?.length, 1);
+			assert.deepStrictEqual(result.question.dropzoneAttributes, {
+				'data-dropzone-hint-text': 'Drag and drop attachments here or',
+				'data-dropzone-button-text': 'Choose attachments'
+			});
+			assert.strictEqual(result.question.maximumFilesPerUpload, 3);
+			assert.strictEqual(result.question.maximumFilesPerUploadMessage, 'You can only upload 3 attachments at a time');
+			assert.strictEqual(result.question.submitButtonText, 'Continue');
+		});
+	});
+
+	describe('checkForValidationErrors', () => {
+		const files = {
+			'case-1': { multi_upload_field: { uploadedFiles: [{ id: 'd', itemId: 'd', fileName: 'a.pdf', size: 1 }] } }
+		};
+		const sessionErrors = {
+			errors: { multi_upload_field: { msg: 'Upload error' } },
+			errorSummary: [{ text: 'Upload error', href: '#multi_upload_field' }]
+		};
+
+		function request(body: Record<string, unknown>, session: Record<string, unknown>) {
+			return {
+				params: { id: 'case-1', question: 'multi_upload_field' },
+				originalUrl: '/case-1/upload-page',
+				body,
+				session
+			} as unknown as Request;
+		}
+
+		it('should show upload errors from the session, keeping the uploaded files listed', () => {
+			const result = question.checkForValidationErrors(
+				request({}, { files, ...sessionErrors }),
+				mockSection,
+				mockJourney
+			);
+
+			assert.deepStrictEqual(result?.errors, sessionErrors.errors);
+			assert.deepStrictEqual(result?.errorSummary, sessionErrors.errorSummary);
+			assert.strictEqual((result as any).question.uploadedFiles.length, 1);
+		});
+		it('should prefer errors from submitting the page', () => {
+			const bodyErrors = {
+				errors: { multi_upload_field: { msg: 'Select an attachment to upload' } },
+				errorSummary: [{ text: 'Select an attachment to upload', href: '#multi_upload_field' }]
+			};
+
+			const result = question.checkForValidationErrors(
+				request(bodyErrors, { files, ...sessionErrors }),
+				mockSection,
+				mockJourney
+			);
+
+			assert.deepStrictEqual(result?.errorSummary, bodyErrors.errorSummary);
+			assert.strictEqual((result as any).question.uploadedFiles.length, 1);
+		});
+		it('should return nothing without errors', () => {
+			assert.strictEqual(
+				question.checkForValidationErrors(request({}, { files }), mockSection, mockJourney),
+				undefined
+			);
 		});
 	});
 });

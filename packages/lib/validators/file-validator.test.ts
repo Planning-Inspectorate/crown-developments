@@ -233,4 +233,65 @@ describe('FileValidator', () => {
 			);
 		});
 	});
+
+	describe('messages', () => {
+		const messages = {
+			wrongType: 'wrong type',
+			tooLarge: 'too large',
+			fileTypeUndetermined: 'undetermined',
+			signatureMismatch: 'mismatch',
+			zip: 'zip',
+			passwordProtected: 'password'
+		};
+		const config: ValidationConfig = { ...defaultConfig, messages };
+
+		const cases: { name: string; file: Express.Multer.File; config?: Partial<ValidationConfig>; text: string }[] = [
+			{
+				name: 'a disallowed MIME type',
+				file: createMockFile('a.exe', 500, 'application/x-msdownload'),
+				text: 'wrong type'
+			},
+			{
+				name: 'a disallowed extension',
+				file: createMockFile('a.exe', 500, 'application/pdf'),
+				text: 'wrong type'
+			},
+			{
+				name: 'a file that is too large',
+				file: createMockFile('a.pdf', 2 * 1024 * 1024, 'application/pdf', MAGIC_BUFFERS.PDF),
+				text: 'too large'
+			},
+			{
+				name: 'an undetermined type',
+				file: createMockFile('a.pdf', 500, 'application/pdf', Buffer.from('garbage data')),
+				text: 'undetermined'
+			},
+			{
+				name: 'a mismatched signature',
+				file: createMockFile('a.pdf', 500, 'application/pdf', MAGIC_BUFFERS.PNG),
+				config: { allowedMimeTypes: ['application/pdf'], allowedExtensions: ['pdf'] },
+				text: 'mismatch'
+			},
+			{
+				name: 'a zip',
+				file: createMockFile('a.pdf', 500, 'application/pdf', MAGIC_BUFFERS.ZIP),
+				text: 'zip'
+			},
+			{
+				name: 'a password protected file',
+				file: createMockFile('a.doc', 500, 'application/msword', MAGIC_BUFFERS.CFB),
+				text: 'password'
+			}
+		];
+
+		for (const { name, file, config: overrides, text } of cases) {
+			it(`uses the configured message for ${name}`, async () => {
+				const { validator } = setupValidator();
+
+				const result = await validator.validateSingleFile(file, { ...config, ...overrides }, new Set());
+
+				assert.strictEqual(result[0]?.text, text);
+			});
+		}
+	});
 });

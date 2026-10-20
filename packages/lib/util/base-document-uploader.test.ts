@@ -72,6 +72,56 @@ describe('BaseDocumentsUploader', () => {
 			assert.strictEqual(result[0].text, 'File type not allowed');
 		});
 
+		it('rejects more files than maxFilesPerUpload without checking each one', async () => {
+			const { uploader, mocks } = setupBaseMocks();
+			const files = ['1.pdf', '2.pdf', '3.pdf'].map((name) => createMockFile(name, 500));
+
+			const result = await uploader.testValidateUploads(files, { ...mockConfig, maxFilesPerUpload: 2 }, [], new Set());
+
+			assert.deepStrictEqual(result, [{ text: 'You can only upload 2 files at a time', href: '#upload-form' }]);
+			assert.strictEqual(mocks.mockValidateSingleFile.mock.callCount(), 0);
+		});
+
+		it('allows up to maxFilesPerUpload files', async () => {
+			const { uploader } = setupBaseMocks();
+			const files = ['1.pdf', '2.pdf'].map((name) => createMockFile(name, 500));
+
+			const result = await uploader.testValidateUploads(files, { ...mockConfig, maxFilesPerUpload: 2 }, [], new Set());
+
+			assert.deepStrictEqual(result, []);
+		});
+
+		it('uses the configured messages', async () => {
+			const { uploader } = setupBaseMocks();
+			const config = {
+				...mockConfig,
+				maxFilesPerUpload: 1,
+				messages: { tooManyFiles: 'too many', totalTooLarge: 'total', duplicateName: 'duplicate' }
+			};
+
+			const tooMany = await uploader.testValidateUploads(
+				[createMockFile('1.pdf', 500), createMockFile('2.pdf', 500)],
+				config,
+				[],
+				new Set()
+			);
+			const totalAndDuplicate = await uploader.testValidateUploads(
+				[createMockFile('existing.pdf', 500)],
+				config,
+				[{ fileName: 'existing.pdf', size: 9800 }],
+				new Set()
+			);
+
+			assert.deepStrictEqual(
+				tooMany.map((e) => e.text),
+				['too many']
+			);
+			assert.deepStrictEqual(
+				totalAndDuplicate.map((e) => e.text),
+				['total', 'duplicate']
+			);
+		});
+
 		it('adds error for duplicate file names in drafts', async () => {
 			const { uploader } = setupBaseMocks();
 			const result = await uploader.testValidateUploads(

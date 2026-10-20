@@ -1,6 +1,9 @@
 <!--
     A file upload component that is identical to the MOJ multi file upload, but simply swaps the upload drop zone position with the uploaded files section.
     For accessibility reasons, we do this instead of using CSS to avoid the page jumping around.
+
+    Uploaded files are shown with an 'Uploaded' tag and a 'Remove' button. Give params.deleteUrl for the
+    Remove buttons to work without JavaScript: they then submit the upload form to that URL instead.
 -->
 {% macro customMojFileUpload(params) %}
 <div class="moj-multi-file-upload {{- " " + params.classes if params.classes}}" data-module="moj-multi-file-upload" {%- for attribute, value in params.attributes %} {{ attribute }}="{{ value }}"{% endfor %}>
@@ -14,13 +17,17 @@
     <div class="govuk-summary-list moj-multi-file-upload__list">
       {% if params.uploadedFiles.items and params.uploadedFiles.items.length > 0 %}
         {% for item in params.uploadedFiles.items %}
-          <div class="govuk-summary-list__row moj-multi-file-upload__row">
-            <div class="govuk-summary-list__value moj-multi-file-upload__message">
+          <div class="govuk-summary-list__row moj-multi-file-upload__row moj-multi-file-upload__row--flex">
+            <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
               {{ item.message.html | safe if item.message.html else item.message.text }}
             </div>
-            <div class="govuk-summary-list__actions moj-multi-file-upload__actions">
-              <button type="submit" name="delete" class="moj-multi-file-upload__delete govuk-button govuk-button--secondary govuk-!-margin-bottom-0" value="{{ item.fileName }}">
-                {{ item.deleteButton.text }} <span class="govuk-visually-hidden">{{ item.originalFileName }}</span>
+            <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
+              <strong class="govuk-tag govuk-tag--green">Uploaded</strong>
+            </div>
+            <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions">
+              <button type="submit" name="delete" value="{{ item.fileName }}" class="moj-multi-file-upload__delete pins-button-link"
+                {%- if params.deleteUrl %} formaction="{{ params.deleteUrl }}" formenctype="application/x-www-form-urlencoded"{% endif %}>
+                Remove <span class="govuk-visually-hidden">{{ item.originalFileName }}</span>
               </button>
             </div>
           </div>
@@ -48,9 +55,9 @@
 
     class CustomMojFileUpload extends MultiFileUpload {
 
-        constructor(root, config) {
+        constructor(root, config, maximumFiles) {
             super(root, config);
-            this.formatExistingRows();
+            this.maximumFiles = maximumFiles;
         }
 
         formatBytes(bytes) {
@@ -63,34 +70,6 @@
             const value = Math.round(bytes / Math.pow(KIB, unitIndex));
 
             return `${value}${sizes[unitIndex]}`;
-        }
-
-        formatExistingRows() {
-            const rows = this.$feedbackContainer.querySelectorAll('.moj-multi-file-upload__row');
-
-            rows.forEach(row => {
-                const messageCol = row.querySelector('.moj-multi-file-upload__message');
-                const fileText = messageCol ? messageCol.textContent.replace('Uploaded', '').trim() : 'Unknown file';
-
-                const oldDeleteBtn = row.querySelector('.moj-multi-file-upload__delete');
-                const fileValue = oldDeleteBtn ? oldDeleteBtn.value : '';
-
-                row.classList.add('moj-multi-file-upload__row--flex');
-
-                row.innerHTML = `
-                    <div class="govuk-summary-list__value moj-multi-file-upload__col-name">
-                        ${fileText}
-                    </div>
-                    <div class="govuk-summary-list__value moj-multi-file-upload__message moj-multi-file-upload__col-status">
-                        <strong class="govuk-tag govuk-tag--green">Uploaded</strong>
-                    </div>
-                    <div class="govuk-summary-list__actions moj-multi-file-upload__actions moj-multi-file-upload__col-actions">
-                        <button type="button" name="delete" value="${fileValue}" class="moj-multi-file-upload__delete pins-button-link">
-                            Remove <span class="govuk-visually-hidden">${fileText}</span>
-                        </button>
-                    </div>
-                `;
-            });
         }
 
         getFileRow(file) {
@@ -130,6 +109,16 @@
             button.innerHTML = `Remove <span class="govuk-visually-hidden">${file.originalname}</span>`;
 
             return button;
+        }
+
+        uploadFiles(files) {
+            // too many chosen at once, so upload none of them
+            if (this.maximumFiles && files.length > this.maximumFiles.count) {
+                if (this.$status) this.$status.textContent = this.maximumFiles.message;
+                showUploadError(this.maximumFiles.message);
+                return;
+            }
+            super.uploadFiles(files);
         }
 
         uploadFile(file) {
@@ -246,7 +235,7 @@
         }
     }
 
-    function showUploadError() {
+    function showUploadError(message) {
         const existingError = document.querySelector('.govuk-error-summary');
         if (existingError) existingError.remove();
 
@@ -255,7 +244,7 @@
                 <h2 class="govuk-error-summary__title" id="error-summary-title">There is a problem</h2>
                 <div class="govuk-error-summary__body">
                     <ul class="govuk-list govuk-error-summary__list">
-                        <li><a href="#upload-form">Wait for all files to finish uploading</a></li>
+                        <li><a href="#upload-form">${message}</a></li>
                     </ul>
                 </div>
             </div>
@@ -272,18 +261,23 @@
             const activeUploads = document.querySelectorAll('.moj-multi-file-upload__progress');
             if (activeUploads.length > 0) {
                 event.preventDefault();
-                showUploadError();
+                showUploadError('Wait for all files to finish uploading');
             }
         });
     }
 
     if (multiFileUpload && mojFormContainer) {
-        new CustomMojFileUpload(multiFileUpload, {
-            uploadUrl: mojFormContainer.dataset.uploadUrl,
-            deleteUrl: mojFormContainer.dataset.deleteUrl,
-            csrfToken: csrfInput ? csrfInput.value : undefined,
-            csrfHeaderName: 'x-csrf-token'
-        });
+        const { uploadUrl, deleteUrl, maximumFiles, maximumFilesMessage } = mojFormContainer.dataset;
+        new CustomMojFileUpload(
+            multiFileUpload,
+            {
+                uploadUrl,
+                deleteUrl,
+                csrfToken: csrfInput ? csrfInput.value : undefined,
+                csrfHeaderName: 'x-csrf-token'
+            },
+            maximumFiles ? { count: Number(maximumFiles), message: maximumFilesMessage } : undefined
+        );
     }
 </script>
 {% endmacro %}

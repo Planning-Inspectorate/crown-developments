@@ -14,6 +14,29 @@ export interface ValidationConfig {
 	maxFileNameLength: number;
 	fileNameRegex: RegExp;
 	allowedExtensionsText: string;
+	/** Most files in one upload, unlimited if not set */
+	maxFilesPerUpload?: number;
+	/** Replaces the default error messages, e.g. for a public-facing service */
+	messages?: FileValidationMessages;
+}
+
+export interface FileValidationMessages {
+	/** Wrong extension or MIME type */
+	wrongType?: string;
+	/** Too big, defaults to 'The attachment must be smaller than {maxFileSize}' */
+	tooLarge?: string;
+	/** No signature could be read from the file */
+	fileTypeUndetermined?: string;
+	/** The content doesn't match the extension */
+	signatureMismatch?: string;
+	zip?: string;
+	passwordProtected?: string;
+	/** All the uploads together would be over the total limit */
+	totalTooLarge?: string;
+	/** Already uploaded a file with the same name */
+	duplicateName?: string;
+	/** More than maxFilesPerUpload in one upload */
+	tooManyFiles?: string;
 }
 
 export interface ValidationError {
@@ -49,7 +72,7 @@ export class FileValidator {
 		if (!config.allowedExtensions.includes(declaredExt)) {
 			return [
 				{
-					text: `The attachment must be ${config.allowedExtensionsText}`,
+					text: config.messages?.wrongType ?? `The attachment must be ${config.allowedExtensionsText}`,
 					href: '#upload-form'
 				}
 			];
@@ -67,7 +90,7 @@ export class FileValidator {
 			}
 			return [
 				{
-					text: `Could not determine file type from signature`,
+					text: config.messages?.fileTypeUndetermined ?? `Could not determine file type from signature`,
 					href: '#upload-form'
 				}
 			];
@@ -76,7 +99,7 @@ export class FileValidator {
 		const spoofingErrors = this.validateFileSignature(decodedName, fileTypeResult, config);
 		if (spoofingErrors.length > 0) return spoofingErrors;
 
-		return await this.validateEncryption(file, decodedName, fileTypeResult);
+		return await this.validateEncryption(file, decodedName, fileTypeResult, config);
 	}
 
 	/**
@@ -98,7 +121,7 @@ export class FileValidator {
 
 		if (size > config.maxFileSize) {
 			errors.push({
-				text: `The attachment must be smaller than ${formatBytes(config.maxFileSize)}`,
+				text: config.messages?.tooLarge ?? `The attachment must be smaller than ${formatBytes(config.maxFileSize)}`,
 				href: '#upload-form'
 			});
 		}
@@ -126,7 +149,7 @@ export class FileValidator {
 
 		if (!config.allowedMimeTypes.includes(mimetype)) {
 			errors.push({
-				text: `The attachment must be ${config.allowedExtensionsText}`,
+				text: config.messages?.wrongType ?? `The attachment must be ${config.allowedExtensionsText}`,
 				href: '#upload-form'
 			});
 		}
@@ -195,7 +218,7 @@ export class FileValidator {
 		const actualExt = path.extname(decodedName).slice(1).toLowerCase();
 
 		if (detectedExt === 'zip' || detectedMime === 'application/zip') {
-			return [{ text: `The attachment must not be a zip file`, href: '#upload-form' }];
+			return [{ text: config.messages?.zip ?? `The attachment must not be a zip file`, href: '#upload-form' }];
 		}
 
 		if (detectedExt === 'cfb' || detectedMime === 'application/x-cfb') {
@@ -206,7 +229,7 @@ export class FileValidator {
 			} else {
 				return [
 					{
-						text: `File content does not match the .${actualExt} extension`,
+						text: config.messages?.signatureMismatch ?? `File content does not match the .${actualExt} extension`,
 						href: '#upload-form'
 					}
 				];
@@ -218,7 +241,9 @@ export class FileValidator {
 
 		if (!isAllowedMime || !isAllowedExt) {
 			errors.push({
-				text: `File signature mismatch: declared as .${actualExt} but detected as .${detectedExt} (${detectedMime})`,
+				text:
+					config.messages?.signatureMismatch ??
+					`File signature mismatch: declared as .${actualExt} but detected as .${detectedExt} (${detectedMime})`,
 				href: '#upload-form'
 			});
 		}
@@ -232,26 +257,30 @@ export class FileValidator {
 	private async validateEncryption(
 		file: Express.Multer.File,
 		decodedName: string,
-		fileTypeResult: { ext: string; mime: string }
+		fileTypeResult: { ext: string; mime: string },
+		config: ValidationConfig
 	): Promise<ValidationError[]> {
+		const passwordProtected = config.messages?.passwordProtected ?? `File must not be password protected`;
 		const { buffer } = file;
 		const { ext, mime } = fileTypeResult;
 		const errors: ValidationError[] = [];
 
 		if ((ext === 'pdf' || mime === 'application/pdf') && (await this.isPdfPasswordProtected(buffer))) {
-			errors.push({ text: `File must not be password protected`, href: '#upload-form' });
+			errors.push({ text: passwordProtected, href: '#upload-form' });
 		}
 
 		if (ext === 'cfb' || mime === 'application/x-cfb') {
 			const isEncrypted = this.isDocOrXlsEncrypted(buffer);
 
 			if (isEncrypted) {
-				errors.push({ text: `File must not be password protected`, href: '#upload-form' });
+				errors.push({ text: passwordProtected, href: '#upload-form' });
 			} else {
 				const actualExt = path.extname(decodedName).slice(1).toLowerCase();
 				if (['docx', 'xlsx', 'pptx'].includes(actualExt)) {
 					errors.push({
-						text: `File signature mismatch: declared as .${actualExt} but detected as .${ext} (${mime})`,
+						text:
+							config.messages?.signatureMismatch ??
+							`File signature mismatch: declared as .${actualExt} but detected as .${ext} (${mime})`,
 						href: '#upload-form'
 					});
 				}

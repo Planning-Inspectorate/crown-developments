@@ -85,6 +85,11 @@ describe('have your say journey', () => {
 			assert.strictEqual(nextUrl(answers, 'myself', 'do-you-want-attachment'), `${baseUrl}/myself/attachments`);
 		});
 
+		it('should go from the upload page to the comment page', () => {
+			const answers = { ...myself, myselfContainsAttachments: BOOLEAN_OPTIONS.YES };
+			assert.strictEqual(nextUrl(answers, 'myself', 'attachments'), `${baseUrl}/myself/tell-us-about-application`);
+		});
+
 		it('should skip the upload page and go to the comment page for No (Scenario 12)', () => {
 			const answers = { ...myself, myselfContainsAttachments: BOOLEAN_OPTIONS.NO };
 			assert.strictEqual(
