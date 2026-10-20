@@ -1,13 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import {
-	formatDate,
-	isInquiry,
-	isHearing,
-	applicationLinks,
-	mapDevelopmentToViewModel,
-	representationTitle
-} from './shared-view-model.ts';
+import { formatDate, isInquiry, isHearing, applicationLinks, mapDevelopmentToViewModel } from './shared-view-model.ts';
 import type { BaseDevelopmentView, BaseDevelopmentPayload } from './shared-view-model.ts';
 import { APPLICATION_PUBLISH_STATUS } from './applications.ts';
 import { CASE_DATA_MODEL } from './types.ts';
@@ -63,62 +56,6 @@ describe('Application Utilities', () => {
 
 		it('should return false when procedureId is null', () => {
 			assert.strictEqual(isHearing(null), false);
-		});
-	});
-
-	describe('representationTitle', () => {
-		const baseRepresentation = {
-			reference: 'rep-1',
-			submittedDate: new Date('2026-01-01'),
-			comment: 'Representation comment',
-			commentRedacted: null,
-			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
-			representedTypeId: REPRESENTED_TYPE_ID.GROUP,
-			submittedByAgentOrgName: 'Planning Group',
-			containsAttachments: false,
-			distressingContentInRepresentation: false,
-			SubmittedByContact: { firstName: 'Alex', lastName: 'Agent' },
-			RepresentedContacts: [
-				{ firstName: 'Robin', lastName: 'Roe' },
-				{ firstName: 'Sam', lastName: 'Smith' }
-			]
-		};
-
-		it('uses Interested Party for a withheld name only when enabled', () => {
-			const representation = {
-				...baseRepresentation,
-				submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.MYSELF,
-				submittedByAgentOrgName: null,
-				withholdName: true,
-				SubmittedByContact: { firstName: 'Jane', lastName: 'Doe' }
-			};
-
-			assert.strictEqual(representationTitle(representation), 'Jane Doe');
-			assert.strictEqual(
-				representationTitle(representation, { showWithheldNameAsInterestedParty: true }),
-				'Interested Party'
-			);
-		});
-
-		it('lists all S62A group participants when the group has no name', () => {
-			assert.strictEqual(
-				representationTitle(baseRepresentation, { listS62aGroupParticipants: true }),
-				'Alex Agent (Planning Group) on behalf of Robin Roe, Sam Smith'
-			);
-		});
-
-		it('omits the agent organisation when listing S62A group participants if it is not provided', () => {
-			assert.strictEqual(
-				representationTitle(
-					{ ...baseRepresentation, submittedByAgentOrgName: null },
-					{ listS62aGroupParticipants: true }
-				),
-				'Alex Agent on behalf of Robin Roe, Sam Smith'
-			);
-		});
-
-		it('leaves group title formatting unchanged unless S62A participant listing is enabled', () => {
-			assert.strictEqual(representationTitle(baseRepresentation), 'Alex Agent (Planning Group) on behalf of Robin Roe');
 		});
 	});
 

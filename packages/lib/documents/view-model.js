@@ -30,7 +30,7 @@ export function mapDriveItemToViewModel(driveItem) {
  * @param {string} mimeType
  * @returns {string}
  */
-function mapMimeTypeToDisplayName(mimeType) {
+export function mapMimeTypeToDisplayName(mimeType) {
 	return mimeTypeMappings[mimeType] || mimeType;
 }
 

@@ -24,7 +24,7 @@ import {
 	type FilterSection,
 	type QueryFilters
 } from './filters/filters.ts';
-import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
+import { mapDateFilterErrorSummary } from '@pins/crowndev-lib/filters/filter-error-summary.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
 import type { DriveItem } from '@microsoft/microsoft-graph-types';

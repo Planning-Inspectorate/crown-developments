@@ -8,13 +8,12 @@ import { asyncHandler } from '@planning-inspectorate/core/util';
 export function createRoutes(service: S62APortalService) {
 	const router = createRouter({ mergeParams: true });
 	const applicationInfoController = buildApplicationInformationPage(service);
-	const writtenRepsController = buildS62AWrittenRepresentationsPage(service);
 
 	router.get('/', (req, res) => res.redirect(`${req.baseUrl}/application-information`));
 
 	router.get('/application-information', asyncHandler(applicationInfoController));
-	router.get('/written-representations', asyncHandler(writtenRepsController));
 	router.use('/have-your-say', createHaveYourSayRoutes(service));
+	router.use('/written-representations', buildS62AWrittenRepresentationsPage(service));
 
 	return router;
 }
