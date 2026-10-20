@@ -171,6 +171,9 @@ model S62aCase {
   description         String    @db.NVarChar(2000)
   likelyIssues        String?   @db.NVarChar(1000)
 
+  /// Migration specific fields
+  publishedToLegacyGovUk Boolean? @default(false)
+
   /// Main fields to do with case definitions (e.g. type and status)
   typeId             String
   Type               ApplicationType       @relation(fields: [typeId], references: [id])
