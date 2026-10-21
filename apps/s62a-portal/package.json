@@ -24,6 +24,7 @@
     "govuk-frontend": "*",
     "helmet": "*",
     "nunjucks": "*",
+    "pdfjs-dist": "*",
     "pino": "*",
     "pino-pretty": "*",
     "redis": "*"

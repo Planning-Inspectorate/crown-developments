@@ -37,6 +37,7 @@
     "lusca": "*",
     "multer": "*",
     "nunjucks": "*",
+    "pdfjs-dist":"*",
     "pino": "*",
     "pino-pretty": "*",
     "redis": "*"
