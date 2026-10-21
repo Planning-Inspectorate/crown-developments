@@ -2,7 +2,14 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import type { Request } from 'express';
 import type { S62APortalService } from '#service';
-import { LPA_PARAM, buildActiveFilterTags, buildLpaFilterItems, getLpaOptions, getSelectedLpaIds } from './filters.ts';
+import {
+	LPA_PARAM,
+	buildActiveFilterTags,
+	buildLpaFilterItems,
+	buildLpaFilterSections,
+	getLpaOptions,
+	getSelectedLpaIds
+} from './filters.ts';
 import type { LpaOption } from './filters.ts';
 
 /** Query objects in tests are plain objects, Express types them as ParsedQs */
@@ -267,6 +274,29 @@ describe('list filters', () => {
 			const [tag] = buildActiveFilterTags(options, [BRISTOL_ID], '/somewhere', query({ lpa: BRISTOL_ID }));
 
 			assert.ok(tag.removeUrl.startsWith('/somewhere'));
+		});
+	});
+
+	describe('buildLpaFilterSections', () => {
+		const items = buildLpaFilterItems(options, [BRISTOL_ID]);
+
+		it('should return no sections when there are no LPAs', () => {
+			assert.deepStrictEqual(buildLpaFilterSections([], false), []);
+		});
+
+		it('should return one checkboxes section named after the LPA param', () => {
+			const sections = buildLpaFilterSections(items, true);
+
+			assert.strictEqual(sections.length, 1);
+			assert.strictEqual(sections[0].type, 'checkboxes');
+			assert.strictEqual(sections[0].name, LPA_PARAM);
+			assert.strictEqual(sections[0].open, true);
+			assert.strictEqual(sections[0].options.items[0].displayName, 'Bristol City Council (3)');
+			assert.strictEqual(sections[0].options.items[0].checked, true);
+		});
+
+		it('should pass the open flag through', () => {
+			assert.strictEqual(buildLpaFilterSections(items, false)[0].open, false);
 		});
 	});
 });

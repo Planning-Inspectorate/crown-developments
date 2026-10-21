@@ -17,6 +17,7 @@ import {
 	LPA_PARAM,
 	buildActiveFilterTags,
 	buildLpaFilterItems,
+	buildLpaFilterSections,
 	getLpaOptions,
 	getSelectedLpaIds
 } from './filters.ts';
@@ -79,6 +80,8 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 			totalItems: totalS62aDevelopments
 		};
 
+		const lpaFilterItems = buildLpaFilterItems(lpaOptions, selectedLpaIds);
+
 		return res.render('views/applications/list/view.njk', {
 			pageTitle: 'All applications',
 			s62aDevelopmentsViewModels,
@@ -89,8 +92,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 			clearSearchUrl: buildUrlWithParams('/applications', req.query, {}, [SEARCH_PARAM, 'page']),
 			clearFiltersUrl: buildUrlWithParams('/applications', req.query, {}, [LPA_PARAM, 'page']),
 			carriedParams: getCarriedParams(req.query, [SEARCH_PARAM, 'page', LPA_PARAM]),
-			lpaFilterItems: buildLpaFilterItems(lpaOptions, selectedLpaIds),
-			lpaFilterOpen: selectedLpaIds.length > 0,
+			lpaFilterSections: buildLpaFilterSections(lpaFilterItems, selectedLpaIds.length > 0),
 			activeFilterTags: buildActiveFilterTags(lpaOptions, selectedLpaIds, '/applications', req.query),
 			hasActiveQueries: Boolean(searchValue) || selectedLpaIds.length > 0,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined
