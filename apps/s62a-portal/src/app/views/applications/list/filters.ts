@@ -2,6 +2,7 @@ import type { Request } from 'express';
 import type { S62APortalService } from '#service';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { sanitiseQueryToStringArray } from '@pins/crowndev-lib/filters/filter-utils.ts';
+import type { CheckboxFilter } from '@pins/crowndev-lib/filters/filter-types.ts';
 import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 
 export const LPA_PARAM = 'lpa';
@@ -93,4 +94,18 @@ export function buildActiveFilterTags(
 				['page']
 			)
 		}));
+}
+
+/** The filter sections in the shape the shared filterAccordion macro expects. Empty when there are no LPAs. */
+export function buildLpaFilterSections(items: LpaFilterItem[], open: boolean): CheckboxFilter[] {
+	if (!items.length) return [];
+	return [
+		{
+			title: 'Local planning authority (LPA)',
+			type: 'checkboxes',
+			name: LPA_PARAM,
+			options: { items: items.map((item) => ({ ...item, displayName: item.text })) },
+			open
+		}
+	];
 }

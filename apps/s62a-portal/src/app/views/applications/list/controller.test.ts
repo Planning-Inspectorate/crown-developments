@@ -216,8 +216,7 @@ describe('case list', () => {
 				queryParams: undefined,
 				searchValue: '',
 				carriedParams: [],
-				lpaFilterItems: [],
-				lpaFilterOpen: false,
+				lpaFilterSections: [],
 				activeFilterTags: [],
 				hasActiveQueries: false,
 				clearSearchUrl: '/applications',
@@ -340,13 +339,13 @@ describe('case list', () => {
 					const { renderArgs } = await run(undefined, [bristol, stAlbans]);
 
 					assert.deepStrictEqual(
-						renderArgs.lpaFilterItems.map((i: any) => [i.text, i.checked]),
+						renderArgs.lpaFilterSections[0].options.items.map((i: any) => [i.text, i.checked]),
 						[
 							['Bristol City Council (3)', false],
 							['St Albans City and District Council (2)', false]
 						]
 					);
-					assert.strictEqual(renderArgs.lpaFilterOpen, false);
+					assert.strictEqual(renderArgs.lpaFilterSections[0].open, false);
 				});
 
 				it('should filter on the primary or secondary LPA when one is selected', async () => {
@@ -357,7 +356,7 @@ describe('case list', () => {
 						OR: [{ lpaId: { in: [id] } }, { secondaryLpaId: { in: [id] } }]
 					});
 					assert.deepStrictEqual(countArgs.where, findManyArgs.where);
-					assert.strictEqual(renderArgs.lpaFilterOpen, true);
+					assert.strictEqual(renderArgs.lpaFilterSections[0].open, true);
 					assert.strictEqual(renderArgs.hasActiveQueries, true);
 					assert.strictEqual(renderArgs.activeFilterTags.length, 1);
 					assert.strictEqual(renderArgs.activeFilterTags[0].name, 'Bristol City Council');
@@ -366,7 +365,7 @@ describe('case list', () => {
 				it('should match ids case-insensitively', async () => {
 					const { renderArgs } = await run({ lpa: bristol.id }, [bristol]);
 
-					assert.strictEqual(renderArgs.lpaFilterItems[0].checked, true);
+					assert.strictEqual(renderArgs.lpaFilterSections[0].options.items[0].checked, true);
 				});
 
 				it('should ignore ids that are not a published LPA', async () => {

@@ -3,9 +3,7 @@
 {% from "tables/tables.njk" import baseCaseListTable, basePortalHeaders, basePortalColumns %}
 {% from "search-bar/search-bar.njk" import searchBar %}
 
-{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
-{% from "govuk/components/checkboxes/macro.njk" import govukCheckboxes %}
-{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "filter-accordion/filter-accordion.njk" import filterAccordion %}
 
 {% import "pagination/pagination.njk" as pagination %}
 {% import "pagination/pagination-options.njk" as paginationOptions %}
@@ -40,67 +38,17 @@
 {% endblock %}
 
 {% block pageContent %}
-	{% set hasFilter = lpaFilterItems | length > 0 %}
-	<div class="govuk-grid-row">
-		<div class="govuk-grid-column-full">
-			<h2 class="govuk-heading-l">
-				{{ pageTitle }}
-			</h2>
-			<p class="govuk-body">
-				This is a list of all applications. To find a specific application, use the filter or search by applicant, local authority, reference or location.
-			</p>
-			<div id="pagination" class="govuk-body govuk-!-margin-bottom-2">
-				<p class="govuk-body govuk-clearfix">
-					Showing <strong>{{ paginationParams.resultsStartNumber }}</strong>
-					to
-					<strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
-					of <strong>{{ paginationParams.totalItems }}</strong> results
-				</p>
-				{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
-				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+	{% set hasFilter = lpaFilterSections | length > 0 %}
 
-	<form id="search-filter-form" method="GET" action="{{ baseUrl }}">
+	<form id="search-filter-form" method="GET" action="{{ baseUrl }}#applications-list">
 		{% for param in carriedParams %}
 			<input type="hidden" name="{{ param.name }}" value="{{ param.value }}">
 		{% endfor %}
 
-		<div class="govuk-grid-row">
+		<div class="govuk-grid-row" id="applications-list">
 			{% if hasFilter %}
 				<div class="govuk-grid-column-one-third">
-					<h2 class="govuk-heading-m">Filters</h2>
-
-					{% set lpaCheckboxes %}
-						{{ govukCheckboxes({
-							name: "lpa",
-							idPrefix: "lpa",
-							fieldset: {
-								legend: {
-									text: "Local planning authority (LPA)",
-									classes: "govuk-visually-hidden"
-								}
-							},
-							items: lpaFilterItems
-						}) }}
-					{% endset %}
-
-					{{ govukAccordion({
-						id: "filters-accordion",
-						headingLevel: 3,
-						rememberExpanded: true,
-						items: [
-							{
-								heading: { text: "Local planning authority (LPA)" },
-								expanded: lpaFilterOpen,
-								content: { html: lpaCheckboxes }
-							}
-						]
-					}) }}
-
-					{{ govukButton({
-						text: "Apply filters",
-						id: "apply-filters-button",
-						type: "submit"
-					}) }}
+					{{ filterAccordion(lpaFilterSections, 'Filters', 'lpa-filter', cspNonce, 'desktop') }}
 				</div>
 			{% endif %}
 
@@ -126,7 +74,7 @@
 						}
 					}, searchValue) }}
 
-					{% if searchValue and s62aDevelopmentsViewModels | length > 0 %}
+					{% if searchValue %}
 						<p class="govuk-body govuk-!-margin-bottom-0">
 							<a href="{{ clearSearchUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a>
 						</p>
@@ -138,7 +86,7 @@
 					<ul class="pins-filter-tags">
 						{% for tag in activeFilterTags %}
 							<li>
-								<a class="pins-filter-tag" href="{{ tag.removeUrl }}">
+								<a class="pins-filter-tag" href="{{ tag.removeUrl }}#applications-list">
 									<span class="govuk-visually-hidden">Remove filter:</span>
 									{{ tag.name }}
 									<span aria-hidden="true">×</span>
@@ -165,7 +113,9 @@
 							<strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
 							of <strong>{{ paginationParams.totalItems }}</strong> results
 						</p>
-						{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+						<p class="govuk-body">
+							{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+						</p>
 						<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
 
 						{{ baseCaseListTable(s62aDevelopmentsViewModels, s62aPortalHeaders, s62aPortalColumns) }}
