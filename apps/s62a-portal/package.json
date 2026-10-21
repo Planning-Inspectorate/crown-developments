@@ -28,6 +28,7 @@
     "nunjucks": "*",
     "pino": "*",
     "pino-pretty": "*",
+		"pdfjs-dist": "*",
     "redis": "*"
   },
   "devDependencies": {
