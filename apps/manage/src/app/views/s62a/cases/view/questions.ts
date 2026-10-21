@@ -1608,8 +1608,7 @@ export function getQuestions(
 			emptyListText: 'Add one or more appointed person/inspector details. No details have been added.',
 			showAnswersInSummary: true,
 			emptyStateAddStyle: 'force',
-			// Pre-applications are limited to a single inspector; applications may have many.
-			maximumAnswers: isPreApp ? 1 : 10,
+			maximumAnswers: 10,
 			isAllowedEmpty: false,
 			validators: []
 		},
