@@ -16,6 +16,7 @@
     "@pins/crowndev-database": "^0.0.0",
     "@pins/crowndev-lib": "^0.0.0",
     "@planning-inspectorate/core": "*",
+    "archiver": "*",
     "body-parser": "*",
     "connect-redis": "*",
     "express": "*",

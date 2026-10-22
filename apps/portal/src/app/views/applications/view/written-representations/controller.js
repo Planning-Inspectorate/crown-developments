@@ -14,7 +14,7 @@ import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-va
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
+import { mapDateFilterErrorSummary } from '@pins/crowndev-lib/filters/filter-error-summary.ts';
 
 /**
  * Processes filters and error summaries for written representations.

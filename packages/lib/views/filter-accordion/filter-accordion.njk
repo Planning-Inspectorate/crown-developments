@@ -3,122 +3,88 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "govuk/components/date-input/macro.njk" import govukDateInput %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
+{% from "govuk/components/accordion/macro.njk" import govukAccordion %}
 
-{% macro innerContainer(sections, cspNonce, suffix) %}
+{% macro innerContainer(sections, suffix) %}
 	<div class="filter-accordion__inner-container{{ suffix }}">
-		<div>
-			<div class="filter-accordion__show-hide-all-filters-container">
-				<button
-					id="show-hide-all-filters{{ suffix }}"
-					class="filter-accordion__show-hide-all-filters-button"
-					data-cy="show-hide-all-filters-button"
-					type="button"
-				>
-					Show all filters
-				</button>
-			</div>
-			<div class="filter-accordion__sections-container">
-				{% for section in sections %}
-					<details class="filter-accordion__section {% if section.hasErrors %} open {% endif %}"
-									 {% if section.open %}open{% endif %}>
-						<summary class="filter-accordion__section-summary">
-							{{ section.title }}
-						</summary>
-						<div class="filter-accordion__section-content">
-							{% if section.type == 'checkboxes' and section.options.items %}
-								{{ govukCheckboxes({
-									name: section.name,
-									idPrefix: section.name + suffix,
-									items: section.options.items,
-									classes: "govuk-checkboxes--small",
-									hint: { text: section.options.hintText },
-									fieldset: {
-										legend: {
-											text: section.title,
-											classes: "govuk-visually-hidden"
-										}
-									}
-								}) }}
-							{% endif %}
-							{% if section.type == 'date-input' and section.dateInputs %}
-								{% for dateInput in section.dateInputs %}
-									{{ govukDateInput( dateInput ) }}
-								{% endfor %}
-							{% endif %}
-						</div>
-					</details>
-				{% endfor %}
-			</div>
-		</div>
-		<button class="govuk-button" id="filter-search-button{{ suffix }}" data-module="govuk-button" type="submit">Apply
-			filters
-		</button>
-		<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
-			document.addEventListener('DOMContentLoaded', function() {
-				const accordion = document.querySelector('.filter-accordion__inner-container{{ suffix }}');
-				const toggleButton = document.getElementById('show-hide-all-filters{{ suffix }}');
-				const sections = accordion.querySelectorAll('.filter-accordion__section');
 
-				sections.forEach(section => {
-					section.addEventListener('click', function() {
-						// Use a tiny timeout to allow the 'open' attribute to update
-						setTimeout(() => {
-							const allOpen = Array.from(sections).every(sec => sec.hasAttribute('open'));
-							toggleButton.textContent = allOpen ? 'Hide all filters' : 'Show all filters';
-						}, 100);
-					});
-				});
+		{% set accordionItems = [] %}
 
-				toggleButton.addEventListener('click', function() {
-					const allOpen = Array.from(sections).every(section => section.hasAttribute('open'));
-
-					sections.forEach(section => {
-						if (allOpen) {
-							section.removeAttribute('open');
-						} else {
-							section.setAttribute('open', '');
+		{% for section in sections %}
+		{% set sectionContent %}
+			{% if section.type == 'checkboxes' and section.options.items %}
+				{{ govukCheckboxes({
+					name: section.name,
+					idPrefix: section.name + suffix,
+					items: section.options.items,
+					classes: "govuk-checkboxes--small",
+					hint: { text: section.options.hintText },
+					fieldset: {
+						legend: {
+							text: section.title,
+							classes: "govuk-visually-hidden"
 						}
-					});
+					}
+				}) }}
+			{% endif %}
 
-					toggleButton.textContent = allOpen ? 'Show all filters' : 'Hide all filters';
-				});
-			});
-		</script>
+			{% if section.type == 'date-input' and section.dateInputs %}
+				{% for dateInput in section.dateInputs %}
+					{{ govukDateInput( dateInput ) }}
+				{% endfor %}
+			{% endif %}
+		{% endset %}
+
+			{% set accordionItems = accordionItems.concat([{
+				heading: {
+					text: section.title
+				},
+				content: {
+					html: sectionContent
+				},
+				expanded: (section.hasErrors or section.open)
+			}]) %}
+		{% endfor %}
+
+		{{ govukAccordion({
+			id: "filter-accordion" + suffix,
+			items: accordionItems
+		}) }}
+
+		<button class="govuk-button" id="filter-search-button{{ suffix }}" data-module="govuk-button" type="submit">
+			Apply filters
+		</button>
 	</div>
 {% endmacro %}
 
-{% macro fixedOuterContainer(sections, title, cspNonce, suffix) %}
+{% macro fixedOuterContainer(sections, title, suffix) %}
 	<div class="filter-accordion__outer-container{{ suffix }}">
 		<div>
-			<h3 class="filter-accordion__title">
+			<h3 class="filter-accordion__title govuk-heading-m">
 				{{ title }}
 			</h3>
 		</div>
-		{{ innerContainer(sections, cspNonce, suffix) }}
+		{{ innerContainer(sections, suffix) }}
 	</div>
 {% endmacro %}
 
-{% macro collapsableOuterContainer(sections, title, cspNonce, suffix, open) %}
+{% macro collapsableOuterContainer(sections, title, suffix, open) %}
 	<div class="filter-accordion__outer-container{{ suffix }}">
 		{{ govukDetails({
 			summaryText: title,
-			html: innerContainer(sections, cspNonce, suffix),
+			html: innerContainer(sections, suffix),
 			open: open
 		}) }}
 	</div>
 {% endmacro %}
 
 {% macro filterAccordion(sections, title, id, cspNonce, showHideIdSuffix, collapsable=false, open=false) %}
-	{% set suffix = "-" + showHideIdSuffix | default("") %}
-	<div
-		class="filter-accordion"
-		{% if id %}id="{{ id }}"{% endif %}
-	>
+{% set suffix = "-" + (showHideIdSuffix | default("default")) %}
+	<div class="filter-accordion" {% if id %}id="{{ id }}" {% endif %}>
 		{% if collapsable %}
-			{{ collapsableOuterContainer(sections, title, cspNonce, suffix, open) }}
+			{{ collapsableOuterContainer(sections, title, suffix, open) }}
 		{% else %}
-			{{ fixedOuterContainer(sections, title, cspNonce, suffix) }}
+			{{ fixedOuterContainer(sections, title, suffix) }}
 		{% endif %}
 	</div>
-
 {% endmacro %}

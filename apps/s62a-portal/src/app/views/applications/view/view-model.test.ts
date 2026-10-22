@@ -29,6 +29,8 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.hearingVenue, undefined);
 		assert.strictEqual(result.showDecision, false);
 		assert.strictEqual(result.decisionOutcome, undefined);
+		assert.strictEqual(result.isMajor, false);
+		assert.deepStrictEqual(result.documents, []);
 	});
 
 	it('should not set applicationStatus if withdrawnDate is not present in S62aDates', () => {
@@ -344,5 +346,74 @@ describe('s62aCaseToViewModel', () => {
 
 		assert.strictEqual(result.showDecision, true);
 		assert.strictEqual(result.decisionOutcome, undefined);
+	});
+
+	it('should handle documents relationship safely when not provided', () => {
+		const mockCase = {} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.deepStrictEqual(result.documents, []);
+	});
+
+	it('should map documents correctly, including file extensions, sizes and formatted dates', () => {
+		const mockCase = {
+			Documents: [
+				{
+					id: 'doc-1',
+					fileName: 'site-plan.pdf',
+					size: 1048576,
+					publishDate: new Date('2025-10-22T10:00:00Z'),
+					s62aCaseId: 's62a-123',
+					categoryId: 'cat-1',
+					DocumentCategory: {
+						displayName: 'Application Documents'
+					}
+				},
+				{
+					id: 'doc-2',
+					fileName: 'drawing.PNG',
+					size: 2048,
+					publishDate: new Date('2025-12-05T15:30:00Z'),
+					s62aCaseId: 's62a-123',
+					categoryId: 'cat-2',
+					DocumentCategory: {
+						displayName: 'Plans'
+					}
+				},
+				{
+					id: 'doc-3',
+					fileName: 'unknown_file_type',
+					size: 1234,
+					publishDate: new Date('2025-01-01T12:00:00Z'),
+					s62aCaseId: 's62a-123',
+					categoryId: 'cat-3',
+					DocumentCategory: null
+				}
+			]
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToViewModel(mockCase);
+
+		assert.strictEqual(result.documents.length, 3);
+
+		assert.strictEqual(result.documents[0].id, 'doc-1');
+		assert.strictEqual(result.documents[0].fileName, 'site-plan.pdf');
+		assert.strictEqual(result.documents[0].fileType, 'PDF');
+		assert.strictEqual(typeof result.documents[0].size, 'string');
+		assert.strictEqual(result.documents[0].date, '22 Oct 2025');
+		assert.strictEqual(result.documents[0].caseId, 's62a-123');
+		assert.strictEqual(result.documents[0].category, 'Application Documents');
+		assert.strictEqual(result.documents[0].categoryId, 'cat-1');
+
+		assert.strictEqual(result.documents[1].id, 'doc-2');
+		assert.strictEqual(result.documents[1].fileName, 'drawing.PNG');
+		assert.strictEqual(result.documents[1].fileType, 'PNG');
+		assert.strictEqual(result.documents[1].date, '05 Dec 2025');
+
+		assert.strictEqual(result.documents[2].id, 'doc-3');
+		assert.strictEqual(result.documents[2].fileName, 'unknown_file_type');
+		assert.strictEqual(result.documents[2].fileType, 'UNKNOWN_FILE_TYPE');
+		assert.strictEqual(result.documents[2].category, '');
 	});
 });

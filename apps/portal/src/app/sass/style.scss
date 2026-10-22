@@ -21,12 +21,9 @@
 @use 'packages/lib/views/styles/components/pins-info';
 @use 'packages/lib/views/styles/components/pins-application-links';
 @use 'packages/lib/views/styles/components/pins-chevron-cards';
-
-// App-level helpers
-@use 'helpers/layout' as portal-layout;
+@use 'packages/lib/views/styles/components/pins-filter-accordion';
 
 // App-level components
 @use 'components/pins-application-stage-summary';
 @use 'components/pins-table';
 @use 'components/pins-document-list';
-@use 'components/pins-filter-accordion';
