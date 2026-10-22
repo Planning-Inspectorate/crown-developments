@@ -46,7 +46,6 @@
 
 {% macro deleteTable(docRows) %}
     {% set docs = [] %}
-    {% set multipleFiles = docRows | length > 1 %}
 
     {% for doc in docRows %}
         {% set docs = (docs.push([
