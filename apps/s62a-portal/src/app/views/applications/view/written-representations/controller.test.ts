@@ -1,9 +1,9 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { buildWrittenRepresentationsPage } from './controller.ts';
+import { buildS62AWrittenRepresentationsPage } from './controller.ts';
 import type { S62APortalService } from '#service';
 
-describe('buildWrittenRepresentationsPage', () => {
+describe('buildS62AWrittenRepresentationsPage', () => {
 	const validUuid = '123e4567-e89b-12d3-a456-426614174000';
 
 	it('should exit early and not query DB if applicationId is an invalid UUID', async (context) => {
@@ -25,7 +25,7 @@ describe('buildWrittenRepresentationsPage', () => {
 			send: context.mock.fn()
 		} as any;
 
-		const handler = buildWrittenRepresentationsPage(service);
+		const handler = buildS62AWrittenRepresentationsPage(service);
 		await handler(req, res, context.mock.fn() as any);
 
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 0);
@@ -50,7 +50,7 @@ describe('buildWrittenRepresentationsPage', () => {
 			send: context.mock.fn()
 		} as any;
 
-		const handler = buildWrittenRepresentationsPage(service);
+		const handler = buildS62AWrittenRepresentationsPage(service);
 		await handler(req, res, context.mock.fn() as any);
 
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 1);
@@ -77,7 +77,26 @@ describe('buildWrittenRepresentationsPage', () => {
 				findUnique: context.mock.fn(async () => mockDbCase)
 			},
 			s62aRepresentation: {
-				count: context.mock.fn(async () => 0)
+				findMany: context.mock.fn(async () => [
+					{
+						reference: 'REP-001',
+						submittedDate: new Date('2026-01-02'),
+						comment: 'A representation',
+						commentRedacted: null,
+						submittedByAgentOrgName: null,
+						submittedForId: 'myself',
+						representedTypeId: null,
+						withholdName: true,
+						containsAttachments: false,
+						distressingContentInRepresentation: false,
+						SubmittedFor: { displayName: 'Myself' },
+						SubmittedByContact: null,
+						RepresentedContacts: [],
+						Category: null,
+						Attachments: []
+					}
+				]),
+				count: context.mock.fn(async () => 1)
 			}
 		};
 		const loggerMock = { error: context.mock.fn() };
@@ -94,27 +113,28 @@ describe('buildWrittenRepresentationsPage', () => {
 			send: context.mock.fn()
 		} as any;
 
-		const handler = buildWrittenRepresentationsPage(service);
+		const handler = buildS62AWrittenRepresentationsPage(service);
 		await handler(req, res, context.mock.fn() as any);
 
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 1);
-		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 2);
+		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 6);
 
 		assert.strictEqual(res.render.mock.callCount(), 1);
 
 		const [template, payload] = res.render.mock.calls[0].arguments;
 
-		assert.strictEqual(template, 'views/applications/view/written-representations/view.njk');
+		assert.strictEqual(template, './view.njk');
 
 		assert.strictEqual(payload.pageCaption, 'S62A/2026/0001');
 		assert.strictEqual(payload.pageTitle, 'Written representations');
 		assert.strictEqual(payload.applicationReference, 'S62A/2026/0001');
 		assert.strictEqual(payload.currentUrl, `/applications/${validUuid}/written-representations`);
 
-		assert.strictEqual(payload.s62aFields.id, validUuid);
-		assert.strictEqual(payload.s62aFields.reference, 'S62A/2026/0001');
+		assert.strictEqual(payload.caseFields.id, validUuid);
+		assert.strictEqual(payload.caseFields.reference, 'S62A/2026/0001');
 
-		assert.ok('representationMessage' in payload);
+		assert.deepStrictEqual(payload.representationMessage, []);
+		assert.strictEqual(payload.representations.length, 1);
 		assert.ok(payload.links);
 		assert.ok(Array.isArray(payload.links));
 	});

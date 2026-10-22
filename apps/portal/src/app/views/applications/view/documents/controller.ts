@@ -24,7 +24,7 @@ import {
 	type FilterSection,
 	type QueryFilters
 } from './filters/filters.ts';
-import { mapDateFilterErrorSummary } from '../utils/filter-error-summary.ts';
+import { mapDateFilterErrorSummary } from '@pins/crowndev-lib/filters/filter-error-summary.ts';
 import type { PortalService } from '#service';
 import type { RequestHandler } from 'express';
 import type { DriveItem } from '@microsoft/microsoft-graph-types';
@@ -180,7 +180,8 @@ export function buildApplicationDocumentsPage(service: PortalService): RequestHa
 				haveYourSayPeriod,
 				representationsPublishDate,
 				displayApplicationUpdates,
-				applicationStatus
+				applicationStatus,
+				undefined
 			),
 			currentUrl: req.originalUrl,
 			queryParams: req.query && Object.keys(req.query).length > 0 ? req.query : undefined,

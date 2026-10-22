@@ -26,6 +26,7 @@ export const normaliseSearchQuery = (query) => {
 /**
  * @typedef {Object} SearchOption
  * @property {string} [parent] - The parent field to search in (optional), used for nested queries.
+ * @property {boolean} [parentIsList] - Whether the parent is a list relation that requires Prisma's `some` filter.
  * @property {string[]} fields - The fields to search in.
  * @property {string} [searchType] - The type of search (e.g., 'contains', 'startsWith') Defaults to contains https://www.prisma.io/docs/orm/reference/prisma-client-reference#filter-conditions-and-operators
  * @property {Constraint[]} [constraints] - Additional constraints to apply to the search.
@@ -53,10 +54,11 @@ export function createWhereClause(queries, options) {
 	return {
 		AND: queries.map((query) => ({
 			OR: options.flatMap((option) => {
-				const { parent, fields, searchType = 'contains', constraints = [] } = option;
+				const { parent, parentIsList = false, fields, searchType = 'contains', constraints = [] } = option;
 				return fields.map((field) => {
 					const condition = { [searchType]: query };
-					let fieldCondition = parent ? { [parent]: { [field]: condition } } : { [field]: condition };
+					const nestedCondition = parentIsList ? { some: { [field]: condition } } : { [field]: condition };
+					const fieldCondition = parent ? { [parent]: nestedCondition } : { [field]: condition };
 					// Apply group-specific exclusions
 					if (constraints.length) {
 						return { AND: [fieldCondition, ...constraints] };

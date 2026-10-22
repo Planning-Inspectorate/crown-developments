@@ -19,6 +19,14 @@
 @use 'packages/lib/views/styles/components/pins-application-stage-summary';
 @use 'packages/lib/views/styles/components/pins-button-link';
 @use 'packages/lib/views/styles/components/pins-multi-file-upload';
+@use 'packages/lib/views/styles/components/pins-document-list';
+@use 'packages/lib/views/styles/components/pins-filter-accordion';
+
+// Shared helpers from lib
+@use 'packages/lib/views/styles/helpers/typography';
+
+// App-level helpers
+@use 'packages/lib/views/styles/helpers/mobile-layout';
 
 // App level components
 @use './components/pins-table';
