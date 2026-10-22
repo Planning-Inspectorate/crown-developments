@@ -30,10 +30,10 @@ apps_config = {
   feature_flags = {
     portal_not_live      = false
     s62a_portal_not_live = true
-    s62a_manage_not_live = true
-    case_notes_not_live  = true
+    s62a_manage_not_live = false
+    case_notes_not_live  = false
     audit_not_live       = true
-    upload_docs_not_live = true
+    upload_docs_not_live = false
     retry_not_live       = false
   }
 
@@ -77,7 +77,7 @@ apps_config = {
   }
 
   blob_store = {
-    disabled = true
+    disabled = false
   }
 }
 
