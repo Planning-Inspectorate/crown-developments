@@ -1,5 +1,6 @@
 <!--
     A file upload component that is identical to the MOJ multi file upload, but simply swaps the upload drop zone position with the uploaded files section.
+    With JavaScript, the drop zone shows the 'Choose files' button first, then 'or drop files'.
     For accessibility reasons, we do this instead of using CSS to avoid the page jumping around.
 
     Uploaded files are shown with an 'Uploaded' tag and a 'Remove' button. Give params.deleteUrl for the
@@ -58,6 +59,15 @@
         constructor(root, config, maximumFiles) {
             super(root, config);
             this.maximumFiles = maximumFiles;
+            this.putButtonBeforeHint();
+        }
+
+        /** MOJ puts its hint before the button, our design has the button first */
+        putButtonBeforeHint() {
+            const hint = this.$dropzone && this.$dropzone.querySelector('p.govuk-body');
+            if (hint && this.$label) {
+                this.$dropzone.insertBefore(this.$label, hint);
+            }
         }
 
         formatBytes(bytes) {
@@ -274,7 +284,9 @@
                 uploadUrl,
                 deleteUrl,
                 csrfToken: csrfInput ? csrfInput.value : undefined,
-                csrfHeaderName: 'x-csrf-token'
+                csrfHeaderName: 'x-csrf-token',
+                // follows the button, replacing MOJ's 'Drag and drop files here or'
+                dropzoneHintText: 'or drop files'
             },
             maximumFiles ? { count: Number(maximumFiles), message: maximumFilesMessage } : undefined
         );

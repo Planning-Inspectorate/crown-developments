@@ -268,9 +268,9 @@ describe('checkHaveYourSaySession', () => {
 		};
 	}
 
-	function run(context: TestContext, session: Record<string, unknown>) {
+	function run(context: TestContext, session: Record<string, unknown>, caseOverrides: Partial<HaveYourSayCase> = {}) {
 		const res = mockRes(context);
-		res.locals.haveYourSayCase = makeCase();
+		res.locals.haveYourSayCase = makeCase(caseOverrides);
 		const req = { session } as any;
 		const next = context.mock.fn();
 		checkHaveYourSaySession()(req, res as any, next);
@@ -355,10 +355,31 @@ describe('checkHaveYourSaySession', () => {
 				'views/applications/view/have-your-say/cannot-submit.njk'
 			);
 		});
-		it('should 404 for someone without a journey in progress', (context) => {
+		it('should show the cannot submit page when the session has gone, e.g. the cookie expired', (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date(periodEnd.getTime() + HOUR) });
 
 			const { res, next } = run(context, {});
+
+			assert.strictEqual(next.mock.callCount(), 0);
+			assert.strictEqual(
+				res.render.mock.calls[0].arguments[0],
+				'views/applications/view/have-your-say/cannot-submit.njk'
+			);
+		});
+		it('should 404 for a withdrawn application', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date(periodEnd.getTime() + HOUR) });
+
+			const { res, next } = run(context, sessionStartedAt(new Date(periodEnd.getTime() - 2 * HOUR)), {
+				applicationStatus: APPLICATION_PUBLISH_STATUS.WITHDRAWN
+			});
+
+			assert.strictEqual(next.mock.callCount(), 0);
+			assertNotFound(res);
+		});
+		it('should 404 before the period has started', (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date(periodStart.getTime() - HOUR) });
+
+			const { res, next } = run(context, sessionStartedAt(new Date(periodStart.getTime() - 2 * HOUR)));
 
 			assert.strictEqual(next.mock.callCount(), 0);
 			assertNotFound(res);

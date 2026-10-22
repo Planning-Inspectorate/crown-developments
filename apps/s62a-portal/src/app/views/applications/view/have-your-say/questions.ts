@@ -79,7 +79,7 @@ function selectAttachmentsOverrides(prefix: 'myself' | 'submitter') {
 		validators: [new AjaxDocumentUploadValidator(`${prefix}BlobAttachments`, ATTACHMENT_ERRORS.noAttachment)],
 		maximumFilesPerUpload: MAXIMUM_ATTACHMENTS_PER_UPLOAD,
 		maximumFilesPerUploadMessage: ATTACHMENT_ERRORS.tooManyFiles,
-		dropzoneHintText: 'Drag and drop attachments here or',
+		dropzoneHintText: 'or drop attachments',
 		dropzoneButtonText: 'Choose attachments',
 		submitButtonText: 'Continue',
 		// the portal can't download drafts, so check your answers lists the names without links

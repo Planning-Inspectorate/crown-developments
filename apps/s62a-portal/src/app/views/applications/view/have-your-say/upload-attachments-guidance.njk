@@ -8,6 +8,19 @@
 	text: "Do not include personal information that could identify you or another person in your attachments."
 }) }}
 
+{% set fileTypes = [] %}
+{% for extension in question.allowedFileExtensions %}
+	{% set fileTypes = (fileTypes.push(extension | upper), fileTypes) %}
+{% endfor %}
+<p class="govuk-body">File types you can upload:<br>{{ fileTypes | join(", ") }}</p>
+
+<p class="govuk-body">File rules:</p>
+<ul class="govuk-list govuk-list--bullet">
+	<li>Do not compress files - we cannot accept ZIP files</li>
+	<li>Each file must be under {{ question.maxFileSizeString }}</li>
+	<li>Total upload size must be under 1GB</li>
+</ul>
+
 {{ representationInformation.renderRepresentationInformation("Guidance on what not to include") }}
 
 <h2 class="govuk-heading-m">Upload an attachment</h2>
