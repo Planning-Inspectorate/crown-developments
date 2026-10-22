@@ -8,6 +8,7 @@ import type { ParamsDictionary } from 'express-serve-static-core';
 import type { Readable } from 'stream';
 import type { Archiver, ArchiverOptions } from 'archiver';
 import { isValidRedirectUri } from './uri.ts';
+import { notFoundHandler } from '../middleware/errors.ts';
 
 export interface DownloadRequestBody {
 	selectedFiles?: string | string[];
@@ -60,7 +61,10 @@ export abstract class BaseDocumentDownloader<TDocument extends BaseDocumentInfo>
 		}
 
 		const documents = await this.fetchDocumentsMetadata(documentIds, req);
-		if (!documents || documents.length === 0) return;
+
+		if (!documents || documents.length === 0) {
+			return notFoundHandler(req, res);
+		}
 
 		if (documents.length === 1) {
 			await this.streamDocumentToResponse(res, documents[0], isPreview);

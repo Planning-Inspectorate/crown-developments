@@ -1,0 +1,198 @@
+{% extends "views/layouts/main.njk" %}
+
+{% from "application-links/application-links.njk" import applicationLinks %}
+{% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
+{% import "pagination/pagination.njk" as pagination %}
+{% import "pagination/pagination-options.njk" as paginationOptions %}
+{% from "search-bar/search-bar.njk" import searchBar %}
+{% from "govuk/components/tag/macro.njk" import govukTag %}
+{% from "filter-accordion/filter-accordion.njk" import filterAccordion %}
+{% from "distressing-content/distressing-content-banner.njk" import distressingContentBanner %}
+
+{% block pageHeading %}{% endblock %}
+{% block error_summary %}{% endblock %}
+{% block pageContent %}
+
+	{% set isAbsoluteEmpty = (documents | length == 0) and not hasQueries and not searchValue %}
+
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-one-third">
+			{{ applicationLinks(links, currentUrl) }}
+			
+			{% if not isAbsoluteEmpty %}
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
+				<div class="pins-visible-from-tablet">
+					<form id="search-filter-form" method="GET">
+						<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+						{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
+					</form>
+				</div>
+			{% endif %}
+		</div>
+
+		<div class="govuk-grid-column-two-thirds">
+			{% if errorSummary %}
+				<div class="govuk-grid-row">
+					<div class="govuk-grid-column-full">
+						{{ govukErrorSummary({
+							titleText: "There is a problem",
+							errorList: errorSummary
+						}) }}
+					</div>
+				</div>
+			{% endif %}
+			
+			<div class="govuk-grid-row">
+				<div class="govuk-grid-column-full">
+					<h1 class="govuk-heading-l">
+						{% if pageCaption %}
+							<span class="govuk-caption-xl">{{ pageCaption }}</span>
+						{% endif %}
+						{{ pageTitle }}
+					</h1>
+					
+					{% if isAbsoluteEmpty %}
+						<p class="govuk-body">No documents have been published yet.</p>
+					{% else %}
+						<form id="govuk-row" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+							<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+							
+							{% for filter in filters %}
+								{% if filter.type == 'date-input' and filter.dateInputs %}
+									{% for dateInput in filter.dateInputs %}
+										<input type="hidden" name="{{ dateInput.idPrefix }}-day" value="{{ dateInput.value.day | default('') }}">
+										<input type="hidden" name="{{ dateInput.idPrefix }}-month" value="{{ dateInput.value.month | default('') }}">
+										<input type="hidden" name="{{ dateInput.idPrefix }}-year" value="{{ dateInput.value.year | default('') }}">
+									{% endfor %}
+								{# Preserve checked checkbox filters (e.g., category selections) #}
+								{% elif filter.type == 'checkboxes' and filter.options and filter.options.items %}
+									{% for item in filter.options.items %}
+										{% if item.checked %}
+											<input type="hidden" name="{{ filter.name }}" value="{{ item.value }}">
+										{% endif %}
+									{% endfor %}
+								{% endif %}
+							{% endfor %}
+							
+							{{ searchBar({
+								input: {
+									label: {
+										text: "Search documents",
+										classes: "govuk-visually-hidden"
+									},
+									hint: {
+										text: "Search by document name"
+									},
+									classes: "govuk-input govuk-input--width-30"
+								},
+								button: {
+									text: "Search",
+									classes: "govuk-button govuk-!-margin-bottom-0"
+								}
+							}, searchValue) }}
+						</form>
+
+						{% if searchValue %}
+							<p class="govuk-body">
+								<a href="{{ clearQueryUrl | default(clearSearchUrl) }}" class="govuk-link govuk-link--no-visited-state">
+									Clear search
+								</a>
+							</p>
+						{% endif %}
+
+						{# only show on mobile #}
+						<div class="pins-visible-until-tablet">
+							<form id="search-filter-form-mobile" method="GET">
+								<input type="hidden" name="formType" value="mobile">
+								<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+								<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+								{{ filterAccordion(mobileFilters or filters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen or false) }}
+							</form>
+						</div>
+						
+						{% if hasQueries %}
+							<h3 class="govuk-heading-s govuk-!-margin-bottom-2">Active filters</h3>
+							{% for query in filterQueries %}
+								<button type="button"
+												id="{{ query.id }}"
+												class="govuk-body selected-filter-tag"
+												{% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>
+									× {{ query.label }}: {{ query.displayName }}
+								</button>
+							{% endfor %}
+							<p class="govuk-body govuk-!-margin-top-2">
+								<a href="{{ clearQueryUrl | default(clearFilterUrl) }}" class="govuk-link govuk-link--no-visited-state">
+									Clear filters
+								</a>
+							</p>
+						{% endif %}
+
+						{% if documents | length == 0 %}
+							<p class="govuk-body">No results were found.</p>
+						{% else %}
+							<div id="pagination" class="govuk-body">
+								<p class="govuk-body">
+									Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to
+									<strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
+									of <strong>{{ paginationParams.totalItems }}</strong> documents, newest first.
+								</p>
+
+								{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}
+
+								<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+
+								<ul class="govuk-list">
+									{% for document in documents %}
+										<li>
+											<a class="govuk-link govuk-link--no-visited-state govuk-!-display-block govuk-!-margin-bottom-2" href="{{ baseUrl }}/{{ document.id }}{{ '?preview=true' if document.isPreview }}" rel="noreferrer">
+												{{ document.fileName }} ({{ document.fileType }}, {{ document.size }})
+											</a>
+											
+											<div class="govuk-grid-row">
+												<div class="govuk-grid-column-one-half">
+													<span class="govuk-hint govuk-!-font-size-16">{{ document.date }}</span>
+												</div>
+												<div class="govuk-grid-column-one-half govuk-!-text-align-right">
+													<span class="govuk-hint govuk-!-font-size-16">{{ document.category }}</span>
+												</div>
+											</div>
+											
+											<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+										</li>
+									{% endfor %}
+								</ul>
+							</div>
+
+							{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
+							{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
+						{% endif %}
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		
+		<script {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
+			document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
+				button.addEventListener('click', function(e) {
+					const filterId = e.currentTarget && e.currentTarget.id;
+					const queryKeysAttr = e.currentTarget && e.currentTarget.getAttribute('data-query-keys');
+					const queryKeys = (queryKeysAttr || '').split(',').map(k => k.trim()).filter(Boolean);
+					const urlParams = new URLSearchParams(window.location.search);
+					const updatedParams = new URLSearchParams();
+					urlParams.forEach((value, key) => {
+						// Skip if: key is in queryKeys AND (value matches filterId OR key starts with filterId-)
+						// This handles both category filters (match by value) and date filters (match by key prefix)
+						if (queryKeys.includes(key) && (value === filterId || key.startsWith(filterId + '-'))) {
+							return;
+						}
+						updatedParams.append(key, value);
+					});
+
+					// Redirect to the updated URL
+					window.location.search = updatedParams.toString();
+				});
+			});
+		</script>
+	</div>
+{% endblock %}

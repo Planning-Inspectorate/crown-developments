@@ -6,8 +6,22 @@ import {
 	OUTCOME_TYPE_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { type ApplicationPublishStatus, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
+import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 import { isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import { formatInTimeZone } from 'date-fns-tz';
+
+export type DocumentViewModel = {
+	id: string;
+	fileName: string;
+	fileType: string;
+	size: string;
+	date: string;
+	caseId: string;
+	category: string;
+	categoryId: string;
+	isPreview: boolean;
+};
 
 export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 	include: {
@@ -26,6 +40,17 @@ export type S62aCaseWithRelations = Prisma.S62aCaseGetPayload<{
 		Procedure: true;
 		S62aEvent: true;
 		DecisionOutcome: true;
+		Documents: {
+			where: {
+				publishDate: {
+					lte: Date;
+				};
+				deletedAt: null;
+			};
+			include: {
+				DocumentCategory: true;
+			};
+		};
 	};
 }>;
 
@@ -59,6 +84,8 @@ export type S62aCaseView = {
 
 	representationsPublishDate?: string;
 	isMajor: boolean;
+
+	documents: DocumentViewModel[];
 };
 
 /**
@@ -96,7 +123,7 @@ function formatApplicants(s62aCase: S62aCaseWithRelations) {
  * Creates the view model for the s62a case
  */
 export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
-	const { S62aDates, SiteAddress, S62aEvent } = s62aCase;
+	const { S62aDates, SiteAddress, S62aEvent, Documents } = s62aCase;
 
 	const hasRepPeriod = !!(s62aCase.representationsPeriodStartDate && s62aCase.representationsPeriodEndDate);
 	const isCaseHearing = isHearing(s62aCase.procedureId);
@@ -151,10 +178,39 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 
 		// HYS
 		representationsPublishDate: formatDate(s62aCase.representationsPublishDate, 'd MMMM yyyy'),
-		isMajor: s62aCase.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR
+		isMajor: s62aCase.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR,
+
+		// Documents
+		documents: documentsToViewModel(Documents)
 	};
 }
 
 export const tabText = {
 	writtenRepresentations: 'Written representations (Comments and feedback)'
 };
+
+/**
+ * Builds the documents view model needed for the docs page
+ */
+function documentsToViewModel(
+	documents: Prisma.DocumentGetPayload<{ include: { DocumentCategory: true } }>[]
+): DocumentViewModel[] {
+	if (!documents) return [];
+	return documents.map((document) => {
+		return {
+			id: document.id,
+			fileName: document.fileName,
+			fileType: getFileExtension(document.fileName),
+			size: formatBytes(Number(document.size)),
+			date: document.publishDate ? formatInTimeZone(document.publishDate, 'Europe/London', 'dd MMM yyyy') : '',
+			caseId: document.s62aCaseId,
+			category: document.DocumentCategory?.displayName || '',
+			categoryId: document.categoryId || '',
+			isPreview: ['image/png', 'image/jpeg', 'application/pdf', 'image/gif', 'image/bmp'].includes(document.mimeType)
+		};
+	});
+}
+
+function getFileExtension(fileName: string): string {
+	return fileName.split('.').pop()?.toUpperCase() || '';
+}
