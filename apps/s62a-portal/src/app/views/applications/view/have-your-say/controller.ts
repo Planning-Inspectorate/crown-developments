@@ -133,8 +133,9 @@ export function requireHaveYourSayOpen(): Handler {
 
 /**
  * Checks before every journey page:
- * - after the deadline, someone with a journey in progress sees 'You cannot submit this representation',
- *   and anyone else gets a 404
+ * - after the deadline, journey pages show 'You cannot submit this representation'. This doesn't depend
+ *   on the session, which may have gone by then (e.g. the cookie has expired)
+ * - for any other reason the period isn't open (no dates, not started yet, withdrawn) they 404
  * - more than 24 hours after 'Start now' (or with no start recorded) the answers are cleared
  *   and the person sees 'You need to start again'
  */
@@ -146,7 +147,7 @@ export function checkHaveYourSaySession(): Handler {
 		}
 
 		if (!isHaveYourSayOpen(s62aCase)) {
-			if (hasHaveYourSayDeadlinePassed(s62aCase) && isHaveYourSayInProgress(req, s62aCase.id)) {
+			if (hasHaveYourSayDeadlinePassed(s62aCase)) {
 				return renderDeadlinePassedPage(res, s62aCase);
 			}
 			return notFoundHandler(req, res);
@@ -254,12 +255,6 @@ export function hasHaveYourSaySessionExpired(req: Request, applicationId: string
 		return true;
 	}
 	return Date.now() - startedAt > HAVE_YOUR_SAY_SESSION_LENGTH_MS;
-}
-
-function isHaveYourSayInProgress(req: Request, applicationId: string): boolean {
-	const startedAt = readSessionData(req, applicationId, STARTED_AT, undefined, STARTED_SESSION_FIELD);
-	const answers = readSessionData(req, applicationId, JOURNEY_ID, undefined, ANSWERS_SESSION_FIELD);
-	return Boolean(startedAt || answers);
 }
 
 function clearHaveYourSaySession(req: Request, applicationId: string) {

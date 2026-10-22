@@ -136,7 +136,7 @@ describe('have your say questions', () => {
 				);
 				assert.strictEqual(question.filesAddedText, 'Attachments added');
 				assert.strictEqual(question.dropzoneButtonText, 'Choose attachments');
-				assert.strictEqual(question.dropzoneHintText, 'Drag and drop attachments here or');
+				assert.strictEqual(question.dropzoneHintText, 'or drop attachments');
 				assert.strictEqual(question.submitButtonText, 'Continue');
 			});
 			it(`should allow 3 ${prefix} attachments at a time, each under 20MB (Scenarios 6 and 7)`, () => {

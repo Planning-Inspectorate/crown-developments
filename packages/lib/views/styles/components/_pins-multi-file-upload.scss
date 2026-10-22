@@ -40,4 +40,9 @@
 			outline: 2px dashed govuk.govuk-colour('black', $variant: 'tint-50');
 		}
 	}
+
+	.moj-multi-file-upload__dropzone label + p {
+		margin-right: 0;
+		margin-left: 10px;
+	}
 }
