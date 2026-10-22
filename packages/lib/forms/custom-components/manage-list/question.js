@@ -1,4 +1,4 @@
-import { ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
+import { JourneyForDisplay, ManageListQuestion } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
 
 /** @typedef {import('@planning-inspectorate/dynamic-forms/src/questions/question.js').Question} Question */
@@ -149,12 +149,9 @@ export default class CustomManageListQuestion extends ManageListQuestion {
 		if (this.section.questions.length === 0) {
 			return [];
 		}
-		const mockJourney = {
-			getCurrentQuestionUrl() {},
-			response: {
-				answers: answer
-			}
-		};
+		// A real journey, so sub-questions that read the section response (such as
+		// multi-field inputs, which call responseForSection) can format the item
+		const mockJourney = new JourneyForDisplay(answer);
 		return (
 			this.section.questions
 				// only show questions which should be displayed based on any conditional logic

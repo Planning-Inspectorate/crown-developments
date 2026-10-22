@@ -28,17 +28,32 @@ import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/condit
 import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 const WHOLE_NUMBER = /^$|^\d+$/;
-const FLOORSPACE_ERROR = 'The floorspace must be a whole number of square metres';
 const ROOMS_ERROR = 'The number of rooms must be a whole number';
 
-/** The four square-metre inputs a floorspace page shows, for one set. */
+/**
+ * Floorspace may be negative and fractional: cases migrated from Horizon carry
+ * both, and they must be editable and saveable as they stand. The checks run
+ * in order and mirror the Decimal(12, 2) column, so a figure that passes all
+ * three fits without rounding or overflow.
+ */
+export const FLOORSPACE_ERRORS = Object.freeze({
+	NUMBER: 'The floorspace must be a number of square metres',
+	MAX: 'The floorspace must be between -9,999,999,999.99 and 9,999,999,999.99 square metres',
+	DECIMAL_PLACES: 'The floorspace must have 2 decimal places or less'
+});
+
+const FLOORSPACE_CHECKS = [
+	{ regex: /^$|^-?\d+(\.\d+)?$/, regexMessage: FLOORSPACE_ERRORS.NUMBER },
+	{ regex: /^$|^-?\d{1,10}(\.\d+)?$/, regexMessage: FLOORSPACE_ERRORS.MAX },
+	{ regex: /^$|^-?\d+(\.\d{1,2})?$/, regexMessage: FLOORSPACE_ERRORS.DECIMAL_PLACES }
+];
+
 function areaInputFields(setId: string) {
 	return AREA_FIELDS.map((field, index) => ({
 		fieldName: areaFieldName(setId, field),
 		label: FLOORSPACE_LABELS[index],
 		classes: 'govuk-input--width-5',
 		inputmode: 'numeric',
-		pattern: '[0-9]*',
 		suffix: { text: 'm²' },
 		formatPrefix: `${FLOORSPACE_LABELS[index]}: `,
 		formatJoinString: index === AREA_FIELDS.length - 1 ? '' : ', '
@@ -67,6 +82,16 @@ function wholeNumberValidator(fieldNames: readonly string[], regexMessage: strin
 		fields: fieldNames.map((fieldName) => ({
 			fieldName,
 			validators: [new NumericValidator({ regex: WHOLE_NUMBER, regexMessage })]
+		}))
+	});
+}
+
+/** The floorspace checks on each square-metre input of one set. */
+function floorspaceValidator(setId: string) {
+	return new MultiFieldInputValidator({
+		fields: areaFieldNames(setId).map((fieldName) => ({
+			fieldName,
+			validators: FLOORSPACE_CHECKS.map((check) => new NumericValidator(check))
 		}))
 	});
 }
@@ -229,7 +254,7 @@ export function floorspaceQuestions(isQuestionView: boolean | undefined) {
 			fieldName: 'floorspaceDetails',
 			url: 'floorspace-details',
 			inputFields: areaInputFields(FLOORSPACE_SET_ID.STANDARD),
-			validators: [wholeNumberValidator(areaFieldNames(FLOORSPACE_SET_ID.STANDARD), FLOORSPACE_ERROR)],
+			validators: [floorspaceValidator(FLOORSPACE_SET_ID.STANDARD)],
 			viewData: { continueButtonText: 'Continue' }
 		},
 
@@ -240,7 +265,7 @@ export function floorspaceQuestions(isQuestionView: boolean | undefined) {
 			fieldName: 'shopFloorspace',
 			url: 'shop-floorspace',
 			inputFields: areaInputFields(FLOORSPACE_SET_ID.SHOP),
-			validators: [wholeNumberValidator(areaFieldNames(FLOORSPACE_SET_ID.SHOP), FLOORSPACE_ERROR)],
+			validators: [floorspaceValidator(FLOORSPACE_SET_ID.SHOP)],
 			viewData: { continueButtonText: 'Continue' }
 		},
 
@@ -251,7 +276,7 @@ export function floorspaceQuestions(isQuestionView: boolean | undefined) {
 			fieldName: 'netTradeableArea',
 			url: 'net-tradeable-area',
 			inputFields: areaInputFields(FLOORSPACE_SET_ID.NET_TRADEABLE),
-			validators: [wholeNumberValidator(areaFieldNames(FLOORSPACE_SET_ID.NET_TRADEABLE), FLOORSPACE_ERROR)],
+			validators: [floorspaceValidator(FLOORSPACE_SET_ID.NET_TRADEABLE)],
 			viewData: { continueButtonText: 'Continue' }
 		},
 

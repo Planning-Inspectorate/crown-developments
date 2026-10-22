@@ -528,11 +528,12 @@ model S62aNonResidentialFloorspaceArea {
   floorspaceSetId String
   FloorspaceSet   S62aFloorspaceSet @relation(fields: [floorspaceSetId], references: [id], onUpdate: NoAction, onDelete: NoAction)
 
-  /// Nullable so "not answered" differs from zero
-  existingGross      Int?
-  grossLost          Int?
-  grossProposed      Int?
-  netAdditionalGross Int?
+  /// Nullable so "not answered" differs from zero. Signed and fractional, as
+  /// cases migrated from Horizon carry negative and decimal figures.
+  existingGross      Decimal? @db.Decimal(12, 2)
+  grossLost          Decimal? @db.Decimal(12, 2)
+  grossProposed      Decimal? @db.Decimal(12, 2)
+  netAdditionalGross Decimal? @db.Decimal(12, 2)
 
   @@unique([s62aFloorspaceEntryId, floorspaceSetId])
   @@index([s62aFloorspaceEntryId])
