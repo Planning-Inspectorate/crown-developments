@@ -639,7 +639,8 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			// Flattened so the card and the multi-field inputs see one record
 			for (const area of entry.Areas ?? []) {
 				for (const field of AREA_FIELDS) {
-					item[areaFieldName(area.floorspaceSetId, field)] = area[field] === null ? '' : String(area[field]);
+					const value = area[field];
+					item[areaFieldName(area.floorspaceSetId, field)] = value === null ? '' : String(value.toNumber());
 				}
 			}
 

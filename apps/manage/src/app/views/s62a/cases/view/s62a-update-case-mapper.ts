@@ -996,7 +996,7 @@ export class S62aCaseUpdateMapper {
 			let hasFigure = false;
 
 			for (const field of AREA_FIELDS) {
-				const value = toIntOrNull(values[areaFieldName(floorspaceSetId, field)]);
+				const value = toDecimalOrNull(values[areaFieldName(floorspaceSetId, field)]);
 				row[field] = value;
 				if (value !== null) {
 					hasFigure = true;

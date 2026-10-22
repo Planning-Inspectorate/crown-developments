@@ -144,6 +144,49 @@ describe('getNonResidentialTotals', () => {
 		assert.strictEqual(totals.existingGross, 5);
 	});
 
+	it('nets negative figures, which migrated cases carry, against positive ones', () => {
+		const totals = getNonResidentialTotals(
+			answers([
+				standardEntry({ netAdditionalGross: '-30' }),
+				standardEntry({ netAdditionalGross: '10' }, { id: 'entry-2' })
+			])
+		);
+
+		assert.strictEqual(totals.netAdditionalGross, -20);
+	});
+
+	it('sums decimal figures to 2 decimal places, without float drift', () => {
+		const totals = getNonResidentialTotals(
+			answers([
+				standardEntry({ existingGross: '0.1', grossLost: '-0.75' }),
+				standardEntry({ existingGross: '0.2', grossLost: '0.25' }, { id: 'entry-2' })
+			])
+		);
+
+		assert.strictEqual(totals.existingGross, 0.3);
+		assert.strictEqual(totals.grossLost, -0.5);
+	});
+
+	it('shows a decimal total with its unit', () => {
+		const entries = [
+			standardEntry({ existingGross: '12.5' }),
+			standardEntry({ existingGross: '-0.25' }, { id: 'entry-2' })
+		];
+		const derived = nonResidentialTotalAnswers(answers(entries), getNonResidentialTotals(answers(entries)));
+
+		assert.strictEqual(derived.totalExistingInternalFloorspace, '12.25 m²');
+	});
+
+	it('shows a total that nets to zero as 0 rather than -0', () => {
+		const entries = [
+			standardEntry({ existingGross: '-0.5' }),
+			standardEntry({ existingGross: '0.5' }, { id: 'entry-2' })
+		];
+		const derived = nonResidentialTotalAnswers(answers(entries), getNonResidentialTotals(answers(entries)));
+
+		assert.strictEqual(derived.totalExistingInternalFloorspace, '0 m²');
+	});
+
 	it('ignores a non-numeric value rather than producing NaN', () => {
 		const totals = getNonResidentialTotals(answers([standardEntry({ existingGross: 'abc', grossLost: '20' })]));
 

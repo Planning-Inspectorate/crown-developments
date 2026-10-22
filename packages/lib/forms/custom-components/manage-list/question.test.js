@@ -2,7 +2,7 @@ import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import CustomManageListQuestion from './question.js';
 import { Journey } from '@planning-inspectorate/dynamic-forms';
-import { ManageListSection } from '@planning-inspectorate/dynamic-forms';
+import { ManageListSection, MultiFieldInputQuestion } from '@planning-inspectorate/dynamic-forms';
 import nunjucks from 'nunjucks';
 
 function mockJourney() {
@@ -167,6 +167,29 @@ describe('ManageApplicantsQuestion', () => {
 			assert.strictEqual(answerForSummary.length, 1);
 			assert.strictEqual(nunjucks.render.mock.callCount(), 1);
 			assert.strictEqual(answerForSummary[0].value, 'mocked rendered string');
+		});
+
+		it('formats a multi-field sub-question, which reads the response through responseForSection', () => {
+			const question = newQuestion({ showAnswersInSummary: true });
+			question.section = new ManageListSection().addQuestion(
+				new MultiFieldInputQuestion({
+					title: 'Full name',
+					question: 'What is their name?',
+					fieldName: 'fullName',
+					inputFields: [
+						{ fieldName: 'firstName', label: 'First name', formatJoinString: ' ' },
+						{ fieldName: 'lastName', label: 'Last name' }
+					]
+				})
+			);
+			nunjucks.render = mock.fn(() => 'mocked rendered string');
+
+			question.formatAnswerForSummary('section-1', mockJourney(), [
+				{ id: 'id-1', firstName: 'Ada', lastName: 'Lovelace' }
+			]);
+
+			const [, context] = nunjucks.render.mock.calls[0].arguments;
+			assert.deepStrictEqual(context.answers, [[{ question: 'Full name', answer: 'Ada Lovelace' }]]);
 		});
 
 		it('should return notStartedText if no answers', (context) => {

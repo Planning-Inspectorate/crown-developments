@@ -2229,6 +2229,9 @@ describe('S62aCaseUpdateMapper', () => {
 			return created.Areas?.create ?? [];
 		};
 
+		/** An area figure as a plain number, since the columns are Decimal(12, 2). */
+		const figure = (value: { toNumber(): number } | null | undefined) => (value == null ? value : value.toNumber());
+
 		/** The set ids of the area rows created for the first entry. */
 		const areaSetIds = (answers: UpdateCaseAnswers): string[] =>
 			areasFor(answers).map((area: any) => area.FloorspaceSet.connect.id);
@@ -2395,10 +2398,79 @@ describe('S62aCaseUpdateMapper', () => {
 
 			const [area] = areasFor(answers);
 
-			assert.strictEqual(area.existingGross, 100);
-			assert.strictEqual(area.grossLost, 0, 'zero square metres recorded');
-			assert.strictEqual(area.grossProposed, 250);
+			assert.strictEqual(figure(area.existingGross), 100);
+			assert.strictEqual(figure(area.grossLost), 0, 'zero square metres recorded');
+			assert.strictEqual(figure(area.grossProposed), 250);
 			assert.strictEqual(area.netAdditionalGross, null, 'never answered');
+		});
+
+		it('keeps the sign on negative figures, which migrated cases carry', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '-40',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossLost`]: '-5',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossProposed`]: '10',
+						[`${FLOORSPACE_SET_ID.STANDARD}_netAdditionalGross`]: '-35'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [area] = areasFor(answers);
+
+			assert.strictEqual(figure(area.existingGross), -40);
+			assert.strictEqual(figure(area.grossLost), -5);
+			assert.strictEqual(figure(area.grossProposed), 10);
+			assert.strictEqual(figure(area.netAdditionalGross), -35);
+		});
+
+		it('keeps decimal figures exactly, rather than truncating them to whole metres', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '12.5',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossLost`]: '-0.75',
+						[`${FLOORSPACE_SET_ID.STANDARD}_grossProposed`]: '0.1',
+						[`${FLOORSPACE_SET_ID.STANDARD}_netAdditionalGross`]: '9999999999.99'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			const [area] = areasFor(answers);
+
+			assert.ok(area.existingGross instanceof Prisma.Decimal, 'written as a Decimal');
+			assert.strictEqual(area.existingGross.toString(), '12.5');
+			assert.strictEqual(area.grossLost.toString(), '-0.75');
+			assert.strictEqual(area.grossProposed.toString(), '0.1');
+			assert.strictEqual(area.netAdditionalGross.toString(), '9999999999.99');
+		});
+
+		it('creates an area row when the only figure is a fraction of a metre', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{ id: 'row-1', useClassId: USE_CLASS_ID.B2, [`${FLOORSPACE_SET_ID.STANDARD}_existingGross`]: '0.5' }
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.deepStrictEqual(areaSetIds(answers), [FLOORSPACE_SET_ID.STANDARD]);
+		});
+
+		it('creates an area row when the only figure is negative', () => {
+			const answers = {
+				manageNonResidentialFloorspace: [
+					{
+						id: 'row-1',
+						useClassId: USE_CLASS_ID.B2,
+						[`${FLOORSPACE_SET_ID.STANDARD}_netAdditionalGross`]: '-12'
+					}
+				]
+			} as unknown as UpdateCaseAnswers;
+
+			assert.deepStrictEqual(areaSetIds(answers), [FLOORSPACE_SET_ID.STANDARD]);
 		});
 
 		it('creates both retail area rows and no standard row', () => {
@@ -2512,8 +2584,8 @@ describe('S62aCaseUpdateMapper', () => {
 			const { data } = updateFor(answers, ['row-1']).Floorspace.update[0];
 
 			assert.strictEqual(data.Areas.upsert.length, 1);
-			assert.strictEqual(data.Areas.upsert[0].update.existingGross, 250);
-			assert.strictEqual(data.Areas.upsert[0].create.existingGross, 250);
+			assert.strictEqual(figure(data.Areas.upsert[0].update.existingGross), 250);
+			assert.strictEqual(figure(data.Areas.upsert[0].create.existingGross), 250);
 		});
 
 		it('targets an area row by its entry and set, which is the compound unique', () => {

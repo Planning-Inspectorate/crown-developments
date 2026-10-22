@@ -1740,15 +1740,20 @@ describe('s62aCaseToViewModel', () => {
 			...overrides
 		});
 
-		/** An area row for one set, with the four figures defaulting to null. */
-		const area = (floorspaceSetId: string, figures: Record<string, number | null> = {}) => ({
+		/**
+		 * An area row for one set, with the four figures defaulting to null. Figures
+		 * arrive as Decimals, as the columns are Decimal(12, 2).
+		 */
+		const area = (floorspaceSetId: string, figures: Record<string, number | string | null> = {}) => ({
 			id: `area-${floorspaceSetId}`,
 			floorspaceSetId,
 			existingGross: null,
 			grossLost: null,
 			grossProposed: null,
 			netAdditionalGross: null,
-			...figures
+			...Object.fromEntries(
+				Object.entries(figures).map(([field, value]) => [field, value === null ? null : new Prisma.Decimal(value)])
+			)
 		});
 
 		/** A case carrying the given floorspace entries. */
@@ -1870,6 +1875,29 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossLost')], '0', 'zero recorded');
 			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossProposed')], '250');
 			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'netAdditionalGross')], '', 'never answered');
+		});
+
+		it('flattens negative and decimal figures, which migrated cases carry, without trailing zeros', () => {
+			const result = s62aCaseToViewModel(
+				caseWith([
+					entry({
+						Areas: [
+							area(FLOORSPACE_SET_ID.STANDARD, {
+								existingGross: '-12.5',
+								grossLost: '12.50',
+								grossProposed: '0.05',
+								netAdditionalGross: '-40'
+							})
+						]
+					})
+				])
+			);
+
+			const [item] = result.manageNonResidentialFloorspace!;
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'existingGross')], '-12.5');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossLost')], '12.5');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'grossProposed')], '0.05');
+			assert.strictEqual(item[areaFieldName(FLOORSPACE_SET_ID.STANDARD, 'netAdditionalGross')], '-40');
 		});
 
 		it('flattens both retail sets onto one item, keeping them apart', () => {

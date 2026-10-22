@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { validationResult, type ValidationChain } from 'express-validator';
 import {
 	FLOORSPACE_SET_ID,
 	USE_CLASSES,
@@ -13,9 +14,10 @@ import {
 	getSubtypeOptions,
 	hasRoomsBranch,
 	hasSubtypePage,
-	isRetail
+	isRetail,
+	FLOORSPACE_ERRORS
 } from './floorspace-questions.ts';
-import { areaFieldName, AREA_FIELDS, FLOORSPACE_LABELS, ROOMS_LABELS } from '../view/view-model.ts';
+import { areaFieldName, AREA_FIELDS, FLOORSPACE_LABELS, ROOMS_FIELDS, ROOMS_LABELS } from '../view/view-model.ts';
 import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 
 /** The questions as built for the tab row rather than the check page. */
@@ -282,6 +284,85 @@ describe('floorspaceQuestions', () => {
 			const [first] = build().rooms.inputFields;
 			assert.strictEqual(first.suffix.text, 'rooms');
 		});
+	});
+
+	describe('number validation', () => {
+		type ValidatedQuestion = { validators: { validate: () => ValidationChain[] }[] };
+
+		/** Errors for the question's own validators against one submitted figure on each input. */
+		const errorsFor = async (question: ValidatedQuestion, fieldNames: string[], value: string) => {
+			const req = { body: Object.fromEntries(fieldNames.map((fieldName) => [fieldName, value])) };
+
+			for (const validator of question.validators) {
+				for (const chain of validator.validate()) {
+					await chain.run(req as never);
+				}
+			}
+
+			return validationResult(req as never).array();
+		};
+
+		const floorspacePages = () => {
+			const questions = build();
+			return [
+				{ question: questions.floorspaceDetails, setId: FLOORSPACE_SET_ID.STANDARD },
+				{ question: questions.shopFloorspace, setId: FLOORSPACE_SET_ID.SHOP },
+				{ question: questions.netTradeableArea, setId: FLOORSPACE_SET_ID.NET_TRADEABLE }
+			];
+		};
+
+		const areaNames = (setId: string) => AREA_FIELDS.map((field) => areaFieldName(setId, field));
+
+		/** The first error on each input, which is the one shown against it. */
+		const firstErrorPerField = (errors: { path?: string; msg: unknown }[]) => {
+			const first = new Map<string, unknown>();
+			for (const error of errors) {
+				if (error.path !== undefined && !first.has(error.path)) first.set(error.path, error.msg);
+			}
+			return first;
+		};
+
+		for (const value of ['-20', '0', '150', '', '12.5', '-0.75', '9999999999.99', '-9999999999.99']) {
+			it(`accepts "${value}" on every floorspace input, as migrated cases carry negative and decimal figures`, async () => {
+				for (const { question, setId } of floorspacePages()) {
+					const errors = await errorsFor(question as unknown as ValidatedQuestion, areaNames(setId), value);
+					assert.deepStrictEqual(errors, [], setId);
+				}
+			});
+		}
+
+		for (const [value, message] of [
+			['-', FLOORSPACE_ERRORS.NUMBER],
+			['--3', FLOORSPACE_ERRORS.NUMBER],
+			['3-', FLOORSPACE_ERRORS.NUMBER],
+			['1.', FLOORSPACE_ERRORS.NUMBER],
+			['.5', FLOORSPACE_ERRORS.NUMBER],
+			['1,000', FLOORSPACE_ERRORS.NUMBER],
+			['abc', FLOORSPACE_ERRORS.NUMBER],
+			['10000000000', FLOORSPACE_ERRORS.MAX],
+			['-10000000000.5', FLOORSPACE_ERRORS.MAX],
+			['1.234', FLOORSPACE_ERRORS.DECIMAL_PLACES],
+			['-0.001', FLOORSPACE_ERRORS.DECIMAL_PLACES]
+		]) {
+			it(`rejects "${value}" on every floorspace input with "${message}"`, async () => {
+				for (const { question, setId } of floorspacePages()) {
+					const errors = await errorsFor(question as unknown as ValidatedQuestion, areaNames(setId), value);
+					const first = firstErrorPerField(errors);
+					assert.deepStrictEqual([...first.keys()], areaNames(setId), `${setId}: every input should error`);
+					assert.ok(
+						[...first.values()].every((msg) => msg === message),
+						`${setId}: got ${[...first.values()].join(' | ')}`
+					);
+				}
+			});
+		}
+
+		for (const value of ['-2', '1.5']) {
+			it(`still rejects "${value}" rooms, as only floorspace takes signed decimals`, async () => {
+				const errors = await errorsFor(build().rooms as unknown as ValidatedQuestion, [...ROOMS_FIELDS], value);
+				assert.strictEqual(errors.length, ROOMS_FIELDS.length);
+			});
+		}
 	});
 
 	describe('card rows', () => {

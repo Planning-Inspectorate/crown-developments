@@ -55,7 +55,10 @@ export function getNonResidentialTotals(answers: NonResidentialAnswers): NonResi
 	const totals: NonResidentialTotals = {};
 
 	for (const { field } of FLOORSPACE_TOTAL_FIELDS) {
-		totals[field] = entries.reduce((total, entry) => total + sumEntry(entry, field), 0);
+		const sum = entries.reduce((total, entry) => total + sumEntry(entry, field), 0);
+		// Figures carry up to 2 decimal places, and float addition drifts past them
+		// (0.1 + 0.2), so round back to the column's precision
+		totals[field] = Math.round(sum * 100) / 100 || 0;
 	}
 
 	return totals;
