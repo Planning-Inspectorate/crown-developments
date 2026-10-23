@@ -18,7 +18,7 @@
 						aria-hidden="true">{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}</span>
 			<span class="govuk-visually-hidden">Redacted representation comment</span>
 		{% else %}
-			{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}
+			<span class="pins-pre-line pins-overflow-break-word">{{ representation.representationComment }}{{ representation.truncatedReadMoreLink | safe }}</span>
 		{% endif %}
 	</p>
 	<div class="govuk-grid-row">

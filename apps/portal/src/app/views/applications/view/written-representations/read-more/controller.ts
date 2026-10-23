@@ -1,23 +1,54 @@
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
+import { fetchPublishedApplication } from '@pins/crowndev-lib/util/applications.ts';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { representationToViewModel } from '../../view-model.ts';
-import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { representationAttachmentsFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { buildWrittenRepresentationsReadMorePage } from '@pins/crowndev-lib/written-representations/read-more/controller.ts';
+import type { PortalService } from '#service';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.js';
+import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+
+const representationSelect = {
+	id: true,
+	reference: true,
+	submittedDate: true,
+	comment: true,
+	commentRedacted: true,
+	submittedByAgentOrgName: true,
+	submittedForId: true,
+	representedTypeId: true,
+	containsAttachments: true,
+	distressingContentInRepresentation: true,
+	SubmittedFor: { select: { displayName: true } },
+	SubmittedByContact: { select: { firstName: true, lastName: true } },
+	RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
+	Category: { select: { displayName: true } },
+	Attachments: {
+		where: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED },
+		select: {
+			itemId: true,
+			fileName: true,
+			redactedItemId: true,
+			redactedFileName: true,
+			statusId: true
+		}
+	}
+} satisfies Prisma.RepresentationSelect;
 
 /**
  * Render written representation read more page
- *
- * @param {import('#service').PortalService} service
- * @returns {import('express').RequestHandler}
  */
-export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePointDrive }) {
+export function buildCrownWrittenRepresentationsReadMorePage({
+	db,
+	logger,
+	sharePointDrive
+}: PortalService): AsyncRequestHandler {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
 		if (!isValidUuidFormat(id)) {
@@ -44,7 +75,7 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 		const { reference } = crownDevelopment;
 
 		const representationReference = req.params.representationReference;
-		if (!representationReference || !isValidUniqueReference(representationReference)) {
+		if (typeof representationReference !== 'string' || !isValidUniqueReference(representationReference)) {
 			return notFoundHandler(req, res);
 		}
 
@@ -53,39 +84,14 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				reference: representationReference,
 				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 			},
-			select: {
-				id: true,
-				reference: true,
-				submittedDate: true,
-				comment: true,
-				commentRedacted: true,
-				submittedByAgentOrgName: true,
-				submittedForId: true,
-				representedTypeId: true,
-				containsAttachments: true,
-				distressingContentInRepresentation: true,
-				SubmittedFor: { select: { displayName: true } },
-				SubmittedByContact: { select: { firstName: true, lastName: true } },
-				RepresentedContact: { select: { orgName: true, firstName: true, lastName: true } },
-				Category: { select: { displayName: true } },
-				Attachments: {
-					where: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED },
-					select: {
-						itemId: true,
-						fileName: true,
-						redactedItemId: true,
-						redactedFileName: true,
-						statusId: true
-					}
-				}
-			}
+			select: representationSelect
 		});
 
 		if (!representation) {
 			return notFoundHandler(req, res);
 		}
 
-		let documents;
+		let documents: DocumentViewModel[] = [];
 		if (representation.containsAttachments === true) {
 			const documentsToFetch = representation.Attachments;
 
@@ -99,34 +105,20 @@ export function buildWrittenRepresentationsReadMorePage({ db, logger, sharePoint
 				const folderPath = representationAttachmentsFolderPath(reference, representationReference);
 				const ids = documentsToFetch.map((doc) => doc.redactedItemId ?? doc.itemId).filter(Boolean);
 				const driveItems = await getDocumentsById({ sharePointDrive, folderPath, logger, ids });
-				documents = driveItems.map(mapDriveItemToViewModel).filter(Boolean);
+				documents = driveItems
+					.map(mapDriveItemToViewModel)
+					.filter((document): document is DocumentViewModel => document !== undefined);
 			}
 		}
 
-		const haveYourSayPeriod = {
-			start: new Date(crownDevelopment.representationsPeriodStartDate),
-			end: new Date(crownDevelopment.representationsPeriodEndDate)
-		};
-		const representationsPublishDate = crownDevelopment.representationsPublishDate;
 		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
-		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
-		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
-		res.render('views/applications/view/written-representations/read-more/view.njk', {
-			pageCaption: crownDevelopment.reference,
-			links: applicationLinks(
-				id,
-				haveYourSayPeriod,
-				representationsPublishDate,
-				displayApplicationUpdates,
-				applicationStatus
-			),
-			currentUrl: writtenRepresentationsUrl,
-			backLinkText: 'Back to list',
-			backLinkUrl: writtenRepresentationsUrl,
-			representationViewModel: representationToViewModel(representation),
-			containsDistressingContent: crownDevelopment.containsDistressingContent || false,
+		return buildWrittenRepresentationsReadMorePage(
+			crownDevelopment,
+			representation,
+			representationReference,
+			displayApplicationUpdates,
 			documents
-		});
+		)(req, res);
 	};
 }
