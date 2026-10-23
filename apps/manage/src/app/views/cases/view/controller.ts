@@ -7,7 +7,11 @@ import {
 	yesNoToBoolean
 } from '@planning-inspectorate/dynamic-forms';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import { crownDevelopmentToViewModel, type CrownDevelopmentViewModel } from './view-model.ts';
+import {
+	crownDevelopmentToViewModel,
+	type CrownDevelopmentAnswers,
+	type CrownDevelopmentViewModel
+} from './view-model.ts';
 import { mapNotes } from '@pins/crowndev-lib/case-notes/controller.ts';
 import { getQuestions } from './questions.ts';
 import { createJourney, JOURNEY_ID } from './journey.ts';
@@ -22,20 +26,14 @@ import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 import { CROWN_DEVELOPMENT_LINKED_CASE_SELECT, CROWN_DEVELOPMENT_VIEW_INCLUDE } from './payload-contracts.ts';
 import type { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import type { Response, Request, Handler, NextFunction } from 'express';
+import type { Response, Request } from 'express';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 import type { ManageService } from '#service';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { combineSessionAndDbData } from '@pins/crowndev-lib/util/merge-data.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
-
-/**
- * Get the journey answers
- */
-function getJourneyAnswers(res: Response): CrownDevelopmentViewModel | undefined {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-	return res.locals.journeyResponse?.answers;
-}
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
+import type { CaseViewLocals } from './locals.ts';
 
 /**
  * Get the HTML for a banner to show if the case is in an invalid state, e.g. missing required information.
@@ -99,7 +97,12 @@ export function getInvalidStateBannerHtml(
 /**
  * Get all banner messages to display.
  */
-async function getBannerMessages(id: string, res: Response, req: Request, db: ManageService['db']) {
+async function getBannerMessages(
+	id: string,
+	res: Response<unknown, CaseViewLocals>,
+	req: Request,
+	db: ManageService['db']
+) {
 	// Don't show success or info if there is an error
 	if (res.locals.errorSummary) {
 		return null;
@@ -121,12 +124,11 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		bannerBuilder.addLinkedCase(linkedCaseLink);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
+	const answers = res.locals.journeyResponse.answers;
+
+	const publishDate = answers.publishDate;
 	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 	const successParam = req.query.success;
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const casePublishSuccess = successParam === 'published' && casePublished;
 	if (casePublishSuccess) {
 		bannerBuilder.addSuccessText('Application published');
@@ -139,21 +141,16 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		return bannerBuilder.build();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const crownDevelopmentView = res.locals.originalAnswers;
 
 	const agentStatusUpdated = readSessionData(req, id, 'agentStatusUpdated', false);
 	const applicantOrgAdded = readSessionData(req, id, 'applicantOrgAdded', false);
 
-	if (crownDevelopmentView) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-		const invalidStateBannerHtml = getInvalidStateBannerHtml(crownDevelopmentView, {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-			relatedFieldUpdated: agentStatusUpdated || (applicantOrgAdded && crownDevelopmentView.hasAgent === 'no')
-		});
-		if (invalidStateBannerHtml) {
-			bannerBuilder.addInfoTrustedHtml(invalidStateBannerHtml);
-		}
+	const invalidStateBannerHtml = getInvalidStateBannerHtml(crownDevelopmentView, {
+		relatedFieldUpdated: agentStatusUpdated || (applicantOrgAdded && crownDevelopmentView.hasAgent === 'no')
+	});
+	if (invalidStateBannerHtml) {
+		bannerBuilder.addInfoTrustedHtml(invalidStateBannerHtml);
 	}
 
 	clearSessionData(req, id, 'agentStatusUpdated');
@@ -179,9 +176,15 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 /**
  * Controller for the case details page, which shows the case summary and the list of sections to manage.
  */
-export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, isAuditLive }: ManageService): Handler {
+export function buildViewCaseDetails({
+	db,
+	getSharePointDrive,
+	isCaseNotesLive,
+	isAuditLive
+}: ManageService): AsyncRequestHandlerWithLocals<CaseViewLocals> {
 	return async (req, res) => {
-		const reference = getJourneyAnswers(res)?.reference;
+		const answers = res.locals.journeyResponse.answers;
+		const reference = answers.reference;
 		if (!reference) {
 			throw new Error('Reference not found in journey answers');
 		}
@@ -195,18 +198,16 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, 
 		}
 		clearSessionData(req, id, 'publishErrors', 'cases');
 
-		const publishDate = getJourneyAnswers(res)?.publishDate;
+		const publishDate = answers.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 		const baseUrl = req.baseUrl;
 
 		const banner = await getBannerMessages(id, res, req, db);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const notes = res.locals.caseNotes ?? [];
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const allCaseNotesCount = res.locals.allCaseNotesCount ?? 0;
-		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
-		const lastModifiedDate = lastModified?.updatedDate ?? '-';
-		const lastModifiedBy = lastModified?.by ?? '-';
+		const lastModified = res.locals.lastModified;
+		const lastModifiedDate = lastModified.updatedDate ?? '-';
+		const lastModifiedBy = lastModified.by ?? '-';
 		const sharePointDrive = getSharePointDrive(req.session);
 		let sharePointLink: string | undefined;
 		if (sharePointDrive) {
@@ -277,11 +278,14 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
  * @param service
  * @param isQuestionView - whether this journey is for a question page (true) or the case details page (false).
  */
-export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean = false): Handler {
+export function buildGetJourneyMiddleware(
+	service: ManageService,
+	isQuestionView: boolean = false
+): AsyncRequestHandlerWithLocals<CaseViewLocals> {
 	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
-	return async (req: Request, res: Response, next: NextFunction) => {
+	return async (req, res, next) => {
 		const id = getStringParam(req.params, 'id');
 		const { section, manageListQuestion } = getOptionalStringParams(req.params, ['section', 'manageListQuestion']);
 
@@ -323,14 +327,14 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		const questions = getQuestions(groupMembers, overrides);
 
-		const sessionAnswers = getJourneyAnswers(res);
+		// The details route has no incoming session response before this middleware initialises it.
+		const sessionAnswers = res.locals.journeyResponse?.answers;
 
-		const finalAnswers = combineSessionAndDbData(viewModel, sessionAnswers);
+		const finalAnswers: CrownDevelopmentAnswers = { ...combineSessionAndDbData(viewModel, sessionAnswers) };
 
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...viewModel };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		// set a back link to the case details page when viewing a section/question not within a manage list question
@@ -350,7 +354,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 
 		res.locals.lastModified = lastModified;
 
-		next();
+		if (next) next();
 	};
 }
 
@@ -368,7 +372,6 @@ function clearAllSessionData(req: Request, res: Response, id: string) {
 
 	const errors = readSessionData<ErrorSummaryItem[]>(req, id, 'updateErrors', [], 'cases');
 	if (errors && errors.length > 0) {
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		res.locals.errorSummary = [...(res.locals.errorSummary ?? []), ...errors];
 	}
 	clearSessionData(req, id, 'updateErrors', 'cases');

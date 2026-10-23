@@ -40,8 +40,8 @@ import { resolveFieldValues, getFieldDisplayName } from '@pins/crowndev-lib/audi
 import type { Logger } from 'pino';
 import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
-import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { CROWN_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
+import type { CaseViewLocals } from './locals.ts';
 
 /**
  * Send a notification in the background and update the emailSent flag only on success.
@@ -102,23 +102,6 @@ function isClearableSaveKey(key: keyof CrownDevelopmentSaveModel): key is CrownD
 	return CLEARABLE_SAVE_KEY_SET.has(key as CrownDevelopmentClearableKey);
 }
 
-function isEntraMember(value: unknown): value is { id: string; displayName: string } {
-	if (!value || typeof value !== 'object') return false;
-
-	const member = value as { id?: unknown; displayName?: unknown };
-	return typeof member.id === 'string' && member.id.length > 0 && typeof member.displayName === 'string';
-}
-
-export function isEntraGroupMembers(value: unknown): value is EntraGroupMembers {
-	if (!value || typeof value !== 'object') return false;
-
-	const entraGroup = value as { caseOfficers?: unknown; inspectors?: unknown };
-	if (!Array.isArray(entraGroup.caseOfficers) || !Array.isArray(entraGroup.inspectors)) {
-		return false;
-	}
-
-	return entraGroup.caseOfficers.every(isEntraMember) && entraGroup.inspectors.every(isEntraMember);
-}
 /**
  * Scalar fields that should be audited when updated.
  * Only these fields will produce audit entries in recordAuditEntries.
@@ -228,15 +211,18 @@ function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): E
  * @param service - the manage service instance
  * @param clearAnswer - whether to clear the answer before saving
  */
-export function buildUpdateCase(service: ManageService, clearAnswer: boolean = false): SaveDataFn {
-	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: CrownDevelopmentSaveModel } }) => {
+export function buildUpdateCase(
+	service: ManageService,
+	clearAnswer: boolean = false
+): SaveDataFn<{ answers?: CrownDevelopmentSaveModel }, CaseViewLocals> {
+	return async ({ req, res, data }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
 		const userId = req.session?.account?.localAccountId;
 
 		logger.info({ id }, 'case update');
 
-		const toSave: CrownDevelopmentSaveModel = data?.answers || {};
+		const toSave = data?.answers || {};
 		if (clearAnswer) {
 			// clear the answer if requested
 			typedObjectKeys(toSave).forEach((key) => {
@@ -256,27 +242,23 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		const updatedFieldNames = Object.keys(toSave);
 		const answersSnapshot = { ...toSave };
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-		const fullViewModel = res.locals?.journeyResponse?.answers || {};
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
+		// The full (unmerged) view model is the single source of truth for pre-update state.
+		// This is always populated by the journey middleware before this handler runs.
+		const fullViewModel = res.locals.journeyResponse.answers;
+		const originalAnswers = res.locals.originalAnswers;
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		customUpdateCaseActions(service, id, toSave, fullViewModel);
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		if (toSave.hasAgent === false && fullViewModel.hasAgent === 'yes') {
 			addSessionData(req, id, { agentStatusUpdated: true });
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		if (toSave.hasAgent === true && fullViewModel.hasAgent === 'no') {
 			addSessionData(req, id, { agentStatusUpdated: true });
 		}
 
 		if (
 			toSave.manageApplicantDetails &&
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 			toSave.manageApplicantDetails.length > (fullViewModel.manageApplicantDetails?.length ?? 0)
 		) {
 			addSessionData(req, id, { applicantOrgAdded: true });
@@ -315,7 +297,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 				}
 
 				const viewModelForUpdates: CrownDevelopmentViewModel = { ...dbViewModel };
-				for (const [key, value] of typedObjectEntries(originalAnswers)) {
+				for (const [key, value] of typedObjectEntries<CrownDevelopmentViewModel>(originalAnswers)) {
 					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
 						setViewModelAnswer(viewModelForUpdates, key, value);
 					}
@@ -588,7 +570,7 @@ async function recordAuditEntries(
 	answersSnapshot: Record<string, unknown>,
 	updatedFieldNames: string[],
 	logger: Logger,
-	res: Response
+	res: Response<unknown, CaseViewLocals>
 ): Promise<void> {
 	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
 	// and will throw/log when missing. This avoids noisy error logs and wasted work.
@@ -609,18 +591,15 @@ async function recordAuditEntries(
 
 		// ── Entra group fields ────────────────────────────────────────────────
 		// check if groupmember with unique id's and convert to display name for audit entries
-		const rawGroupMembers: unknown = res.locals?.groupMembers;
-		const groupMembers = isEntraGroupMembers(rawGroupMembers) ? rawGroupMembers : undefined;
+		const groupMembers = res.locals.groupMembers;
 
 		const userDisplayNameMap = new Map<string, string>();
-		if (groupMembers) {
-			groupMembers.caseOfficers.forEach((member) => {
-				userDisplayNameMap.set(member.id, member.displayName);
-			});
-			groupMembers.inspectors.forEach((member) => {
-				userDisplayNameMap.set(member.id, member.displayName);
-			});
-		}
+		groupMembers.caseOfficers.forEach((member) => {
+			userDisplayNameMap.set(member.id, member.displayName);
+		});
+		groupMembers.inspectors.forEach((member) => {
+			userDisplayNameMap.set(member.id, member.displayName);
+		});
 
 		// ── Scalar fields ────────────────────────────────────────────────
 		for (const fieldName of updatedFieldNames) {
