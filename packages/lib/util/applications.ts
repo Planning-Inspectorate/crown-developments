@@ -89,6 +89,15 @@ export async function fetchPublishedS62aApplication({
 		publishDate: { lte: now }
 	} as Prisma.S62aDatesWhereInput;
 
+	// Exclude cases already published on the legacy GOV.UK service. The flag is nullable, so null is
+	// matched explicitly: `NOT: { publishedToLegacyGovUk: true }` would also drop the null rows.
+	// Appended to AND so any caller-supplied AND or OR is kept rather than overwritten.
+	const existingAnd = normalisedArgs.where.AND ?? [];
+	normalisedArgs.where.AND = [
+		...(Array.isArray(existingAnd) ? existingAnd : [existingAnd]),
+		{ OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }] }
+	];
+
 	if (normalisedArgs.select) {
 		const existingDatesSelect =
 			typeof normalisedArgs.select.S62aDates === 'object' ? normalisedArgs.select.S62aDates.select : {};

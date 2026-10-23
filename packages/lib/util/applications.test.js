@@ -123,7 +123,8 @@ describe('fetchPublishedS62aApplication', () => {
 						id: 's62a-1',
 						S62aDates: {
 							publishDate: { lte: fixedDate }
-						}
+						},
+						AND: [{ OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }] }]
 					});
 					assert.deepStrictEqual(args.include, {
 						S62aDates: true
@@ -232,5 +233,35 @@ describe('fetchPublishedS62aApplication', () => {
 			}
 		};
 		await fetchPublishedS62aApplication({ db, id: 's62a-5', args: { where: { id: 'other-id' } } });
+	});
+
+	it('should exclude cases published on the legacy GOV.UK service, keeping those where the flag is null', async () => {
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.deepStrictEqual(args.where.AND, [
+						{ OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }] }
+					]);
+					return null;
+				}
+			}
+		};
+		await fetchPublishedS62aApplication({ db, id: 's62a-6', args: {} });
+	});
+
+	it('should keep a caller-supplied AND clause alongside the legacy exclusion', async () => {
+		const callerClause = { reference: 'S62A/2026/0001' };
+		const db = {
+			s62aCase: {
+				findUnique: async (args) => {
+					assert.deepStrictEqual(args.where.AND, [
+						callerClause,
+						{ OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }] }
+					]);
+					return null;
+				}
+			}
+		};
+		await fetchPublishedS62aApplication({ db, id: 's62a-7', args: { where: { id: 's62a-7', AND: callerClause } } });
 	});
 });

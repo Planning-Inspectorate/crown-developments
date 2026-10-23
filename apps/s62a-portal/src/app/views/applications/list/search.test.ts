@@ -80,7 +80,15 @@ describe('list search', () => {
 
 	describe('buildListWhere', () => {
 		const now = new Date('2026-01-01T00:00:00.000Z');
-		const publishedClause = { S62aDates: { publishDate: { lte: now } } };
+		const publishedClause = {
+			S62aDates: { publishDate: { lte: now } },
+			OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]
+		};
+
+		it('should exclude cases published on the legacy GOV.UK service, keeping those where the flag is null', () => {
+			const [published] = buildListWhere(now, '').AND as Prisma.S62aCaseWhereInput[];
+			assert.deepStrictEqual(published.OR, [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]);
+		});
 
 		it('should only filter on published cases when there is no search term', () => {
 			assert.deepStrictEqual(buildListWhere(now, ''), { AND: [publishedClause] });
