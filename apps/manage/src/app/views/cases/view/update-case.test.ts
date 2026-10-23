@@ -3132,6 +3132,101 @@ describe('audit recording', () => {
 				assert.strictEqual(entries[0].metadata.newValue, '-');
 			});
 		});
+		describe('coordinates', () => {
+			it('should record a single audit entry for site coordinates when both values change', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({
+					siteEasting: 407128,
+					siteNorthing: 740060
+				});
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						siteEasting: '123456',
+						siteNorthing: '654321'
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].caseId, 'case-1');
+				assert.strictEqual(entries[0].action, AUDIT_ACTIONS.FIELD_UPDATED);
+				assert.strictEqual(entries[0].userId, 'user-123');
+				assert.strictEqual(entries[0].metadata.fieldName, 'Site coordinates');
+				assert.strictEqual(entries[0].metadata.oldValue, 'Easting: 407128, Northing: 740060');
+				assert.strictEqual(entries[0].metadata.newValue, 'Easting: 123456, Northing: 654321');
+			});
+			it('should not record an audit entry for site coordinates when values do not change', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({
+					siteEasting: 123456,
+					siteNorthing: 654321
+				});
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						siteEasting: 123456,
+						siteNorthing: 654321
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+
+				assert.strictEqual(entries.length, 0);
+			});
+			it('should record a single audit entry when only one coordinate value changes', async () => {
+				const logger = mockLogger();
+				const mockAudit = createMockAudit();
+				const mockDb = buildDbForAudit({
+					siteEasting: 407128,
+					siteNorthing: 740060
+				});
+
+				const updateCase = buildUpdateCase({ db: mockDb, logger, audit: mockAudit, isAuditLive: true });
+				const mockReq = {
+					params: { id: 'case-1' },
+					session: { account: { localAccountId: 'user-123' } }
+				};
+				const mockRes = { locals: {} };
+				const data = {
+					answers: {
+						siteEasting: 123456,
+						siteNorthing: 740060
+					}
+				};
+
+				await updateCase({ req: asReq(mockReq), res: asRes(mockRes), data } as any);
+
+				assert.strictEqual(mockAudit.recordMany.mock.callCount(), 1);
+				const entries = (mockAudit.recordMany.mock.calls[0] as any).arguments[0];
+
+				assert.strictEqual(entries.length, 1);
+				assert.strictEqual(entries[0].metadata.fieldName, 'Site coordinates');
+				assert.strictEqual(entries[0].metadata.oldValue, 'Easting: 407128, Northing: 740060');
+				assert.strictEqual(entries[0].metadata.newValue, 'Easting: 123456, Northing: 740060');
+			});
+		});
 
 		describe('costsApplicationsComment', () => {
 			it('should record LONG_FIELD_SET when costsApplicationsComment is set from empty', async () => {
