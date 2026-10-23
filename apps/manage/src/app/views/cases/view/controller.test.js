@@ -60,6 +60,10 @@ describe('case details', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 			assert.ok(mockRes.locals.journey);
 			assert.ok(mockRes.locals.journeyResponse);
+			assert.ok(mockRes.locals.originalAnswers);
+			assert.deepStrictEqual(mockRes.locals.groupMembers.caseOfficers, []);
+			assert.deepStrictEqual(mockRes.locals.groupMembers.inspectors, []);
+			assert.deepStrictEqual(mockRes.locals.lastModified, { updatedDate: null, by: null });
 		});
 		it('should render 404 if not found', async () => {
 			const mockReq = { params: { id: 'case-1' }, baseUrl: 'case-1', session: {} };
@@ -196,6 +200,8 @@ describe('case details', () => {
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.ok(viewData);
 			assert.strictEqual(viewData.reference, 'C/A/1');
+			assert.strictEqual(viewData.lastModifiedDate, '-');
+			assert.strictEqual(viewData.lastModifiedBy, '-');
 		});
 		it('should include case updated banner if present in session', async () => {
 			const mockRes = newMockRes();
