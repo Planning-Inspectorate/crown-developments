@@ -20,7 +20,7 @@ export function createRoutes<T, TService extends BaseService<PrismaClient> = Bas
 	onPublished?: CaseActionHook
 ) {
 	const router = createRouter({ mergeParams: true });
-	const publishController = buildPublishCase(service, publishCaseFunction, onPublished);
+	const publishController = buildPublishCase(service, publishCaseFunction, fetchedCase, onPublished);
 	const getCaseMiddleware = buildGetValidatedCaseMiddleware(service, fetchedCase, answerValidation);
 	const getJourney = asyncHandler(journeyMiddlewareFunction(service, false));
 	router.get('/', getJourney, getCaseMiddleware, asyncHandler(publishController));

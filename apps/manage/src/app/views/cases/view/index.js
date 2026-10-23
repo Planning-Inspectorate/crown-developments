@@ -25,7 +25,9 @@ import {
 	fetchCrownPublishCase,
 	unpublishCrownCase,
 	fetchCrownUnpublishCase,
-	answerValidation
+	answerValidation,
+	createPublishAuditHook,
+	createUnpublishAuditHook
 } from './publish.ts';
 import { CROWN_AUDIT_TEMPLATES } from '../audit/actions.ts';
 
@@ -43,14 +45,24 @@ export function createRoutes(service) {
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
+	const publishAuditHook = buildCaseAuditHook(service, createPublishAuditHook);
+	const unpublishAuditHook = buildCaseAuditHook(service, createUnpublishAuditHook);
+
 	const publishCase = createCasePublishRoutes(
 		service,
 		buildGetJourneyMiddleware,
 		publishCrownCase,
 		fetchCrownPublishCase,
-		answerValidation
+		answerValidation,
+		publishAuditHook
 	);
-	const unpublishCase = createCaseUnpublishRoutes(service, unpublishCrownCase, fetchCrownUnpublishCase);
+
+	const unpublishCase = createCaseUnpublishRoutes(
+		service,
+		unpublishCrownCase,
+		fetchCrownUnpublishCase,
+		unpublishAuditHook
+	);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
@@ -110,4 +122,23 @@ export function createRoutes(service) {
 	router.post('/:section/:question/remove', validateIdFormat, getQuestionJourney, asyncHandler(clearAndUpdateCase));
 
 	return router;
+}
+
+/**
+ * @param {import('#service').ManageService} service
+ * @param {(service: import('#service').ManageService, caseReference: string) => import('@pins/crowndev-lib/util/types.ts').CaseActionHook} createAuditHook
+ * @returns {(req: any, caseId: string) => Promise<void>}
+ */
+function buildCaseAuditHook(service, createAuditHook) {
+	return async (req, caseId) => {
+		const caseReference = req.caseReference;
+
+		if (!caseReference) {
+			service.logger?.warn({ caseId }, 'No case reference available');
+			return;
+		}
+
+		const auditHook = createAuditHook(service, caseReference);
+		await auditHook(req, caseId);
+	};
 }

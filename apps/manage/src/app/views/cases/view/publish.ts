@@ -1,5 +1,11 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { AnswerValidationError } from '@pins/crowndev-lib/util/types.ts';
+import type { AnswerValidationError, CaseActionHook } from '@pins/crowndev-lib/util/types.ts';
+import type { Request } from 'express';
+import type { ManageService } from '#service';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
+import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
 
 export function publishCrownCase(db: PrismaClient, id: string) {
 	return db.crownDevelopment.update({
@@ -63,4 +69,47 @@ export async function fetchCrownUnpublishCase(db: PrismaClient, id: string) {
 	return await db.crownDevelopment.findUnique({
 		where: { id }
 	});
+}
+
+function buildAuditHook(service: ManageService, caseReference: string, action: string): CaseActionHook {
+	return async (req: Request, caseId: string) => {
+		if (!service.audit) {
+			service.logger?.warn({ caseId }, 'Audit service not available');
+			return;
+		}
+
+		if (!service.isAuditLive) {
+			service.logger?.info({ caseId }, 'Audit is not live, skipping audit record');
+			return;
+		}
+
+		await recordAuditSafely({
+			service,
+			dataModel: CASE_DATA_MODEL.CROWN,
+			entries: [
+				{
+					caseId,
+					userId: getAuditUserId(req.session?.account?.localAccountId),
+					action,
+					metadata: {
+						reference: caseReference
+					}
+				}
+			],
+			logContext: { caseId }
+		});
+	};
+}
+/**
+ * Hook that records a CASE_PUBLISHED audit event.
+ */
+export function createPublishAuditHook(service: ManageService, caseReference: string): CaseActionHook {
+	return buildAuditHook(service, caseReference, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED);
+}
+
+/**
+ * Hook that records a CASE_UNPUBLISHED audit event.
+ */
+export function createUnpublishAuditHook(service: ManageService, caseReference: string): CaseActionHook {
+	return buildAuditHook(service, caseReference, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED);
 }
