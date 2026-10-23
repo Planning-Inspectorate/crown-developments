@@ -1,8 +1,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
 import { buildS62aUpdateCase } from './update-case.ts';
-import type { Request, Response } from 'express';
-import type { SaveParams } from '@planning-inspectorate/dynamic-forms';
+import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import type { ManageService } from '../../../../service.js';
 import {
 	PRE_APPLICATION_ADVICE_ID,
@@ -11,6 +10,17 @@ import {
 import { FOLDER_SYNC_RESULT } from '../util/folders.ts';
 
 type FolderUpdateArgs = { where: { id: string }; data: { deletedAt: Date | null } };
+type S62aUpdateCaseParams = Parameters<ReturnType<typeof buildS62aUpdateCase>>[0];
+
+const makeSaveParams = (data: S62aUpdateCaseParams['data'], req: object, res: object): S62aUpdateCaseParams => ({
+	req: asReq(req),
+	res: asRes(res) as S62aUpdateCaseParams['res'],
+	data,
+	journeyId: 's62a-case-update',
+	referenceId: 'case-123',
+	isManageListItem: false,
+	isDynamicSection: false
+});
 
 describe('buildS62aUpdateCase', () => {
 	let mockDbSelectCalls: any[];
@@ -24,8 +34,8 @@ describe('buildS62aUpdateCase', () => {
 	let deletedAdviceFolder: { id: string } | null;
 	let caseRecord: Record<string, unknown>;
 	let mockService: ManageService;
-	let mockReq: Partial<Request>;
-	let mockRes: Partial<Response>;
+	let mockReq: object;
+	let mockRes: object;
 
 	beforeEach(() => {
 		mockDbUpdateCalls = [];
@@ -85,7 +95,7 @@ describe('buildS62aUpdateCase', () => {
 		mockReq = {
 			params: { id: 'case-123' },
 			session: {}
-		} as unknown as Request;
+		};
 
 		mockRes = {};
 	});
@@ -93,11 +103,7 @@ describe('buildS62aUpdateCase', () => {
 	it('bails early and does not call DB if answers payload is empty', async () => {
 		const handler = buildS62aUpdateCase(mockService);
 
-		await handler({
-			req: mockReq,
-			res: mockRes,
-			data: { answers: {} }
-		} as unknown as SaveParams);
+		await handler(makeSaveParams({ answers: {} }, mockReq, mockRes));
 
 		assert.strictEqual(mockDbUpdateCalls.length, 0, 'Database update should not be called');
 		assert.strictEqual(mockLoggerInfoCalls[1]?.msg, 'No case updates to apply', 'Should log the early exit reason');
@@ -106,11 +112,7 @@ describe('buildS62aUpdateCase', () => {
 	it('bails early and does not call DB if answers do not map to any valid update fields', async () => {
 		const handler = buildS62aUpdateCase(mockService);
 
-		await handler({
-			req: mockReq,
-			res: mockRes,
-			data: { answers: { developmentDescription: undefined } }
-		} as unknown as SaveParams);
+		await handler(makeSaveParams({ answers: { developmentDescription: undefined } }, mockReq, mockRes));
 
 		assert.strictEqual(mockDbUpdateCalls.length, 0, 'Database update should not be called');
 		assert.strictEqual(
@@ -123,11 +125,7 @@ describe('buildS62aUpdateCase', () => {
 	it('successfully calls Prisma update with mapped input and current date', async () => {
 		const handler = buildS62aUpdateCase(mockService);
 
-		await handler({
-			req: mockReq,
-			res: mockRes,
-			data: { answers: { developmentDescription: 'An updated description' } }
-		} as unknown as SaveParams);
+		await handler(makeSaveParams({ answers: { developmentDescription: 'An updated description' } }, mockReq, mockRes));
 
 		assert.strictEqual(mockDbUpdateCalls.length, 1, 'Database update should be called exactly once');
 
@@ -148,21 +146,48 @@ describe('buildS62aUpdateCase', () => {
 		const handler = buildS62aUpdateCase(mockService);
 
 		await assert.rejects(async () => {
-			await handler({
-				req: mockReq,
-				res: mockRes,
-				data: { answers: { developmentDescription: 'Valid update' } }
-			} as unknown as SaveParams);
+			await handler(makeSaveParams({ answers: { developmentDescription: 'Valid update' } }, mockReq, mockRes));
 		});
 	});
 
+	it('saves boolean answers and numeric text through the mapper', async () => {
+		const handler = buildS62aUpdateCase(mockService);
+
+		await handler(
+			makeSaveParams(
+				{
+					answers: {
+						hasAgent: true,
+						hasSecondaryLpa: false,
+						siteAreaHectares: '2.5',
+						pressNoticeCost: '500.50'
+					}
+				},
+				mockReq,
+				mockRes
+			)
+		);
+
+		assert.strictEqual(mockDbUpdateCalls.length, 1);
+		const { data } = mockDbUpdateCalls[0];
+		assert.strictEqual(data.hasAgent, true);
+		assert.strictEqual(data.hasSecondaryLpa, false);
+		assert.strictEqual(data.siteAreaInSquareMetres.toNumber(), 25000);
+		assert.strictEqual(data.pressNoticeCost.toNumber(), 500.5);
+	});
+
+	it('clears numeric answers when removing and saving', async () => {
+		const handler = buildS62aUpdateCase(mockService, true);
+
+		await handler(makeSaveParams({ answers: { pressNoticeCost: '500.50' } }, mockReq, mockRes));
+
+		assert.strictEqual(mockDbUpdateCalls.length, 1);
+		assert.strictEqual(mockDbUpdateCalls[0].data.pressNoticeCost, null);
+	});
+
 	describe('pre-application advice folder', () => {
-		const save = (answers: Record<string, unknown>) =>
-			buildS62aUpdateCase(mockService)({
-				req: mockReq,
-				res: mockRes,
-				data: { answers }
-			} as unknown as SaveParams);
+		const save = (answers: NonNullable<S62aUpdateCaseParams['data']['answers']>) =>
+			buildS62aUpdateCase(mockService)(makeSaveParams({ answers }, mockReq, mockRes));
 
 		const onApplication = () => {
 			caseRecord = { id: 'case-123', applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION };
@@ -273,12 +298,8 @@ describe('buildS62aUpdateCase', () => {
 	describe('derived dates audit', () => {
 		let auditEntries: Array<{ action: string; metadata?: Record<string, unknown> }>;
 
-		const save = (answers: Record<string, unknown>) =>
-			buildS62aUpdateCase(mockService)({
-				req: mockReq,
-				res: mockRes,
-				data: { answers }
-			} as unknown as SaveParams);
+		const save = (answers: NonNullable<S62aUpdateCaseParams['data']['answers']>) =>
+			buildS62aUpdateCase(mockService)(makeSaveParams({ answers }, mockReq, mockRes));
 
 		const savedTargetPublishDate = () => mockDbUpdateCalls.at(-1).data.S62aDates.upsert.update.targetPublishDate;
 
@@ -290,12 +311,12 @@ describe('buildS62aUpdateCase', () => {
 		beforeEach(() => {
 			auditEntries = [];
 			auditErrors = [];
-			mockRes = { locals: { fieldDisplayNames: {} } } as unknown as Partial<Response>;
+			mockRes = { locals: { fieldDisplayNames: {} } };
 			mockReq = {
 				params: { id: 'case-123' },
 				// Match however update-case.ts reads the user ID from the session
 				session: { account: { localAccountId: 'user-1' } }
-			} as unknown as Request;
+			};
 			Object.assign(mockService, {
 				audit: {
 					recordMany: async (entries: typeof auditEntries) => {

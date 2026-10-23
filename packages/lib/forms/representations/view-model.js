@@ -39,7 +39,7 @@ const UNMAPPED_VIEW_MODEL_FIELDS = Object.freeze([
  * as unneeded parameters will simply be ignored. This is different to anything destructive (saving)
  *
  * @param {import('@pins/crowndev-database').Prisma.RepresentationGetPayload<{include: {SubmittedByContact: true, RepresentedContact: true}}>} representation
- * @param {string} [applicationReference]
+ * @param {string} applicationReference
  * @returns {import('./types.js').HaveYourSayManageModel}
  */
 export function representationToManageViewModel(representation, applicationReference) {
@@ -463,7 +463,7 @@ export function viewModelToS62aRepresentationCreateInput(answers, reference, app
 }
 
 /**
- * @param {import('./types.js').HaveYourSayManageModel} edits
+ * @param {import('./types.js').HaveYourSaySaveModel} edits
  * @param {import('./types.js').HaveYourSayManageModel} viewModel
  * @returns {import('@pins/crowndev-database/src/client/client.ts').Prisma.S62aRepresentationUpdateInput}
  */
@@ -550,7 +550,7 @@ export function s62aEditsToDatabaseUpdates(edits, viewModel) {
 }
 
 /**
- * @param {import('./types.js').HaveYourSayManageModel} edits
+ * @param {import('./types.js').HaveYourSaySaveModel} edits
  * @param {import('./types.js').HaveYourSayManageModel} viewModel
  * @returns {import('@pins/crowndev-database').Prisma.RepresentationUpdateInput}
  */

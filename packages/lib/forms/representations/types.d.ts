@@ -7,10 +7,44 @@ export type HaveYourSayViewModel = HaveYourSay.Common & (HaveYourSay.Myself | Ha
 
 /**
  * The view model used for have-your-say review & view in the manage app
+ *
+ * Includes an index signature so it's assignable to the `Record<string, unknown>`-based
+ * locals/answers types used by the dynamic forms journey machinery (see `BaseLocals`).
  */
 export type HaveYourSayManageModel = HaveYourSayViewModel & HaveYourSay.InternalFields;
 
+export type HaveYourSayManageAnswers = HaveYourSayManageModel & Record<string, unknown>;
+
 export type HaveYourSayManageModelFields = keyof HaveYourSayManageModel;
+
+type RepresentationSaveFields<T> = {
+	[K in keyof T]?: K extends
+		| 'myselfContainsAttachments'
+		| 'submitterContainsAttachments'
+		| 'myselfWithholdName'
+		| 'submitterWithholdName'
+		| 'myselfHearingPreference'
+		| 'submitterHearingPreference'
+		| 'containsAttachments'
+		| 'distressingContentInRepresentation'
+		? boolean
+		: T[K];
+};
+
+/**
+ * Per-question save answers, rather than a complete representation view model.
+ * Upload fields contain draft attachment references and folder creation is saved as a boolean.
+ */
+export type HaveYourSaySaveModel = RepresentationSaveFields<
+	HaveYourSay.Common &
+		Omit<HaveYourSay.InternalFields, 'sharePointFolderCreated'> &
+		(HaveYourSay.Myself | HaveYourSay.OnBehalfOf)
+> & {
+	sharePointFolderCreated?: boolean;
+	withdrawalRequests?: HaveYourSay.Attachment[];
+	ajaxWithdrawalRequests?: HaveYourSay.Attachment[];
+	manageGroupDetails?: HaveYourSay.GroupMember[];
+};
 
 export namespace HaveYourSay {
 	/**
@@ -26,19 +60,22 @@ export namespace HaveYourSay {
 	export interface InternalFields {
 		reference: string;
 		statusId: string;
-		submittedDate: string | Date;
+		submittedDate: Date;
 		submittedReceivedMethodId: string;
 		submissionMethodReason?: string;
 		categoryId?: string;
 		wantsToBeHeard?: boolean;
-		containsAttachments: boolean;
-		sharePointFolderCreated?: string;
+		containsAttachments: YesNo;
+		sharePointFolderCreated?: YesNo;
 		commentRedacted?: string;
 		distressingContentInRepresentation?: YesNo;
-		distressingContentInRepresentationShowManageAction?: boolean;
+		distressingContentInRepresentationShowManageAction?: YesNo;
+		withdrawalRequestDate?: Date;
+		withdrawalReasonId?: string;
+		dateWithdrawn?: Date;
 
-		readonly applicationReference?: string;
-		readonly requiresReview?: boolean;
+		readonly applicationReference: string;
+		readonly requiresReview: boolean;
 		readonly submittedByContactId?: string;
 		readonly representedContactId?: string;
 		readonly submittedByAddressId?: string;
@@ -59,12 +96,14 @@ export namespace HaveYourSay {
 		myselfRedactedAttachments?: Attachment[];
 		myselfContainsAttachments?: YesNo;
 		myselfWithholdName?: YesNo;
+		myselfHearingPreference?: YesNo;
 		/** any 'submitter' keys that are dynamically accessed */
 		submitterAttachments?: never;
 		submitterBlobAttachments?: never;
 		submitterRedactedAttachments?: never;
 		submitterContainsAttachments?: never;
 		submitterWithholdName?: never;
+		submitterHearingPreference?: never;
 	}
 
 	/**
@@ -83,18 +122,20 @@ export namespace HaveYourSay {
 		submitterBlobAttachments?: Attachment[];
 		submitterContainsAttachments?: YesNo;
 		submitterWithholdName?: YesNo;
+		submitterHearingPreference?: YesNo;
 		/** any 'myself' keys that are dynamically accessed */
 		myselfAttachments?: never;
 		myselfRedactedAttachments?: never;
 		myselfBlobAttachments?: never;
 		myselfContainsAttachments?: never;
 		myselfWithholdName?: never;
+		myselfHearingPreference?: never;
 	};
 
 	/**
 	 * On behalf of have-your-say journey specific field options
 	 */
-	export type OnBehalfOfOptions = OnBehalfOfPerson | OnBehalfOfOrg | OnBehalfOfOrgNotWorkFor;
+	export type OnBehalfOfOptions = OnBehalfOfPerson | OnBehalfOfOrg | OnBehalfOfOrgNotWorkFor | OnBehalfOfGroup;
 
 	/**
 	 * On behalf of a person have-your-say fields
@@ -119,10 +160,27 @@ export namespace HaveYourSay {
 		representedOrgName: string;
 	};
 
+	/**
+	 * On behalf of a group of people have-your-say fields (S62A only)
+	 */
+	export type OnBehalfOfGroup = IsAgent & {
+		groupName?: string;
+		manageGroupDetails?: GroupMember[];
+	};
+
 	export interface IsAgent {
 		isAgent: boolean;
 		agentOrgName?: string;
 	}
+
+	/**
+	 * A single person's details within a group representation's `manageGroupDetails` list
+	 */
+	export type GroupMember = {
+		id?: string;
+		groupRepresentedFirstName?: string;
+		groupRepresentedLastName?: string;
+	};
 
 	/**
 	 * The shape used by attachments in view model

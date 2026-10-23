@@ -5,7 +5,7 @@ import {
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
+import type { S62aCreateCaseAnswers } from './s62a-case-mapper.ts';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { Request, Response } from 'express';
 import { ManageService } from '#service';
@@ -179,7 +179,7 @@ describe('S62A Save Controller Module', () => {
 
 	describe('toCreateInput wrapper', () => {
 		it('instantiates the mapper and returns a valid Prisma payload', () => {
-			const mockAnswers: CreateCaseAnswers = {
+			const mockAnswers: S62aCreateCaseAnswers = {
 				applicationType: 'planning-permission',
 				lpaId: 'lpa-123',
 				developmentDescription: 'Test development',
@@ -236,7 +236,7 @@ describe('S62A Save Controller Module', () => {
 		});
 
 		describe('pre-application link check', () => {
-			const baseAnswers: CreateCaseAnswers = {
+			const baseAnswers: S62aCreateCaseAnswers = {
 				applicationType: 'planning-permission',
 				lpaId: 'lpa-123',
 				developmentDescription: 'Test development',
@@ -271,7 +271,7 @@ describe('S62A Save Controller Module', () => {
 				return { service, findFirst, create, folderCreate };
 			}
 
-			function mockReqRes(answers: CreateCaseAnswers) {
+			function mockReqRes(answers: S62aCreateCaseAnswers) {
 				const req = { baseUrl: '/s62a/cases/create-a-case', session: {} } as unknown as Request;
 				const res = {
 					locals: { journeyResponse: { answers } },
@@ -434,7 +434,7 @@ describe('S62A Save Controller Module', () => {
 		});
 
 		describe('case history', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				applicationType: 'planning-permission',
 				lpaId: 'lpa-123',
 				developmentDescription: 'Test development',

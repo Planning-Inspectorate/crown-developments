@@ -11,7 +11,7 @@ import type { YesNo } from '@pins/crowndev-lib/util/types.ts';
 import { type Address, yesNoToBoolean } from '@planning-inspectorate/dynamic-forms';
 import type { AgentContactAnswer, ApplicantContactAnswer, ApplicantOrganisationAnswer } from '../util/party-types.ts';
 
-export interface CreateCaseAnswers {
+export interface S62aCreateCaseAnswers {
 	// LPA Details
 	lpaId: string;
 	lpaFirstName?: string;
@@ -79,12 +79,12 @@ export interface CreateInputOptions {
  * and nests.
  */
 export class S62aCaseMapper {
-	private answers: CreateCaseAnswers;
+	private answers: S62aCreateCaseAnswers;
 	private reference: string;
 	private options: CreateInputOptions;
 	private startingStatus: string;
 
-	constructor(answers: CreateCaseAnswers, reference: string, options: CreateInputOptions = {}) {
+	constructor(answers: S62aCreateCaseAnswers, reference: string, options: CreateInputOptions = {}) {
 		this.answers = answers;
 		this.startingStatus = this.getStartingStatus();
 		this.reference = reference;
@@ -395,7 +395,7 @@ export class S62aCaseMapper {
 		};
 	}
 
-	private hasAnswer(key: keyof CreateCaseAnswers): boolean {
+	private hasAnswer(key: keyof S62aCreateCaseAnswers): boolean {
 		const value = this.answers[key];
 		return Array.isArray(value) ? value.length > 0 : Boolean(value);
 	}
