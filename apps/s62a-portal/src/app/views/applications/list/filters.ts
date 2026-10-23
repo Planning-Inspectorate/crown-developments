@@ -4,6 +4,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { sanitiseQueryToStringArray } from '@pins/crowndev-lib/filters/filter-utils.ts';
 import type { CheckboxFilter } from '@pins/crowndev-lib/filters/filter-types.ts';
 import { buildUrlWithParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { buildPublishedWhere } from './search.ts';
 
 export const LPA_PARAM = 'lpa';
 const LPA_FILTER_LABEL = 'Local planning authority';
@@ -32,7 +33,7 @@ export interface ActiveFilterTag {
  * search or filter, so the counts stay the same as the user narrows the list.
  */
 export async function getLpaOptions(db: S62APortalService['db'], now: Date): Promise<LpaOption[]> {
-	const published: Prisma.S62aCaseWhereInput = { S62aDates: { publishDate: { lte: now } } };
+	const published: Prisma.S62aCaseWhereInput = buildPublishedWhere(now);
 
 	const lpas = await db.lpa.findMany({
 		where: { OR: [{ S62aCases: { some: published } }, { SecondaryS62aCases: { some: published } }] },

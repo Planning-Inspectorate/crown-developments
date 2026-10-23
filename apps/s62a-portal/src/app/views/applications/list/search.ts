@@ -44,9 +44,16 @@ function termClause(term: string): Prisma.S62aCaseWhereInput {
 	};
 }
 
-/** Cases that have been published */
+/**
+ * Cases that have been published, excluding those already published on the legacy GOV.UK service.
+ * The flag is nullable, so null is matched explicitly: `NOT: { publishedToLegacyGovUk: true }`
+ * would compile to `<> 1` in SQL Server and silently drop the null rows too.
+ */
 export function buildPublishedWhere(now: Date): Prisma.S62aCaseWhereInput {
-	return { S62aDates: { publishDate: { lte: now } } };
+	return {
+		S62aDates: { publishDate: { lte: now } },
+		OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]
+	};
 }
 
 /** Published cases, narrowed by LPA selection and search term. Every search term must match somewhere. */

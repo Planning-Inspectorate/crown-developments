@@ -63,7 +63,10 @@ describe('list filters', () => {
 			await getLpaOptions(db, now);
 
 			const args = findMany.mock.calls[0].arguments[0] as any;
-			const published = { S62aDates: { publishDate: { lte: now } } };
+			const published = {
+				S62aDates: { publishDate: { lte: now } },
+				OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]
+			};
 			assert.deepStrictEqual(args.where, {
 				OR: [{ S62aCases: { some: published } }, { SecondaryS62aCases: { some: published } }]
 			});
@@ -76,7 +79,10 @@ describe('list filters', () => {
 			await getLpaOptions(db, now);
 
 			const args = findMany.mock.calls[0].arguments[0] as any;
-			const published = { S62aDates: { publishDate: { lte: now } } };
+			const published = {
+				S62aDates: { publishDate: { lte: now } },
+				OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]
+			};
 			assert.deepStrictEqual(args.select._count.select, {
 				S62aCases: { where: published },
 				SecondaryS62aCases: { where: published }
