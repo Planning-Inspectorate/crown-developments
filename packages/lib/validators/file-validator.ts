@@ -262,7 +262,7 @@ export class FileValidator {
 	}
 
 	private async isPdfPasswordProtected(buffer: Buffer): Promise<boolean> {
-		const data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+		const data = Uint8Array.from(buffer);
 		const loadingTask = getDocument({ data });
 
 		try {
