@@ -150,3 +150,12 @@ export function validateIdFormat(req: Request, res: Response, next: NextFunction
 	}
 	next();
 }
+
+/**
+ * Trims whitespace from beginning and end and replaces
+ * multiple spaces in the middle with only 1.
+ */
+export function sanitisePath(name: string): string {
+	if (typeof name !== 'string') return '';
+	return name.trim().replace(/\s\s+/g, ' ');
+}
