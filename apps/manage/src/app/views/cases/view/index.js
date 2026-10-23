@@ -45,8 +45,8 @@ export function createRoutes(service) {
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
-	const publishAuditHook = buildCaseAuditHook(service, createPublishAuditHook, 'publish');
-	const unpublishAuditHook = buildCaseAuditHook(service, createUnpublishAuditHook, 'unpublish');
+	const publishAuditHook = buildCaseAuditHook(service, createPublishAuditHook);
+	const unpublishAuditHook = buildCaseAuditHook(service, createUnpublishAuditHook);
 
 	const publishCase = createCasePublishRoutes(
 		service,
@@ -61,10 +61,8 @@ export function createRoutes(service) {
 		service,
 		unpublishCrownCase,
 		fetchCrownUnpublishCase,
-		undefined,
 		unpublishAuditHook
 	);
-
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
@@ -128,31 +126,19 @@ export function createRoutes(service) {
 
 /**
  * @param {import('#service').ManageService} service
- * @param {(audit: any, caseReference: string, isAuditLive: boolean) => import('@pins/crowndev-lib/util/types.ts').CaseActionHook} createAuditHook
- * @param {'publish' | 'unpublish'} eventName
- * @returns {import('@pins/crowndev-lib/util/types.ts').CaseActionHook}
+ * @param {(service: import('#service').ManageService, caseReference: string) => import('@pins/crowndev-lib/util/types.ts').CaseActionHook} createAuditHook
+ * @returns {(req: any, caseId: string) => Promise<void>}
  */
-function buildCaseAuditHook(service, createAuditHook, eventName) {
+function buildCaseAuditHook(service, createAuditHook) {
 	return async (req, caseId) => {
-		if (!service.audit || service.isAuditLive === false) {
+		const caseReference = req.caseReference;
+
+		if (!caseReference) {
+			service.logger?.warn({ caseId }, 'No case reference available');
 			return;
 		}
 
-		const caseData = await service.db.crownDevelopment
-			.findUnique({
-				where: { id: caseId },
-				select: { reference: true }
-			})
-			.catch((error) => {
-				service.logger.error({ err: error, caseId }, `Failed to record the case ${eventName} audit event`);
-				return null;
-			});
-
-		if (!caseData?.reference) {
-			return;
-		}
-
-		const auditHook = createAuditHook(service.audit, caseData.reference, service.isAuditLive !== false);
+		const auditHook = createAuditHook(service, caseReference);
 		await auditHook(req, caseId);
 	};
 }

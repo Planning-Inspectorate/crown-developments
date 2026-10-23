@@ -1,9 +1,11 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 import type { AnswerValidationError, CaseActionHook } from '@pins/crowndev-lib/util/types.ts';
 import type { Request } from 'express';
-import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
+import type { ManageService } from '#service';
 import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
+import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
 
 export function publishCrownCase(db: PrismaClient, id: string) {
 	return db.crownDevelopment.update({
@@ -69,57 +71,45 @@ export async function fetchCrownUnpublishCase(db: PrismaClient, id: string) {
 	});
 }
 
-function buildAuditHook(
-	audit: AuditService,
-	caseReference: string,
-	action: string,
-	isAuditLive: boolean
-): CaseActionHook {
+function buildAuditHook(service: ManageService, caseReference: string, action: string): CaseActionHook {
 	return async (req: Request, caseId: string) => {
-		if (!isAuditLive) {
+		if (!service.audit) {
+			service.logger?.warn({ caseId }, 'Audit service not available');
 			return;
 		}
 
-		const userId = req.session?.account?.localAccountId || 'Unknown-user';
-
-		try {
-			await audit.recordMany(
-				[
-					{
-						caseId,
-						action,
-						userId,
-						metadata: {
-							reference: caseReference
-						}
-					}
-				],
-				CASE_DATA_MODEL.CROWN
-			);
-		} catch {
-			// Audit failures should never block the operation
+		if (!service.isAuditLive) {
+			service.logger?.info({ caseId }, 'Audit is not live, skipping audit record');
+			return;
 		}
+
+		await recordAuditSafely({
+			service,
+			dataModel: CASE_DATA_MODEL.CROWN,
+			entries: [
+				{
+					caseId,
+					userId: getAuditUserId(req.session?.account?.localAccountId),
+					action,
+					metadata: {
+						reference: caseReference
+					}
+				}
+			],
+			logContext: { caseId }
+		});
 	};
 }
-
 /**
  * Hook that records a CASE_PUBLISHED audit event.
  */
-export function createPublishAuditHook(
-	audit: AuditService,
-	caseReference: string,
-	isAuditLive: boolean
-): CaseActionHook {
-	return buildAuditHook(audit, caseReference, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED, isAuditLive);
+export function createPublishAuditHook(service: ManageService, caseReference: string): CaseActionHook {
+	return buildAuditHook(service, caseReference, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED);
 }
 
 /**
  * Hook that records a CASE_UNPUBLISHED audit event.
  */
-export function createUnpublishAuditHook(
-	audit: AuditService,
-	caseReference: string,
-	isAuditLive: boolean
-): CaseActionHook {
-	return buildAuditHook(audit, caseReference, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED, isAuditLive);
+export function createUnpublishAuditHook(service: ManageService, caseReference: string): CaseActionHook {
+	return buildAuditHook(service, caseReference, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED);
 }
