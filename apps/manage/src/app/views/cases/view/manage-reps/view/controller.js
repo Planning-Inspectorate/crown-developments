@@ -10,6 +10,11 @@ import { buildRepresentationQuestions } from '@pins/crowndev-lib/forms/represent
 
 /**
  * @typedef {import('express').Handler} Handler
+ * @typedef {import('@pins/crowndev-lib/types/express-locals.ts').BaseLocals & {
+ *   journey: import('@planning-inspectorate/dynamic-forms').Journey,
+ *   journeyResponse: import('@planning-inspectorate/dynamic-forms').JourneyResponseLike<import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel>,
+ *   originalAnswers: import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel
+ * }} RepresentationViewLocals
  */
 
 /**
@@ -33,7 +38,7 @@ export function validateParams(params) {
 
 /**
  * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * @param {import('express').Response<unknown, RepresentationViewLocals>} res
  * @param {Object<string, *>} [viewData]
  */
 export async function renderRepresentation(req, res, viewData = {}) {
@@ -68,9 +73,13 @@ export async function renderRepresentation(req, res, viewData = {}) {
  * Fetch the representation from the database to create the journey
  *
  * @param {import('#service').ManageService} service
- * @returns {import('express').Handler}
  */
 export function buildGetJourneyMiddleware({ db, logger }) {
+	/**
+	 * @param {import('express').Request} req
+	 * @param {import('express').Response<unknown, RepresentationViewLocals>} res
+	 * @param {import('express').NextFunction} next
+	 */
 	return async (req, res, next) => {
 		const { id, representationRef } = validateParams(req.params);
 		logger.info({ id, representationRef }, 'fetching representation');
