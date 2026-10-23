@@ -205,6 +205,8 @@ export interface S62aCaseViewModel {
 	reference: string;
 	historicalReference: string | null;
 	developmentDescription: string;
+	/** Read-only: set by migration for cases published on the legacy GOV.UK service. */
+	publishedToLegacyGovUk?: boolean;
 	s62aStatusId?: string;
 	typeId: string;
 	applicationPhaseId?: string | null;
@@ -477,6 +479,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		reference: dbCase.reference,
 		historicalReference: dbCase.historicalReference,
 		developmentDescription: dbCase.description,
+		publishedToLegacyGovUk: dbCase.publishedToLegacyGovUk === true,
 		typeId: dbCase.typeId,
 		lpaId: dbCase.lpaId,
 		hasSecondaryLpa: booleanToYesNoValue(dbCase.hasSecondaryLpa),
