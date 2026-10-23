@@ -11,9 +11,13 @@ import type {
 } from '../util/types.ts';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
 
-export function createRoutes<T, TService extends BaseService<PrismaClient> = BaseService<PrismaClient>>(
+export function createRoutes<
+	T,
+	TService extends BaseService<PrismaClient> = BaseService<PrismaClient>,
+	TLocals extends Record<string, unknown> = Record<string, unknown>
+>(
 	service: TService,
-	journeyMiddlewareFunction: JourneyMiddlewareType<TService>,
+	journeyMiddlewareFunction: JourneyMiddlewareType<TService, TLocals>,
 	publishCaseFunction: PublishOperation,
 	fetchedCase: CaseFetcher<T>,
 	answerValidation: ValidationRuleBuilder<T>,

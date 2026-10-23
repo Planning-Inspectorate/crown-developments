@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
-import type { Handler } from 'express';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
+import type { RequestHandler } from 'express';
+import type { ParamsDictionary, Query } from 'express-serve-static-core';
 import type { BaseService } from '@planning-inspectorate/core/app';
 import type { Request } from 'express';
 
@@ -58,10 +59,13 @@ export type AnswerValidationError = {
 	pageLink: string;
 };
 
-export type JourneyMiddlewareType<TService extends BaseService = BaseService> = (
+export type JourneyMiddlewareType<
+	TService extends BaseService = BaseService,
+	TLocals extends Record<string, unknown> = Record<string, unknown>
+> = (
 	service: TService,
 	isQuestionView: boolean
-) => Handler | AsyncRequestHandler;
+) => RequestHandler<ParamsDictionary, unknown, unknown, Query, TLocals> | AsyncRequestHandlerWithLocals<TLocals>;
 
 export type CaseFetcher<T> = (db: PrismaClient, id: string) => Promise<T | null>;
 export type UnpublishCaseFetcher<T = unknown> = (db: PrismaClient, id: string) => Promise<T | null>;
