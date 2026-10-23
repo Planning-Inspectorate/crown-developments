@@ -50,6 +50,8 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 		const createdDate = res.locals.createdDate;
 		const publishDate = getJourneyAnswers(res)?.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
+		// Legacy-published cases can't be published or unpublished from this service
+		const publishedToLegacyGovUk = answers?.publishedToLegacyGovUk === true;
 
 		// Show publish case validation errors
 
@@ -74,6 +76,7 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			caseId: id,
 			reference,
 			casePublished,
+			publishedToLegacyGovUk,
 			applicationPhase,
 			baseUrl,
 			backLinkUrl: '/s62a/cases',

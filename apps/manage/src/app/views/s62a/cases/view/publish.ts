@@ -2,6 +2,14 @@ import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts'
 import type { AnswerValidationError } from '@pins/crowndev-lib/util/types.ts';
 import { APPLICANT_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 
+/**
+ * Cases already published on the legacy GOV.UK service can't be published or unpublished here.
+ * Returning null makes the shared publish and unpublish routes respond with 'page not found'.
+ */
+function excludeLegacyPublished<T extends { publishedToLegacyGovUk: boolean | null }>(fetchedCase: T | null): T | null {
+	return fetchedCase?.publishedToLegacyGovUk ? null : fetchedCase;
+}
+
 export async function publishS62aCase(db: PrismaClient, id: string) {
 	return db.s62aCase.update({
 		where: { id },
@@ -14,7 +22,7 @@ export async function publishS62aCase(db: PrismaClient, id: string) {
 }
 
 export async function fetchS62aPublishCase(db: PrismaClient, id: string) {
-	return await db.s62aCase.findUnique({
+	const fetchedCase = await db.s62aCase.findUnique({
 		where: { id },
 		include: {
 			Lpa: { include: { Address: true } },
@@ -28,6 +36,7 @@ export async function fetchS62aPublishCase(db: PrismaClient, id: string) {
 			}
 		}
 	});
+	return excludeLegacyPublished(fetchedCase);
 }
 
 export type FetchedS62aCase = Awaited<ReturnType<typeof fetchS62aPublishCase>>;
@@ -83,7 +92,8 @@ export async function unpublishS62aCase(db: PrismaClient, id: string) {
 }
 
 export async function fetchS62aUnpublishCase(db: PrismaClient, id: string) {
-	return await db.s62aCase.findUnique({
+	const fetchedCase = await db.s62aCase.findUnique({
 		where: { id }
 	});
+	return excludeLegacyPublished(fetchedCase);
 }

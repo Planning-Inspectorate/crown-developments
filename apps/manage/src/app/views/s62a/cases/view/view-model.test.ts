@@ -45,6 +45,7 @@ describe('s62aCaseToViewModel', () => {
 				displayName: 'New'
 			},
 			siteIsVisibleFromPublicLand: true,
+			publishedToLegacyGovUk: true,
 			likelyIssues: 'Traffic and noise',
 			siteNorthing: 123456,
 			siteEasting: 654321,
@@ -62,6 +63,9 @@ describe('s62aCaseToViewModel', () => {
 
 		// renamed field
 		assert.strictEqual(result.developmentDescription, 'A massive new development');
+
+		// the legacy GOV.UK flag stays a plain boolean, not a YesNo answer
+		assert.strictEqual(result.publishedToLegacyGovUk, true);
 
 		// booleans become YesNo strings
 		assert.strictEqual(result.hasSecondaryLpa, 'no');
@@ -125,6 +129,7 @@ describe('s62aCaseToViewModel', () => {
 			likelyIssues: null,
 			siteNorthing: null,
 			siteIsVisibleFromPublicLand: null,
+			publishedToLegacyGovUk: null,
 			representationsPublishDate: null
 		} as unknown as S62aCaseDbModel;
 
@@ -142,6 +147,9 @@ describe('s62aCaseToViewModel', () => {
 
 		// optional booleans
 		assert.strictEqual(result.siteIsVisibleFromPublicLand, undefined);
+
+		// the legacy GOV.UK flag treats null as not published
+		assert.strictEqual(result.publishedToLegacyGovUk, false);
 
 		// lpaId is assigned directly rather than via the nullable field loop,
 		// so a null is preserved rather than converted to undefined

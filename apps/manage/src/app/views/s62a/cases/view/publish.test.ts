@@ -63,6 +63,44 @@ describe('S62A Publish & Unpublish Domain Helpers', () => {
 			});
 			assert.deepStrictEqual(result, { id: 'case-123' });
 		});
+
+		it('should return null when the case was published on the legacy GOV.UK service', async () => {
+			const mockDb = {
+				s62aCase: {
+					findUnique: mock.fn(() => Promise.resolve({ id: 'case-123', publishedToLegacyGovUk: true }))
+				}
+			};
+
+			const result = await fetchS62aPublishCase(mockDb as any, 'case-123');
+
+			assert.strictEqual(result, null);
+		});
+
+		it('should return the case when publishedToLegacyGovUk is false or null', async () => {
+			for (const publishedToLegacyGovUk of [false, null]) {
+				const mockDb = {
+					s62aCase: {
+						findUnique: mock.fn(() => Promise.resolve({ id: 'case-123', publishedToLegacyGovUk }))
+					}
+				};
+
+				const result = await fetchS62aPublishCase(mockDb as any, 'case-123');
+
+				assert.deepStrictEqual(result, { id: 'case-123', publishedToLegacyGovUk });
+			}
+		});
+
+		it('should return null when the case does not exist', async () => {
+			const mockDb = {
+				s62aCase: {
+					findUnique: mock.fn(() => Promise.resolve(null))
+				}
+			};
+
+			const result = await fetchS62aPublishCase(mockDb as any, 'case-123');
+
+			assert.strictEqual(result, null);
+		});
 	});
 
 	describe('answerValidation', () => {
@@ -205,6 +243,18 @@ describe('S62A Publish & Unpublish Domain Helpers', () => {
 				where: { id: 'case-123' }
 			});
 			assert.deepStrictEqual(result, { id: 'case-123' });
+		});
+
+		it('should return null when the case was published on the legacy GOV.UK service', async () => {
+			const mockDb = {
+				s62aCase: {
+					findUnique: mock.fn(() => Promise.resolve({ id: 'case-123', publishedToLegacyGovUk: true }))
+				}
+			};
+
+			const result = await fetchS62aUnpublishCase(mockDb as any, 'case-123');
+
+			assert.strictEqual(result, null);
 		});
 	});
 });
