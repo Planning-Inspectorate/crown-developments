@@ -11,7 +11,7 @@ import type { CrownDevelopmentPayload, CrownDevelopmentPayloadWithoutOrganisatio
 type ProcedurePrefix = 'inquiry' | 'hearing' | 'writtenReps';
 type ProcedureId = (typeof APPLICATION_PROCEDURE_ID)[keyof typeof APPLICATION_PROCEDURE_ID];
 
-export type CrownDevelopmentViewModel = {
+export interface CrownDevelopmentViewModel {
 	reference: string;
 	description: string;
 	containsDistressingContent: YesNo;
@@ -145,7 +145,14 @@ export type CrownDevelopmentViewModel = {
 	hasCostsApplications?: YesNo;
 	costsApplicationsComment?: string;
 	siteVisitDate?: Date;
-};
+}
+
+/**
+ * The dynamic-forms journey response holds answers as a flat `Record<string, unknown>`,
+ * and questions read dynamically-named fields. This widens the view model at that
+ * boundary only — prefer `CrownDevelopmentViewModel` everywhere else so field names stay checked.
+ */
+export type CrownDevelopmentAnswers = CrownDevelopmentViewModel & Record<string, unknown>;
 
 export type CrownDevelopmentViewModelFields = keyof CrownDevelopmentViewModel;
 
