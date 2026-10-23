@@ -1,4 +1,5 @@
 {% extends "views/layouts/main.njk" %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
 
 {% set title = pageHeading + " - Manage S62A Case Folders" %}
 
@@ -12,6 +13,15 @@
             <h1 class="govuk-heading-l" data-cy="page-heading">
                 {{ pageHeading }}
             </h1>
+
+            {{ govukButton({
+                text: "Create folder",
+                classes: "govuk-button--secondary",
+                href: currentUrl + "/create-folder",
+                attributes: {
+                    "data-cy": "create-folder-btn"
+                }
+            }) }}
 
             <hr class="govuk-section-break govuk-section-break--s govuk-section-break--visible">
         </div>

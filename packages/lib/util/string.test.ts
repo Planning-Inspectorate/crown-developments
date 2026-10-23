@@ -11,7 +11,8 @@ import {
 	insertWbr,
 	formatStatusTag,
 	stringToKebab,
-	lowerFirst
+	lowerFirst,
+	sanitisePath
 } from './string.ts';
 
 describe('string util', () => {
@@ -336,6 +337,34 @@ describe('string util', () => {
 		});
 		it('handles an empty string', () => {
 			assert.strictEqual(lowerFirst(''), '');
+		});
+	});
+	describe('sanitisePath', () => {
+		it('should trim leading and trailing whitespace', () => {
+			assert.strictEqual(sanitisePath('  my/path/here  '), 'my/path/here');
+		});
+
+		it('should replace multiple consecutive spaces with a single space', () => {
+			assert.strictEqual(sanitisePath('my   path    here'), 'my path here');
+		});
+
+		it('should handle a combination of leading, trailing, and multiple spaces', () => {
+			assert.strictEqual(sanitisePath('   my   spaced    path   '), 'my spaced path');
+		});
+
+		it('should return the same string if no extra spaces are present', () => {
+			assert.strictEqual(sanitisePath('normal/path/here'), 'normal/path/here');
+		});
+
+		it('should return an empty string if the input is an empty string', () => {
+			assert.strictEqual(sanitisePath(''), '');
+		});
+
+		it('should return an empty string for non-string inputs at runtime', () => {
+			assert.strictEqual(sanitisePath(null as unknown as string), '');
+			assert.strictEqual(sanitisePath(undefined as unknown as string), '');
+			assert.strictEqual(sanitisePath(123 as unknown as string), '');
+			assert.strictEqual(sanitisePath({} as unknown as string), '');
 		});
 	});
 });
