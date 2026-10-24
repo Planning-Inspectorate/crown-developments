@@ -95,8 +95,16 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 		const filesDeleted = popSessionData(req, id, 'filesDeleted', false, 'folder');
 		const filesPublished = popSessionData(req, id, 'filesPublished', false, 'folder');
 		const filesUnpublished = popSessionData(req, id, 'filesUnpublished', false, 'folder');
+		const createdFolderName = popSessionData(req, id, 'createdFolderName', false, 'folder');
 
-		const banner = getBannerMessages(filesDeleted, filesPublished, filesUnpublished, id, errorSummary);
+		const banner = getBannerMessages(
+			filesDeleted,
+			filesPublished,
+			filesUnpublished,
+			id,
+			errorSummary,
+			createdFolderName
+		);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
 
@@ -139,7 +147,8 @@ function getBannerMessages(
 	filesPublished: number | boolean | undefined,
 	filesUnpublished: number | boolean | undefined,
 	caseId: string,
-	errorSummary?: { text: string }[] | boolean
+	errorSummary?: { text: string }[] | boolean,
+	createdFolderName?: string | false
 ) {
 	if (errorSummary) {
 		return null;
@@ -171,6 +180,10 @@ function getBannerMessages(
 		bannerBuilder.addSuccessText(
 			`${filesUnpublished} selected ${filesUnpublished === 1 ? 'file' : 'files'} unpublished`
 		);
+	}
+
+	if (typeof createdFolderName === 'string') {
+		bannerBuilder.addSuccessText(`${createdFolderName} folder created`);
 	}
 
 	return bannerBuilder.build();

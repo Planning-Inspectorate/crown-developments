@@ -37,6 +37,17 @@
     </div>
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full">
+			{% if not isPublishedView %}
+				<h2 class="govuk-heading-m">Subfolders</h2>
+
+				{{ govukButton({
+					text: "Create subfolder",
+					href: currentPath + "/create-folder",
+					classes: "govuk-button--secondary",
+					attributes: { "data-cy": "create-folder-btn" }
+				}) }}
+			{% endif %}
+
             {% if subFolders|length !== 0 %}
                 {% set subFoldersHtml %}
                     <div class="pins-link-menu">

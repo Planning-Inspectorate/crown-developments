@@ -5,12 +5,14 @@ import { validateIdFormat } from '@pins/crowndev-lib/util/string.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { createRoutes as createSingleFolderRoutes } from './folder/index.ts';
 import { createRoutes as createPublishedDocumentsRoutes } from './published-documents/index.ts';
+import { createRoutes as createCreateFolderRoutes } from './create/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
 
 	const singleFolderRoutes = createSingleFolderRoutes(service);
 	const publishedDocumentsRoutes = createPublishedDocumentsRoutes(service);
+	const createFolderRoutes = createCreateFolderRoutes(service);
 
 	const viewCaseFolders = buildViewCaseFolders(service);
 
@@ -25,6 +27,9 @@ export function createRoutes(service: ManageService) {
 
 	// Mounts "individual folder" routes
 	router.use('/:folderId/:folderName', singleFolderRoutes);
+
+	// Mounts the "folder creation" routes
+	router.use('/create-folder', createFolderRoutes);
 
 	return router;
 }
