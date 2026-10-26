@@ -16,7 +16,6 @@
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
-			{% if showSearchFilterControls %}
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
 				<div class="pins-visible-from-tablet">
 					<form id="search-filter-form" method="GET">
@@ -35,7 +34,6 @@
 						{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
 					</form>
 				</div>
-			{% endif %}
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
@@ -63,7 +61,6 @@
 				<div class="govuk-grid-column-full">
 					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
 						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-						{% if showSearchFilterControls %}
 							{% for filter in filters %}
 								{% if filter.type == 'date-input' and filter.dateInputs %}
 									{% for dateInput in filter.dateInputs %}
@@ -82,7 +79,6 @@
 									{% endfor %}
 								{% endif %}
 							{% endfor %}
-						{% endif %}
 						{% if representationMessages|length < 1 %}
 							{{ searchBar({
 								input: {
@@ -113,13 +109,11 @@
 							<input type="hidden" name="formType" value="mobile">
 							<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
 							<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-							{% if showSearchFilterControls %}
-								{{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
-							{% endif %}
+							{{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
 						</form>
 					</div>
 					{# ### #}
-					{% if showSearchFilterControls and hasQueries %}
+					{% if hasQueries %}
 						<p class="govuk-body">Active filters</p>
 						{% for query in filterQueries %}
 							<button
@@ -137,12 +131,8 @@
 				<div class="govuk-grid-column-full">
 					{% if representations|length == 0 and (hasSearch or hasQueries) %}
 						<p class="govuk-body">No results were found.</p>
-						{% if showSearchFilterControls %}
 						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
 				filters</a> to view all representations.</p>
-						{% else %}
-						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all representations.</p>
-						{% endif %}
 					{% elif representationMessages|length < 1 %}
 						<div id="pagination" class="govuk-body">
 							<p class="govuk-body">
@@ -165,7 +155,6 @@
 				</div>
 			</div>
 		</div>
-		{% if showSearchFilterControls %}
 		<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
 			document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
 				button.addEventListener('click', function(e) {
@@ -188,6 +177,5 @@
 				});
 			});
 		</script>
-		{% endif %}
 	</div>
 {% endblock %}

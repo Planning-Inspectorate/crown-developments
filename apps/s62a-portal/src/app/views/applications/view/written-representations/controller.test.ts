@@ -1,6 +1,10 @@
 import assert from 'assert';
 import { describe, it } from 'node:test';
-import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import {
+	REPRESENTATION_CATEGORY_ID,
+	REPRESENTATION_SUBMITTED_FOR_ID,
+	REPRESENTED_TYPE_ID
+} from '@pins/crowndev-database/src/seed/data-static.ts';
 import { buildS62AWrittenRepresentationsPage } from './controller.ts';
 import type { S62APortalService } from '#service';
 
@@ -107,7 +111,18 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 
 		const req = {
 			params: { applicationId: validUuid },
-			originalUrl: `/applications/${validUuid}/written-representations`
+			originalUrl: `/applications/${validUuid}/written-representations`,
+			query: {
+				searchCriteria: 'Alex',
+				filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES],
+				filterByAttachments: ['withAttachments'],
+				'submittedDateFrom-day': '1',
+				'submittedDateFrom-month': '1',
+				'submittedDateFrom-year': '2026',
+				'submittedDateTo-day': '2',
+				'submittedDateTo-month': '1',
+				'submittedDateTo-year': '2026'
+			}
 		} as any;
 
 		const res = {
@@ -120,7 +135,18 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		await handler(req, res, context.mock.fn() as any);
 
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 1);
-		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 2);
+		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 6);
+		const where = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
+		assert.deepStrictEqual(where.AND[0].OR[0], {
+			AND: [
+				{ RepresentedContacts: { some: { firstName: { contains: 'Alex' } } } },
+				{ OR: [{ withholdName: false }, { withholdName: null }] }
+			]
+		});
+		assert.deepStrictEqual(where.categoryId.in, [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES]);
+		assert.strictEqual(where.containsAttachments, true);
+		assert.ok(where.submittedDate.gte instanceof Date);
+		assert.ok(where.submittedDate.lte instanceof Date);
 
 		assert.strictEqual(res.render.mock.callCount(), 1);
 
@@ -137,7 +163,6 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.strictEqual(payload.caseFields.reference, 'S62A/2026/0001');
 
 		assert.deepStrictEqual(payload.representationMessages, []);
-		assert.strictEqual(payload.showSearchFilterControls, false);
 		assert.strictEqual(payload.representations.length, 1);
 		assert.ok(payload.links.some((link: { href: string }) => link.href.endsWith('/written-representations')));
 	});
@@ -197,7 +222,8 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		await buildS62AWrittenRepresentationsPage(service)(req, res, context.mock.fn() as any);
 
 		const findManyWhere = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
-		const countWhere = dbMock.s62aRepresentation.count.mock.calls[0].arguments[0].where;
+		const countWhere = dbMock.s62aRepresentation.count.mock.calls.find((call: any) => !!call.arguments[0].where.AND)
+			?.arguments[0].where;
 		const searchMatches = findManyWhere.AND[0].OR;
 		const notWithheld = { OR: [{ withholdName: false }, { withholdName: null }] };
 
