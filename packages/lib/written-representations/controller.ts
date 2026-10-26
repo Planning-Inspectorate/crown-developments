@@ -19,6 +19,7 @@ export function buildWrittenRepresentationsPage(
 	totalAcceptedRepresentations: number,
 	totalRepresentations: number,
 	tabText: Record<string, string>,
+	displayApplicationUpdates: boolean,
 	repsTabAlwaysVisible: boolean,
 	filters: FilterSection[],
 	mobileFilters: FilterSection[],
@@ -47,12 +48,14 @@ export function buildWrittenRepresentationsPage(
 
 		const links = applicationLinks(
 			id,
-			{ start: null, end: null },
+			{
+				start: caseFields.representationsPeriodStartDate ?? null,
+				end: caseFields.representationsPeriodEndDate ?? null
+			},
 			representationPublishDate,
-			false,
+			displayApplicationUpdates,
 			applicationStatus,
-			tabText,
-			repsTabAlwaysVisible
+			tabText
 		);
 
 		const reference = caseFields.reference;

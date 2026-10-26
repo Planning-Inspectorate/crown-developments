@@ -52,7 +52,7 @@
 						{% endif %}
 						{{ pageTitle }}
 					</h1>
-					{% for repMessageText in representationMessage %}
+					{% for repMessageText in representationMessages %}
 						<p class="govuk-body">{{ repMessageText }}</p>
 					{% endfor %}
 				</div>
@@ -79,7 +79,7 @@
 								{% endfor %}
 							{% endif %}
 						{% endfor %}
-						{% if representationMessage|length < 1 %}
+						{% if representationMessages|length < 1 %}
 							{{ searchBar({
 								input: {
 									label: {
@@ -97,7 +97,7 @@
 								}
 							}, searchValue) }}
 						{% endif %}
-						{% if hasSearch and representations|length > 0 %}
+						{% if representations|length == 0 and (hasSearch or hasQueries) %}
 							<p class="govuk-body govuk-!-margin-bottom-0">
 								<a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a>
 							</p>
@@ -129,11 +129,11 @@
 			</div>
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
-					{% if representations|length == 0 and hasSearch %}
+					{% if representations|length == 0 and (hasSearch or hasQueries) %}
 						<p class="govuk-body">No results were found.</p>
 						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
 				filters</a> to view all representations.</p>
-					{% elif representationMessage|length < 1 %}
+					{% elif representationMessages|length < 1 %}
 						<div id="pagination" class="govuk-body">
 							<p class="govuk-body">
 								Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to
