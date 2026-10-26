@@ -1,16 +1,7 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
-import {
-	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import {
-	representationToViewModel,
-	type RepresentationWithContacts
-} from '@pins/crowndev-lib/written-representations/view-model.ts';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { buildWrittenRepresentationsPage } from '@pins/crowndev-lib/written-representations/controller.ts';
 import { fetchPublishedS62aApplication } from '@pins/crowndev-lib/util/applications.ts';
-import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
 import { getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
@@ -21,6 +12,7 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { S62APortalService } from '#service';
 import { s62aCaseToRawViewModel, type S62aCaseWithRelations } from '../view-model.ts';
 import { tabText } from '../view-model.ts';
+import { createWhereClause, normaliseSearchQuery, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 
 const representationSelect = {
 	reference: true,
@@ -40,23 +32,6 @@ const representationSelect = {
 	Category: { select: { displayName: true } },
 	Attachments: { select: { statusId: true } }
 } satisfies Prisma.S62aRepresentationSelect;
-
-function mapRepresentation(representation: RepresentationWithContacts) {
-	const representedGroupName =
-		representation.submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF &&
-		representation.representedTypeId === REPRESENTED_TYPE_ID.GROUP &&
-		!representation.representedGroupName?.trim()
-			? (representation.RepresentedContacts?.map(
-					(contact) => contact.orgName ?? nameToViewModel(contact.firstName ?? undefined, contact.lastName ?? undefined)
-				)
-					.filter(Boolean)
-					.join(', ') ?? '')
-			: representation.representedGroupName;
-
-	return representationToViewModel({ ...representation, representedGroupName }, true, {
-		showWithheldNameAsInterestedParty: true
-	});
-}
 
 export function buildS62AWrittenRepresentationsPage(service: S62APortalService): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -80,6 +55,14 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 		const { pageSize, skipSize } = getPaginationParams(req);
 		const publishDate = s62aCase.representationsPublishDate;
 		const representationsArePublished = publishDate !== null && isNowAfterStartDate(publishDate);
+		const searchValue = normaliseSearchQuery(req.query?.searchCriteria) ?? '';
+		const hasSearch = searchValue.length > 0;
+		const searchCriteria = createWhereClause(splitStringQueries(searchValue), [
+			{ parent: 'RepresentedContacts', parentIsList: true, fields: ['firstName', 'lastName', 'orgName'] },
+			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] },
+			{ fields: ['commentRedacted'] },
+			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
+		]);
 
 		let representations: Prisma.S62aRepresentationGetPayload<{ select: typeof representationSelect }>[] = [];
 		let totalAcceptedRepresentations: number = 0;
@@ -89,7 +72,11 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			[representations, totalAcceptedRepresentations, totalRepresentations] = await Promise.all([
 				representationsArePublished
 					? db.s62aRepresentation.findMany({
-							where: { applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED },
+							where: {
+								applicationId: id,
+								statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+								...searchCriteria
+							},
 							select: representationSelect,
 							orderBy: { submittedDate: 'desc' },
 							skip: skipSize,
@@ -97,7 +84,11 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 						})
 					: Promise.resolve([]),
 				db.s62aRepresentation.count({
-					where: { applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+					where: {
+						applicationId: id,
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...searchCriteria
+					}
 				}),
 				db.s62aRepresentation.count({ where: { applicationId: id } })
 			]);
@@ -132,14 +123,11 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			[],
 			false,
 			false,
-			false,
+			hasSearch,
 			[],
 			null,
 			[],
-			{
-				showSearchFilterControls: false,
-				representationMapper: mapRepresentation
-			}
+			false
 		)(req, res);
 	};
 }
