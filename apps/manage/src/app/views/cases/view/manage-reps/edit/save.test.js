@@ -241,7 +241,9 @@ describe('dynamic-form/controller', () => {
 					res,
 					journeyId: journeyParams.journeyId,
 					referenceId: journeyParams.referenceId,
-					data: undefined
+					data: undefined,
+					isDynamicSection: false,
+					isManageListItem: false
 				}
 			]);
 			// check other function calls
@@ -313,7 +315,9 @@ describe('dynamic-form/controller', () => {
 					res,
 					journeyId: journeyParams.journeyId,
 					referenceId: journeyParams.referenceId,
-					data: undefined
+					data: undefined,
+					isDynamicSection: false,
+					isManageListItem: false
 				}
 			]);
 

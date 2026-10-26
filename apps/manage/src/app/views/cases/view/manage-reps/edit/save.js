@@ -1,8 +1,23 @@
+/**
+ * @typedef {import('@planning-inspectorate/dynamic-forms').SaveDataFn<
+ *   { answers?: import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSaySaveModel },
+ *   import('../view/controller.js').RepresentationViewLocals
+ * >} RepresentationSaveDataFn
+ */
+
+/**
+ * This wrapper does not support manage-list or dynamic-section questions, so
+ * isManageListItem and isDynamicSection are always passed as false.
+ * @param {RepresentationSaveDataFn} saveData
+ * @param {boolean} [redirectToTaskListOnSuccess]
+ */
 export function buildSave(saveData, redirectToTaskListOnSuccess) {
+	/**
+	 * @param {import('express').Request} req
+	 * @param {import('express').Response<unknown, import('../view/controller.js').RepresentationViewLocals>} res
+	 */
 	return async (req, res) => {
-		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey.js').Journey} */
 		const journey = res.locals.journey;
-		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
 		const journeyResponse = res.locals.journeyResponse;
 
 		const section = journey.getSection(req.params.section);
@@ -34,6 +49,8 @@ export function buildSave(saveData, redirectToTaskListOnSuccess) {
 				res,
 				journeyId: journeyResponse.journeyId,
 				referenceId: journeyResponse.referenceId,
+				isManageListItem: false,
+				isDynamicSection: false,
 				data
 			});
 
