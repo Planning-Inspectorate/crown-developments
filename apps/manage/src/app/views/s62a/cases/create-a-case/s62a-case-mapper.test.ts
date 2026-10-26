@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { S62aCaseMapper, type CreateCaseAnswers } from './s62a-case-mapper.ts';
+import { S62aCaseMapper, type S62aCreateCaseAnswers } from './s62a-case-mapper.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	APPLICANT_TYPE_ID,
@@ -13,7 +13,7 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 describe('S62aCaseMapper', () => {
 	const reference = 'S62A/2026/0000001';
-	let baseAnswers: CreateCaseAnswers;
+	let baseAnswers: S62aCreateCaseAnswers;
 
 	beforeEach(() => {
 		baseAnswers = {
@@ -58,7 +58,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('throws an error if an applicant contact is orphaned (organisation not found)', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				applicantType: APPLICANT_TYPE_ID.ORGANISATION,
 				manageApplicantOrganisations: [{ id: 'org-1', organisationName: 'Valid Org' }],
@@ -79,7 +79,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('throws an error if hasAgent is true but agent contacts are missing', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				hasAgent: 'yes',
 				agentName: 'Agents 1'
@@ -92,7 +92,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('throws an error if hasAgent is true but agent name is missing', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				hasAgent: 'yes',
 				manageAgentContactDetails: [{ agentFirstName: 'Bob', agentContactEmail: 'bob@mail.com' }]
@@ -107,7 +107,7 @@ describe('S62aCaseMapper', () => {
 
 	describe('Scalar and Lookup Mapping', () => {
 		it('maps basic case details and lookups correctly', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				developmentDescription: 'A test development',
 				hasAgent: 'no',
@@ -149,7 +149,7 @@ describe('S62aCaseMapper', () => {
 
 	describe('Address Mapping', () => {
 		it('maps site address correctly using toAddressInput', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				siteAddress: {
 					addressLine1: '1 High Street',
@@ -176,7 +176,7 @@ describe('S62aCaseMapper', () => {
 
 	describe('Site Area Conversion', () => {
 		it('maps site area from hectares to sqm using Prisma.Decimal', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				siteAreaHectares: '50000'
 			};
@@ -189,7 +189,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('maps site area using sqm directly using Prisma.Decimal', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				siteAreaSquareMetres: '12.5'
 			};
@@ -203,7 +203,7 @@ describe('S62aCaseMapper', () => {
 
 	describe('LPA Contacts', () => {
 		it('maps primary and secondary LPA contacts', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				lpaFirstName: 'John',
 				lpaLastName: 'Doe',
@@ -239,7 +239,7 @@ describe('S62aCaseMapper', () => {
 
 	describe('Applicants and Agents (Exclusive Arc)', () => {
 		it('maps agent details correctly', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				hasAgent: 'yes',
 				agentName: 'Super Agents Ltd',
@@ -269,7 +269,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('maps individual applicant correctly without an organisation', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				applicantType: 'individual',
 				manageApplicantContactDetails: [{ applicantFirstName: 'Alice', applicantContactEmail: 'alice@test.com' }]
@@ -297,7 +297,7 @@ describe('S62aCaseMapper', () => {
 		});
 
 		it('maps organisation applicant with linked contacts correctly', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				applicantType: APPLICANT_TYPE_ID.ORGANISATION,
 				manageApplicantOrganisations: [{ id: 'org-1', organisationName: 'Big Corp' }],
@@ -333,7 +333,7 @@ describe('S62aCaseMapper', () => {
 	});
 
 	describe('Pre-application advice', () => {
-		function inputFor(answers: Partial<CreateCaseAnswers>) {
+		function inputFor(answers: Partial<S62aCreateCaseAnswers>) {
 			return new S62aCaseMapper(
 				{ ...baseAnswers, applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION, ...answers },
 				reference
@@ -402,7 +402,7 @@ describe('S62aCaseMapper', () => {
 			assert.deepStrictEqual(result.S62aStatus, { connect: { id: S62A_STATUS_ID.NEW } });
 		});
 		it('should set the starting status to pre-notified when the case is a pre-application', () => {
-			const answers: CreateCaseAnswers = {
+			const answers: S62aCreateCaseAnswers = {
 				...baseAnswers,
 				applicationPhase: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
 			};
