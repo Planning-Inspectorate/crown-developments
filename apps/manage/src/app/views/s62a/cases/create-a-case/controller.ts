@@ -20,6 +20,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 	const { db } = service;
 
 	return async (req, res, next) => {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const journeyResponse = res.locals?.journeyResponse as JourneyResponse | undefined;
 		if (!journeyResponse || !('journeyId' in journeyResponse)) {
 			throw new Error('no journey ID specified');
