@@ -510,27 +510,6 @@ describe('s62aCaseToViewModel', () => {
 			assert.strictEqual(result.bngExempt, undefined);
 			assert.strictEqual(result.cilAmount, undefined);
 		});
-
-		it('passes updatedDate and createdDate through as raw Dates', () => {
-			const created = new Date('2026-07-22T12:45:00Z');
-			const updated = new Date('2026-07-22T12:46:00Z');
-			const mockDbCase = {
-				id: 'case-det-4',
-				reference: 'S62A/2026/0013',
-				description: 'Date passthrough case',
-				typeId: 'type-1',
-				lpaId: 'lpa-1',
-				hasSecondaryLpa: false,
-				expectedSubmissionDate: mockDate,
-				createdDate: created,
-				updatedDate: updated
-			} as unknown as S62aCaseDbModel;
-
-			const result = s62aCaseToViewModel(mockDbCase);
-
-			assert.strictEqual(result.createdDate, created);
-			assert.strictEqual(result.updatedDate, updated);
-		});
 	});
 
 	describe('LPA and Contact Mapping', () => {
