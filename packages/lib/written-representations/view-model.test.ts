@@ -183,6 +183,22 @@ describe('representationTitle', () => {
 
 		assert.strictEqual(representationTitle(representation), 'Agent Smith (Agency Inc.) on behalf of John Doe');
 	});
+
+	it('should include all represented contacts for a group', () => {
+		const representation = {
+			submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+			SubmittedByContact: { firstName: 'Alex', lastName: 'Agent' },
+			representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+			representedGroupName: null,
+			RepresentedContacts: [
+				{ firstName: 'Group', lastName: 'One' },
+				{ firstName: 'Group', lastName: 'Two' }
+			]
+		};
+
+		assert.strictEqual(representationTitle(representation), 'Alex Agent on behalf of Group One, Group Two');
+	});
+
 	it('should return undefined for invalid submittedForId', () => {
 		const representation = {
 			submittedForId: 'INVALID_ID'

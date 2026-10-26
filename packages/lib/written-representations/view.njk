@@ -59,29 +59,30 @@
 					{% endfor %}
 				</div>
 			</div>
-			{% if showSearchFilterControls %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
 						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-						{% for filter in filters %}
-							{% if filter.type == 'date-input' and filter.dateInputs %}
-								{% for dateInput in filter.dateInputs %}
-									<input type="hidden" name="{{ dateInput.idPrefix }}-day"
-												 value="{{ dateInput.value.day | default('') }}">
-									<input type="hidden" name="{{ dateInput.idPrefix }}-month"
-												 value="{{ dateInput.value.month | default('') }}">
-									<input type="hidden" name="{{ dateInput.idPrefix }}-year"
-												 value="{{ dateInput.value.year | default('') }}">
-								{% endfor %}
-							{% else %}
-								{% for option in filter.options.items %}
-									{% if option.checked %}
-										<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
-									{% endif %}
-								{% endfor %}
-							{% endif %}
-						{% endfor %}
+						{% if showSearchFilterControls %}
+							{% for filter in filters %}
+								{% if filter.type == 'date-input' and filter.dateInputs %}
+									{% for dateInput in filter.dateInputs %}
+										<input type="hidden" name="{{ dateInput.idPrefix }}-day"
+													value="{{ dateInput.value.day | default('') }}">
+										<input type="hidden" name="{{ dateInput.idPrefix }}-month"
+													value="{{ dateInput.value.month | default('') }}">
+										<input type="hidden" name="{{ dateInput.idPrefix }}-year"
+													value="{{ dateInput.value.year | default('') }}">
+									{% endfor %}
+								{% else %}
+									{% for option in filter.options.items %}
+										{% if option.checked %}
+											<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
+										{% endif %}
+									{% endfor %}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
 						{% if representationMessages|length < 1 %}
 							{{ searchBar({
 								input: {
@@ -112,11 +113,13 @@
 							<input type="hidden" name="formType" value="mobile">
 							<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
 							<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-							{{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
+							{% if showSearchFilterControls %}
+								{{ filterAccordion(mobileFilters, 'Filters', id, cspNonce, 'mobile', true, isMobileFilterOpen) }}
+							{% endif %}
 						</form>
 					</div>
 					{# ### #}
-					{% if hasQueries %}
+					{% if showSearchFilterControls and hasQueries %}
 						<p class="govuk-body">Active filters</p>
 						{% for query in filterQueries %}
 							<button
@@ -130,13 +133,16 @@
 					{% endif %}
 				</div>
 			</div>
-			{% endif %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					{% if representations|length == 0 and (hasSearch or hasQueries) %}
 						<p class="govuk-body">No results were found.</p>
+						{% if showSearchFilterControls %}
 						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
 				filters</a> to view all representations.</p>
+						{% else %}
+						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a> to view all representations.</p>
+						{% endif %}
 					{% elif representationMessages|length < 1 %}
 						<div id="pagination" class="govuk-body">
 							<p class="govuk-body">

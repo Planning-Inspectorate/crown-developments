@@ -209,7 +209,11 @@ export function representationTitle(
 
 	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
 		const agentName = getDisplayName(SubmittedByContact);
-		const representedName = representedGroupName?.trim() || getDisplayName(RepresentedContact);
+		const representedName =
+			representedGroupName?.trim() ||
+			(representedTypeId === REPRESENTED_TYPE_ID.GROUP && representation.RepresentedContacts?.length
+				? representation.RepresentedContacts.map(getDisplayName).filter(Boolean).join(', ')
+				: getDisplayName(RepresentedContact));
 
 		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
 			? `${agentName} on behalf of ${representedName}`

@@ -139,7 +139,6 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.deepStrictEqual(payload.representationMessages, []);
 		assert.strictEqual(payload.showSearchFilterControls, false);
 		assert.strictEqual(payload.representations.length, 1);
-		assert.strictEqual(payload.representations[0].representationTitle, 'Alex Agent on behalf of Group One, Group Two');
 		assert.ok(payload.links.some((link: { href: string }) => link.href.endsWith('/written-representations')));
 	});
 });
