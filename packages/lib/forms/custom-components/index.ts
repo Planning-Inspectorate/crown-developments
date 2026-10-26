@@ -21,6 +21,7 @@ import DefinedColumnsTableQuestion, {
 import MultiFileUploadQuestion from './multi-file-uploader/question.ts';
 import CardManageListQuestion, { type CardManageListQuestionParams } from './manage-list/card/question.ts';
 import RepresentationsMultiFileUploadQuestion from './representations-multi-file-uploader/question.ts';
+import NestedFolderQuestion from './nested-folder-radio/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -213,7 +214,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	CUSTOM_NUMBER_INPUT: 'custom-number-input',
 	MULTI_FILE_UPLOADER: 'multi-file-uploader',
 	CARD_MANAGE_LIST: 'card-manage-list',
-	REPS_MULTI_FILE_UPLOADER: 'reps-multi-file-uploader'
+	REPS_MULTI_FILE_UPLOADER: 'reps-multi-file-uploader',
+	NESTED_FOLDERS: 'nested-folders'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -233,5 +235,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.CUSTOM_NUMBER_INPUT]: CustomNumberInputQuestion,
 	[CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER]: MultiFileUploadQuestion,
 	[CUSTOM_COMPONENTS.CARD_MANAGE_LIST]: CardManageListQuestion,
-	[CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER]: RepresentationsMultiFileUploadQuestion
+	[CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER]: RepresentationsMultiFileUploadQuestion,
+	[CUSTOM_COMPONENTS.NESTED_FOLDERS]: NestedFolderQuestion
 } as const);

@@ -9,6 +9,7 @@ import { createRoutes as createDeleteRoutes } from './delete/index.ts';
 import { createRoutes as createPublishRoutes } from './publish/index.ts';
 import { createRoutes as createUnpublishRoutes } from './unpublish/index.ts';
 import { createRoutes as createCreateFolderRoutes } from '../create/index.ts';
+import { createRoutes as createMoveFileRoutes } from './move-file/index.ts';
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -19,6 +20,7 @@ export function createRoutes(service: ManageService) {
 	const publishRoutes = createPublishRoutes(service);
 	const unpublishRoutes = createUnpublishRoutes(service);
 	const createFolderRoutes = createCreateFolderRoutes(service);
+	const moveFileRoutes = createMoveFileRoutes(service);
 
 	const viewCaseFolder = buildViewCaseFolder(service);
 
@@ -36,6 +38,9 @@ export function createRoutes(service: ManageService) {
 
 	// Mounts the "folder creation" routes
 	router.use('/create-folder', createFolderRoutes);
+
+	// Mounts "move files" routes
+	router.use('/move-files', moveFileRoutes);
 
 	// Guards publish routes if portal not live,
 	// when unpublish routes are merged they will be guarded too.

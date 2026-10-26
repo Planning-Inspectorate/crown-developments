@@ -36,6 +36,8 @@ export const SHARED_AUDIT_ACTIONS = {
 	FILES_DOWNLOADED: 'FILES_DOWNLOADED',
 	FILE_DELETED: 'FILE_DELETED',
 	FILES_DELETED: 'FILES_DELETED',
+	FILE_MOVED: 'FILE_MOVED',
+	FILES_MOVED: 'FILES_MOVED',
 
 	// Folders
 	FOLDER_CREATED: 'FOLDER_CREATED',
@@ -89,6 +91,8 @@ export const SHARED_AUDIT_TEMPLATES: Record<SharedAuditAction, string> = {
 	[SHARED_AUDIT_ACTIONS.FILES_DOWNLOADED]: 'Files were downloaded into zip folder: {zipName}',
 	[SHARED_AUDIT_ACTIONS.FILE_DELETED]: '{fileName} was removed',
 	[SHARED_AUDIT_ACTIONS.FILES_DELETED]: 'Files were removed',
+	[SHARED_AUDIT_ACTIONS.FILE_MOVED]: '{fileName} was moved from {oldFolderName} to {folderName}',
+	[SHARED_AUDIT_ACTIONS.FILES_MOVED]: 'Files were moved from {oldFolderName} to {folderName}',
 
 	// Folders
 	[SHARED_AUDIT_ACTIONS.FOLDER_CREATED]: '{folderName} was created',

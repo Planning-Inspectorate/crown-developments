@@ -4,8 +4,7 @@ import {
 	uploadDocumentsController,
 	createDocumentsController,
 	deleteDocumentController,
-	validateUploads,
-	getExistingFileNamesInFolder
+	validateUploads
 } from './controller.ts';
 
 function setupControllerMocks() {
@@ -158,28 +157,6 @@ describe('Upload Controllers', () => {
 
 			assert.strictEqual(next.mock.calls.length, 0);
 			assert.strictEqual(res.json.mock.calls[0].arguments[0].error.message, 'File too big, Name too long');
-		});
-	});
-
-	describe('getExistingFileNamesInFolder', () => {
-		it('returns an array of existing active file names in the folder', async () => {
-			const { service, mocks } = setupControllerMocks();
-
-			mocks.mockDbFindUnique.mock.mockImplementation(async () => ({
-				Documents: [{ fileName: 'doc1.pdf' }, { fileName: 'doc2.doc' }]
-			}));
-
-			const names = await getExistingFileNamesInFolder(service.db, 'folder-1');
-			assert.deepStrictEqual(names, ['doc1.pdf', 'doc2.doc']);
-		});
-
-		it('returns an empty array if folder has no documents or does not exist', async () => {
-			const { service, mocks } = setupControllerMocks();
-
-			mocks.mockDbFindUnique.mock.mockImplementation(async () => null);
-
-			const names = await getExistingFileNamesInFolder(service.db, 'invalid-folder');
-			assert.deepStrictEqual(names, []);
 		});
 	});
 });

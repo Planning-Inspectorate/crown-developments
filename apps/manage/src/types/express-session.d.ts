@@ -48,6 +48,7 @@ declare module 'express-session' {
 		deleteFilesIds?: string[];
 		publishFileIds?: string[];
 		unpublishFileIds?: string[];
+		moveFilesIds?: string[];
 
 		// Common error/session transient state
 		errors?: unknown;

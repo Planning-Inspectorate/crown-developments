@@ -8,7 +8,8 @@ import {
 	FOLDERS_MAP,
 	getFolderPath,
 	FOLDER_SYNC_RESULT,
-	syncPreApplicationAdviceFolder
+	syncPreApplicationAdviceFolder,
+	getExistingFileNamesInFolder
 } from './folders.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
@@ -353,6 +354,43 @@ describe('Folder creation utils', () => {
 
 			assert.ok(orderOf('The planning application') < PRE_APPLICATION_ADVICE_FOLDER.displayOrder);
 			assert.ok(PRE_APPLICATION_ADVICE_FOLDER.displayOrder < orderOf('Working documents'));
+		});
+	});
+
+	describe('getExistingFileNamesInFolder', () => {
+		it('returns an array of existing active file names in the folder', async () => {
+			const mockFindUnique = mock.fn(async () => ({
+				Documents: [{ fileName: 'doc1.pdf' }, { fileName: 'doc2.doc' }]
+			}));
+			const db = { folder: { findUnique: mockFindUnique } } as unknown as Prisma.TransactionClient;
+
+			const names = await getExistingFileNamesInFolder(db as any, 'folder-1');
+
+			assert.deepStrictEqual(names, ['doc1.pdf', 'doc2.doc']);
+			assert.strictEqual(mockFindUnique.mock.callCount(), 1);
+			assert.strictEqual((mockFindUnique.mock.calls[0].arguments as any)[0].where.id, 'folder-1');
+		});
+
+		it('returns an empty array if folder has no documents or does not exist', async () => {
+			const mockFindUnique = mock.fn(async () => null);
+			const db = { folder: { findUnique: mockFindUnique } } as unknown as Prisma.TransactionClient;
+
+			const names = await getExistingFileNamesInFolder(db as any, 'invalid-folder');
+
+			assert.deepStrictEqual(names, []);
+			assert.strictEqual(mockFindUnique.mock.callCount(), 1);
+		});
+
+		it('returns an empty array if the folder exists but Documents array is empty', async () => {
+			const mockFindUnique = mock.fn(async () => ({
+				Documents: []
+			}));
+			const db = { folder: { findUnique: mockFindUnique } } as unknown as Prisma.TransactionClient;
+
+			const names = await getExistingFileNamesInFolder(db as any, 'empty-folder');
+
+			assert.deepStrictEqual(names, []);
+			assert.strictEqual(mockFindUnique.mock.callCount(), 1);
 		});
 	});
 });

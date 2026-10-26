@@ -139,6 +139,14 @@
                         }) }}
                     {% else %}
                         {{ govukButton({
+                            text: "Move selected",
+                            classes: "govuk-button--secondary",
+                            attributes: { 
+                                "data-cy": "move-selected-btn",
+                                "formaction": currentPath + "/move-files"
+                            }
+                        }) }}
+                        {{ govukButton({
                             text: "Download selected",
                             classes: "govuk-button--secondary",
                             attributes: {
