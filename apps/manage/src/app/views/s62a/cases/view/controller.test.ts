@@ -1,10 +1,11 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildGetJourneyMiddleware, residentialPromptMessage } from './controller.ts';
+import { applicantContactPromptMessages, buildGetJourneyMiddleware, residentialPromptMessage } from './controller.ts';
 import type { ManageService } from '../../../../service.js';
 import type { Request, Response } from 'express';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
+	APPLICANT_TYPE_ID,
 	OCCUPANCY_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
@@ -17,6 +18,8 @@ import { BOOLEAN_OPTIONS, Journey, Question } from '@planning-inspectorate/dynam
 import type { ResidentialHousingItem, S62aCaseViewModel } from './view-model.ts';
 import type { ResidentialAnswers } from '../util/residential-totals.ts';
 import { linkablePreApplicationWhere, showPreApplicationTab } from '../util/pre-application.ts';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import CustomMultiFieldInputQuestion from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 
 type HousingInclude = {
 	include: { HousingType: boolean; OccupancyType: boolean; UnitType: boolean };
@@ -149,6 +152,71 @@ describe('S62A Controller Middleware', () => {
 			assert.ok(housing.include.OccupancyType, 'occupancy lookup needed for the card title');
 			assert.ok(housing.include.UnitType, 'unit type lookup needed for the card title');
 			assert.deepStrictEqual(housing.orderBy, [{ OccupancyType: { order: 'asc' } }, { UnitType: { order: 'asc' } }]);
+		});
+
+		describe('applicant contact organisation pre-selection', () => {
+			const orgA = { id: 'org-a', name: 'Bob and Co LLC' };
+			const orgB = { id: 'org-b', name: 'Lilac Group' };
+
+			/** Runs the question middleware on a new applicant contact, returning the organisation radio's checked values. */
+			async function checkedOrganisations(query: Record<string, unknown> | undefined): Promise<string[]> {
+				mockService.db.s62aCase.findUnique = (async () => ({
+					id: 'case-123',
+					reference: 'S62A/2026/0001',
+					applicantTypeId: APPLICANT_TYPE_ID.ORGANISATION,
+					S62aToApplicants: [orgA, orgB].map((org) => ({
+						id: `rel-${org.id}`,
+						roleId: ORGANISATION_ROLES_ID.APPLICANT,
+						Organisation: { id: org.id, name: org.name, addressId: null, Address: null, OrganisationToContact: [] }
+					}))
+				})) as unknown as ManageService['db']['s62aCase']['findUnique'];
+
+				const handler = buildGetJourneyMiddleware(mockService, true);
+				const req = {
+					params: {
+						id: 'case-123',
+						tab: VIEW_TAB_ID.CONTACTS,
+						section: 'contacts',
+						question: 'check-applicant-contact-details',
+						manageListAction: 'add',
+						manageListItemId: 'new-contact',
+						manageListQuestion: 'applicant-contact'
+					},
+					query,
+					baseUrl: '/s62a/cases/case-123/contacts'
+				} as unknown as Request;
+				const res = { locals: {} } as unknown as Response;
+
+				await handler(req, res, () => {});
+
+				const question = findQuestion(res.locals.journey as Journey, 'contacts', 'applicantContactDetails');
+				assert.ok(question instanceof CustomMultiFieldInputQuestion);
+				const fields = question.answerForViewModel({}) as {
+					fieldName: string;
+					options?: { value: string; checked: boolean }[];
+				}[];
+				const organisationField = fields.find((field) => field.fieldName === 'applicantContactOrganisation');
+				assert.ok(organisationField?.options, 'expected an organisation radio');
+
+				return organisationField.options.filter((option) => option.checked).map((option) => option.value);
+			}
+
+			it('pre-selects the organisation named in the query', async () => {
+				assert.deepStrictEqual(await checkedOrganisations({ organisation: orgB.id }), [orgB.id]);
+			});
+
+			it('pre-selects nothing without the query', async () => {
+				assert.deepStrictEqual(await checkedOrganisations({}), []);
+				assert.deepStrictEqual(await checkedOrganisations(undefined), []);
+			});
+
+			it('pre-selects nothing for an organisation not on the case', async () => {
+				assert.deepStrictEqual(await checkedOrganisations({ organisation: 'org-elsewhere' }), []);
+			});
+
+			it('ignores a repeated query parameter rather than erroring', async () => {
+				assert.deepStrictEqual(await checkedOrganisations({ organisation: [orgA.id, orgB.id] }), []);
+			});
 		});
 
 		it('passes session housing to getQuestions for the existing side too', async () => {
@@ -556,6 +624,96 @@ describe('S62A Controller Middleware', () => {
 
 				assert.strictEqual(findMany.mock.callCount(), 0);
 			});
+		});
+	});
+
+	describe('applicantContactPromptMessages', () => {
+		const id = 'a4f3e2d1-0000-4000-8000-000000000000';
+		const newItemId = () => 'new-item';
+		const addUrl = `/s62a/cases/${id}/contacts/contacts/check-applicant-contact-details/add/new-item/applicant-contact`;
+
+		const organisations = [
+			{ id: 'org-a', organisationName: 'Bob and Co LLC' },
+			{ id: 'org-b', organisationName: 'Lilac Group' }
+		];
+
+		/** Prompts for an organisation applicant without an agent, with the given overrides. */
+		const promptsFor = (overrides: Parameters<typeof applicantContactPromptMessages>[0] = {}) =>
+			applicantContactPromptMessages(
+				{
+					applicantType: APPLICANT_TYPE_ID.ORGANISATION,
+					hasAgent: BOOLEAN_OPTIONS.NO,
+					manageApplicantOrganisations: organisations,
+					manageApplicantContactDetails: [],
+					...overrides
+				},
+				id,
+				newItemId
+			);
+
+		it('prompts for each organisation without a contact, linking to a new contact with it pre-selected', () => {
+			assert.deepStrictEqual(promptsFor(), [
+				`<a class="govuk-link" href="${addUrl}?organisation=org-a">Add a contact for Bob and Co LLC</a>`,
+				`<a class="govuk-link" href="${addUrl}?organisation=org-b">Add a contact for Lilac Group</a>`
+			]);
+		});
+
+		it('only prompts for the organisations still missing a contact', () => {
+			const prompts = promptsFor({
+				manageApplicantContactDetails: [{ id: 'contact-1', applicantContactOrganisation: 'org-a' }]
+			});
+
+			assert.deepStrictEqual(prompts, [
+				`<a class="govuk-link" href="${addUrl}?organisation=org-b">Add a contact for Lilac Group</a>`
+			]);
+		});
+
+		it('returns no prompts once every organisation has a contact', () => {
+			const prompts = promptsFor({
+				manageApplicantContactDetails: [
+					{ id: 'contact-1', applicantContactOrganisation: 'org-a' },
+					{ id: 'contact-2', applicantContactOrganisation: 'org-b' }
+				]
+			});
+
+			assert.deepStrictEqual(prompts, []);
+		});
+
+		it('returns no prompts when the applicant is an individual', () => {
+			assert.deepStrictEqual(promptsFor({ applicantType: APPLICANT_TYPE_ID.INDIVIDUAL }), []);
+		});
+
+		it('returns no prompts when the applicant has an agent, as in Create a case', () => {
+			assert.deepStrictEqual(promptsFor({ hasAgent: BOOLEAN_OPTIONS.YES }), []);
+		});
+
+		it('returns no prompts when there are no organisations', () => {
+			assert.deepStrictEqual(promptsFor({ manageApplicantOrganisations: undefined }), []);
+		});
+
+		it('skips an organisation without an id, as it cannot be linked to', () => {
+			assert.deepStrictEqual(promptsFor({ manageApplicantOrganisations: [{ organisationName: 'Unsaved Ltd' }] }), []);
+		});
+
+		it('escapes the organisation name', () => {
+			const [prompt] = promptsFor({
+				manageApplicantOrganisations: [{ id: 'org-a', organisationName: '<script>alert("x")</script> & Sons' }]
+			});
+
+			assert.ok(prompt.includes('Add a contact for &lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; Sons'));
+			assert.ok(!prompt.includes('<script>'));
+		});
+
+		it('uses a new item id for each link by default', () => {
+			const prompts = applicantContactPromptMessages(
+				{ applicantType: APPLICANT_TYPE_ID.ORGANISATION, manageApplicantOrganisations: organisations },
+				id
+			);
+			const itemIds = prompts.map((prompt) => /\/add\/([^/]+)\/applicant-contact/.exec(prompt)?.[1]);
+
+			assert.strictEqual(itemIds.length, 2);
+			assert.ok(itemIds.every(Boolean));
+			assert.notStrictEqual(itemIds[0], itemIds[1]);
 		});
 	});
 

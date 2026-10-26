@@ -129,4 +129,32 @@ describe('multiContactQuestions factory', () => {
 		assert.strictEqual(validator.fields[4].fieldName, 'applicantContactOrganisation');
 		assert.strictEqual(validator.fields[4].validators?.length, 1);
 	});
+
+	it('should pass a default organisation to the radio when given', () => {
+		const organisationOptions = [
+			{ text: 'Acme Corp', value: 'org-1' },
+			{ text: 'Stark Industries', value: 'org-2' }
+		];
+		const questions = multiContactQuestions({
+			prefix: 'applicant',
+			title: 'applicant',
+			organisationOptions,
+			defaultOrganisation: 'org-2'
+		});
+		const field = questions.applicantContactDetails.inputFields[4];
+
+		assert.strictEqual(field.type, COMPONENT_TYPES.RADIO);
+		assert.strictEqual('defaultValue' in field && field.defaultValue, 'org-2');
+	});
+
+	it('should leave the radio without a default when none is given', () => {
+		const organisationOptions = [
+			{ text: 'Acme Corp', value: 'org-1' },
+			{ text: 'Stark Industries', value: 'org-2' }
+		];
+		const questions = multiContactQuestions({ prefix: 'applicant', title: 'applicant', organisationOptions });
+		const field = questions.applicantContactDetails.inputFields[4];
+
+		assert.strictEqual('defaultValue' in field ? field.defaultValue : undefined, undefined);
+	});
 });

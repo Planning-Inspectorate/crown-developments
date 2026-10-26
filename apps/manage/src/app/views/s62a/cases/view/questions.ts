@@ -96,6 +96,8 @@ interface QuestionOverrides {
 	nonResidentialFloorspace?: NonResidentialFloorspaceItem[];
 	residentialTotals?: ResidentialTotals;
 	preApplicationCaseOptions?: PreApplicationCaseOption[];
+	/** Applicant organisation pre-selected on a new applicant contact, from the contact prompt banner's link */
+	preselectedApplicantOrganisationId?: string;
 }
 
 type ApplicantOrg = {
@@ -113,7 +115,8 @@ export function getQuestions(
 		proposedHousing,
 		existingHousing,
 		residentialTotals,
-		preApplicationCaseOptions
+		preApplicationCaseOptions,
+		preselectedApplicantOrganisationId
 	}: QuestionOverrides
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -1722,7 +1725,8 @@ export function getQuestions(
 		...multiContactQuestions({
 			prefix: 'applicant',
 			title: 'applicant',
-			organisationOptions: applicantOrganisationOptions.length ? applicantOrganisationOptions : null
+			organisationOptions: applicantOrganisationOptions.length ? applicantOrganisationOptions : null,
+			defaultOrganisation: preselectedApplicantOrganisationId
 		}),
 		hasAgent: {
 			type: COMPONENT_TYPES.BOOLEAN,

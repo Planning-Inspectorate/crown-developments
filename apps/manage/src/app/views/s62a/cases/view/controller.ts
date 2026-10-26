@@ -13,6 +13,7 @@ import { createJourney, JOURNEY_ID } from './journey.ts';
 import { getQuestions } from './questions.ts';
 import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import {
+	APPLICANT_TYPE_ID,
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID,
 	VIEW_TAB_ID,
@@ -36,6 +37,8 @@ import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
+import { randomUUID } from 'node:crypto';
+import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
@@ -163,7 +166,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			existingHousing: finalAnswers.manageExistingHousing,
 			nonResidentialFloorspace: finalAnswers.manageNonResidentialFloorspace,
 			residentialTotals,
-			preApplicationCaseOptions
+			preApplicationCaseOptions,
+			preselectedApplicantOrganisationId: getPreselectedApplicantOrganisation(req)
 		});
 
 		type QuestionBase = { fieldName?: string; title?: string };
@@ -230,6 +234,15 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 		bannerBuilder.addSuccessText('Case has been updated.');
 	}
 
+	if (req.params.tab === VIEW_TAB_ID.CONTACTS) {
+		const answers = getJourneyAnswers(res);
+		const prompts = answers ? applicantContactPromptMessages(answers, id) : [];
+
+		for (const prompt of prompts) {
+			bannerBuilder.addInfoTrustedSingleLineHtml(prompt);
+		}
+	}
+
 	if (req.params.tab === VIEW_TAB_ID.RESIDENTIAL) {
 		const answers = getJourneyAnswers(res);
 		const prompt = answers && residentialPromptMessage(answers, id);
@@ -278,6 +291,61 @@ export function residentialPromptMessage(answers: ResidentialAnswers, id: string
 
 	// id is a validated uuid and side is a literal, so the anchor is trusted.
 	return `<a class="govuk-link" href="${href}">Add ${side} housing</a> to calculate Total net gain or loss of residential units`;
+}
+
+type ApplicantContactPromptAnswers = Pick<
+	S62aCaseViewModel,
+	'applicantType' | 'hasAgent' | 'manageApplicantOrganisations' | 'manageApplicantContactDetails'
+>;
+
+/**
+ * Query parameter the contact prompt uses to pre-select an organisation on the
+ * 'What are the applicant's contact details?' page.
+ */
+export const PRESELECTED_ORGANISATION_QUERY = 'organisation';
+
+/**
+ * A prompt per applicant organisation that has no contact, each linking to a
+ * new applicant contact with that organisation pre-selected. Empty when every
+ * organisation has a contact.
+ *
+ * Mirrors the Create a case rule (getApplicantContactsValidator): contacts are
+ * only required for organisation applicants without an agent.
+ */
+export function applicantContactPromptMessages(
+	answers: ApplicantContactPromptAnswers,
+	id: string,
+	newItemId: () => string = randomUUID
+): string[] {
+	if (answers.applicantType !== APPLICANT_TYPE_ID.ORGANISATION || answers.hasAgent === BOOLEAN_OPTIONS.YES) {
+		return [];
+	}
+
+	const contacts = answers.manageApplicantContactDetails ?? [];
+
+	return (answers.manageApplicantOrganisations ?? [])
+		.filter((org) => org.id && !contacts.some((contact) => contact.applicantContactOrganisation === org.id))
+		.map((org) => {
+			const orgId = encodeURIComponent(org.id ?? '');
+			// A fresh item id per link, as the manage list's own 'Add' link does
+			const href = `/s62a/cases/${id}/contacts/contacts/check-applicant-contact-details/add/${newItemId()}/applicant-contact?${PRESELECTED_ORGANISATION_QUERY}=${orgId}`;
+			// The organisation name is user input, so it's escaped; everything else is trusted.
+			return `<a class="govuk-link" href="${href}">Add a contact for ${escapeHtml(org.organisationName)}</a>`;
+		});
+}
+
+/**
+ * The organisation to pre-select on a new applicant contact, from the prompt's
+ * link. Anything that isn't one organisation id is ignored, and an id that isn't
+ * one of the case's organisations matches no option, so nothing is selected.
+ */
+function getPreselectedApplicantOrganisation(req: Request): string | undefined {
+	const query: unknown = req.query;
+	if (!query || typeof query !== 'object') {
+		return undefined;
+	}
+	const value: unknown = (query as Record<string, unknown>)[PRESELECTED_ORGANISATION_QUERY];
+	return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
 /**
