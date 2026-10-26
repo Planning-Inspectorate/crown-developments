@@ -1,3 +1,4 @@
+import type { ManageService } from '#service';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import {
 	APPLICATION_FOLDERS,
@@ -6,6 +7,11 @@ import {
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { stringToKebab } from '@pins/crowndev-lib/util/string.ts';
+import type { ValidationError } from '@pins/crowndev-lib/validators/file-validator.ts';
+import type {
+	FlatFolder,
+	FolderNode
+} from '@pins/crowndev-lib/forms/custom-components/nested-folder-radio/question.ts';
 
 export const FOLDERS_MAP = {
 	[PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION]: PRE_APPLICATION_FOLDERS,
@@ -187,4 +193,75 @@ export function getFolderPath(allFolders: FolderBreadcrumb[], folderId: string):
 	}
 
 	return folderPath.reverse();
+}
+
+/**
+ * Takes the flat folder data connected to case and builds the nested structure,
+ */
+export function buildFolderTree(flatFolders: FlatFolder[]): FolderNode[] {
+	const nodeMap = new Map<string, FolderNode>();
+	const roots: FolderNode[] = [];
+
+	for (const folder of flatFolders) {
+		nodeMap.set(folder.id, { ...folder, children: [] });
+	}
+
+	for (const folder of flatFolders) {
+		const node = nodeMap.get(folder.id);
+
+		if (!node) continue;
+
+		if (folder.parentFolderId && nodeMap.has(folder.parentFolderId)) {
+			const parent = nodeMap.get(folder.parentFolderId);
+			parent?.children.push(node);
+		} else {
+			roots.push(node);
+		}
+	}
+
+	return roots;
+}
+
+/**
+ * Checks if file names already exist in a folder (database)
+ * Used for both upload and move operations
+ */
+export async function getExistingFileNamesInFolder(db: ManageService['db'], folderId: string): Promise<string[]> {
+	const folder = await db.folder.findUnique({
+		where: { id: folderId },
+		include: {
+			Documents: {
+				where: { deletedAt: null }, // Do not worry if a soft deleted file as only live files are relevant
+				select: { fileName: true }
+			}
+		}
+	});
+	return folder?.Documents.map((doc) => doc.fileName) ?? [];
+}
+
+/**
+ * Checks if a filename conflicts with existing files in a destination folder
+ * Works for both upload and move file operations
+ */
+export function checkFileNameConflict(fileName: string, existingFileNames: Set<string>): ValidationError | null {
+	if (existingFileNames.has(fileName)) {
+		return {
+			text: `${fileName}: File with this name already exists in the folder`,
+			href: '#upload-form'
+		};
+	}
+	return null;
+}
+
+/**
+ * Check if any of the file names conflict with existing files in a destination folder
+ * Works for both upload and move file operations
+ */
+export function checkFileNamesConflict(fileNames: string[], existingNamesSet: Set<string>): ValidationError[] | null {
+	if (existingNamesSet.size === 0) return null;
+	const errors: ValidationError[] = fileNames
+		.map((fileName) => checkFileNameConflict(fileName, existingNamesSet))
+		.filter((error): error is ValidationError => error !== null);
+
+	return errors.length > 0 ? errors : null;
 }

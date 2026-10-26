@@ -1,0 +1,38 @@
+import { BaseValidator } from '@planning-inspectorate/dynamic-forms';
+import { body } from 'express-validator';
+
+export default class NestedRequiredValidator extends BaseValidator {
+	errorMessage: string;
+
+	constructor(errorMessage: string = 'Select a destination folder') {
+		super();
+		this.errorMessage = errorMessage;
+	}
+
+	/**
+	 * Indicates whether this validator makes the field required.
+	 * Since this validator checks for a root folder selection, it is effectively a required validator.
+	 */
+	isRequired(): boolean {
+		return true;
+	}
+
+	/**
+	 * We only need to check if the base level folder was at least selected
+	 * if they did that then we know they've at least chosen something.
+	 */
+	validate(questionObj: { fieldName: string }) {
+		return body().custom((_, { req }) => {
+			const rootInputName = `${questionObj.fieldName}_level_0_root`;
+			const requestBody = req.body as Record<string, unknown>;
+
+			const rootValue = requestBody[rootInputName];
+
+			if (!rootValue) {
+				throw new Error(this.errorMessage);
+			}
+
+			return true;
+		});
+	}
+}

@@ -9,6 +9,7 @@ import type { ValidationConfig } from '@pins/crowndev-lib/validators/file-valida
 import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
 import { recordS62aFileAudit } from '../../../../../audit/files.ts';
+import { getExistingFileNamesInFolder } from '../../../../../util/folders.ts';
 
 /**
  * Controller for uploading a new document to Azure Blob.
@@ -156,21 +157,4 @@ export function validateUploads(
 
 		next();
 	};
-}
-
-/**
- * Checks if file names already exist in a folder (database)
- * Used for both upload and move operations
- */
-export async function getExistingFileNamesInFolder(db: ManageService['db'], folderId: string): Promise<string[]> {
-	const folder = await db.folder.findUnique({
-		where: { id: folderId },
-		include: {
-			Documents: {
-				where: { deletedAt: null }, // Do not worry if a soft deleted file as only live files are relevant
-				select: { fileName: true }
-			}
-		}
-	});
-	return folder?.Documents.map((doc) => doc.fileName) ?? [];
 }
