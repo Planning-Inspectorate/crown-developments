@@ -3,11 +3,14 @@ import assert from 'node:assert';
 import {
 	applicationListViewFormattingFunction,
 	applicationUpdateToTimelineItem,
-	crownDevelopmentToViewModel,
-	representationTitle,
-	representationToViewModel
+	crownDevelopmentToViewModel
 } from './view-model.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
+import {
+	representationTitle,
+	representationToViewModel
+} from '@pins/crowndev-lib/written-representations/view-model.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { REPRESENTATION_SUBMITTED_FOR_ID, REPRESENTED_TYPE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('view-model', () => {
@@ -313,7 +316,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'withdrawn');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'withdrawn', undefined);
 			assert.deepStrictEqual(result, [
 				{ href: `/applications/${id}/application-information`, text: 'Application information' },
 				{ href: `/applications/${id}/documents`, text: 'Documents' },
@@ -328,7 +331,7 @@ describe('view-model', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired');
+			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired', undefined);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,

@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildFilters, hasQueries, mapWithAndWithoutToBoolean } from './filters.ts';
+import { buildFilters } from './filters.ts';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { mockLogger } from '@planning-inspectorate/core/testing';
@@ -26,7 +26,7 @@ function createMockDb(counts) {
 	};
 }
 
-describe('Filters', () => {
+describe('Crown FO Filters', () => {
 	describe('buildFilters', () => {
 		let logger;
 		beforeEach(() => {
@@ -111,44 +111,6 @@ describe('Filters', () => {
 			await assert.rejects(() => buildFilters({ db: mockDb, logger }, 'app-123', {}), {
 				message: 'Error fetching written representations (PrismaClientValidationError)'
 			});
-		});
-	});
-
-	describe('hasQueries (representation-specific)', () => {
-		it('returns false when only representation excluded keys present', () => {
-			assert.strictEqual(hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test' }), false);
-		});
-		it('returns true when representation filter is present', () => {
-			assert.strictEqual(hasQueries({ filterSubmittedBy: ['party'] }), true);
-			assert.strictEqual(hasQueries({ filterByAttachments: ['withAttachments'] }), true);
-		});
-	});
-
-	describe('mapWithAndWithoutToBoolean', () => {
-		it('maps recognised values to booleans', () => {
-			assert.deepStrictEqual(
-				mapWithAndWithoutToBoolean(['withAttachments', 'withoutAttachments'], 'withAttachments', 'withoutAttachments'),
-				[true, false]
-			);
-		});
-		it('ignores unknown values', () => {
-			assert.deepStrictEqual(
-				mapWithAndWithoutToBoolean(['foo', 'withAttachments'], 'withAttachments', 'withoutAttachments'),
-				[true]
-			);
-		});
-		it('returns empty array for empty input', () => {
-			assert.deepStrictEqual(mapWithAndWithoutToBoolean([], 'withAttachments', 'withoutAttachments'), []);
-		});
-		it('returns boolean array length matching recognised inputs only', () => {
-			assert.deepStrictEqual(
-				mapWithAndWithoutToBoolean(
-					['withAttachments', 'bar', 'baz', 'withoutAttachments'],
-					'withAttachments',
-					'withoutAttachments'
-				),
-				[true, false]
-			);
 		});
 	});
 

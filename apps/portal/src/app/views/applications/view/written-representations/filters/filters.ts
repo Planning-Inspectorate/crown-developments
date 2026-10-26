@@ -1,23 +1,14 @@
 import { REPRESENTATION_CATEGORY_ID, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import {
-	buildDateFilterSection,
-	getFilterQueryItems,
-	hasQueries as hasQueriesUtil,
-	sanitiseQueryToStringArray
-} from '@pins/crowndev-lib/filters/filter-utils.ts';
-import type { PortalService } from '#service';
+import { buildDateFilterSection, sanitiseQueryToStringArray } from '@pins/crowndev-lib/filters/filter-utils.ts';
+import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { CheckboxFilter, FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';
 
-const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
-
-export { getFilterQueryItems };
-
 export async function buildFilters(
-	{ db, logger }: Pick<PortalService, 'db' | 'logger'>,
+	{ db, logger }: Pick<Service, 'db' | 'logger'>,
 	id: string,
 	queryFilters: QueryFilters
-): Promise<FilterSection[] | undefined> {
+): Promise<FilterSection[]> {
 	const interestedParties = REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES;
 	const consultees = REPRESENTATION_CATEGORY_ID.CONSULTEES;
 	try {
@@ -110,15 +101,4 @@ export async function buildFilters(
 		});
 		return [];
 	}
-}
-
-// Backward compatible export that uses representation-specific excluded keys
-export function hasQueries(query: QueryFilters): boolean {
-	return hasQueriesUtil(query, excludedFilterKeys);
-}
-
-export function mapWithAndWithoutToBoolean(filters: string[], trueValue: string, falseValue: string): boolean[] {
-	return filters
-		.map((value) => (value === trueValue ? true : value === falseValue ? false : null))
-		.filter((value): value is boolean => value !== null);
 }
