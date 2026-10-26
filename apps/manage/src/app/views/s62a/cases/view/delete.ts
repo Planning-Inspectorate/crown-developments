@@ -131,6 +131,7 @@ async function recordListItemRemoval(
 			fieldName,
 			itemId,
 			// The case as it was before the removal, set by the journey middleware
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 			previousCase: res.locals?.originalAnswers ?? {},
 			context: {
 				userDisplayNameMap: res.locals?.userDisplayNameMap as Map<string, string> | undefined
