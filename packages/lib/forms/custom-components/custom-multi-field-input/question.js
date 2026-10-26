@@ -38,7 +38,8 @@ import escape from 'escape-html';
  *   type: 'radio',
  *   label?: string,
  * 	 legend?: string,
- *   options: Array<{ text: string, value: string, attributes?: Record<string, string> }>
+ *   options: Array<{ text: string, value: string, attributes?: Record<string, string> }>,
+ *   defaultValue?: string
  * }} RadioField
  */
 
@@ -133,11 +134,14 @@ export default class CustomMultiFieldInputQuestion extends Question {
 			}
 
 			if (inputField.type === 'radio' || inputField.type === 'boolean') {
+				// A radio's default only applies before it has an answer, so it never overrides a saved choice
+				const selected =
+					answers[inputField.fieldName] ?? (inputField.type === 'radio' ? inputField.defaultValue : undefined);
 				return {
 					...inputField,
 					options: inputField.options.map((option) => ({
 						...option,
-						checked: option.value === answers[inputField.fieldName]
+						checked: option.value === selected
 					}))
 				};
 			}

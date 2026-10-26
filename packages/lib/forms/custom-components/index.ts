@@ -107,6 +107,8 @@ export type CustomMultiFieldRadioField = CustomMultiFieldBaseField & {
 	label?: string;
 	legend?: string;
 	options: Array<{ text: string; value: string; attributes?: Record<string, string> }>;
+	/** Option checked when the field has no answer yet, e.g. a new manage list item */
+	defaultValue?: string;
 };
 
 export type CustomMultiFieldHiddenField = CustomMultiFieldBaseField & {

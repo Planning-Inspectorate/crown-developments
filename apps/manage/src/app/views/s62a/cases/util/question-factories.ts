@@ -90,11 +90,14 @@ export const createLpaContactQuestion = (isSecondary: boolean) => {
 export const multiContactQuestions = ({
 	prefix,
 	title,
-	organisationOptions
+	organisationOptions,
+	defaultOrganisation
 }: {
 	prefix: string;
 	title: string;
 	organisationOptions: Array<{ text: string; value: string }> | null;
+	/** Organisation pre-selected on a new contact, when there's a choice of more than one */
+	defaultOrganisation?: string;
 }) => {
 	const prefixUrl = camelCaseToUrlCase(prefix);
 	const isNullOption = organisationOptions === null;
@@ -154,6 +157,7 @@ export const multiContactQuestions = ({
 									fieldName: `${prefix}ContactOrganisation`,
 									legend: 'Which organisation is this contact for?',
 									options: organisationOptions,
+									defaultValue: defaultOrganisation,
 									formatTextFunction: formatOrganisationFunction
 								}
 							])

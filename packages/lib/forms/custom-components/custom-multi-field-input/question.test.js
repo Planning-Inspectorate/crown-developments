@@ -80,6 +80,52 @@ describe('CustomMultiFieldInputQuestion', () => {
 		]);
 	});
 
+	describe('radio defaultValue', () => {
+		const radioQuestion = () =>
+			buildQuestion({
+				inputFields: [
+					{
+						type: 'radio',
+						fieldName: 'organisation',
+						options: [
+							{ text: 'Org A', value: 'org-a' },
+							{ text: 'Org B', value: 'org-b' }
+						],
+						defaultValue: 'org-b'
+					}
+				]
+			});
+
+		/** @param {Record<string, string>} answers */
+		const checkedValues = (answers) =>
+			radioQuestion()
+				.answerForViewModel(answers)[0]
+				.options.filter((/** @type {{ checked: boolean }} */ option) => option.checked)
+				.map((/** @type {{ value: string }} */ option) => option.value);
+
+		it('checks the default when the field has no answer', () => {
+			assert.deepEqual(checkedValues({}), ['org-b']);
+		});
+
+		it('checks the saved answer over the default', () => {
+			assert.deepEqual(checkedValues({ organisation: 'org-a' }), ['org-a']);
+		});
+
+		it('checks nothing when the default matches no option', () => {
+			const question = buildQuestion({
+				inputFields: [
+					{
+						type: 'radio',
+						fieldName: 'organisation',
+						options: [{ text: 'Org A', value: 'org-a' }],
+						defaultValue: 'org-elsewhere'
+					}
+				]
+			});
+			assert.equal(question.answerForViewModel({})[0].options[0].checked, false);
+		});
+	});
+
 	it('should apply formatTextFunction when provided and value exists', () => {
 		const question = buildQuestion({
 			inputFields: [
