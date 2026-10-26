@@ -1,9 +1,9 @@
 import { clearDataFromSession } from '@planning-inspectorate/dynamic-forms';
 import { JOURNEY_ID } from './journey.ts';
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
 import type { Prisma, PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
-import { S62aCaseMapper, type CreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
+import { S62aCaseMapper, type S62aCreateCaseAnswers, type CreateInputOptions } from './s62a-case-mapper.ts';
 import {
 	PRE_APPLICATION_ADVICE_FOLDER,
 	PRE_APPLICATION_ADVICE_ID,
@@ -18,22 +18,15 @@ import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts
 import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
 import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { S62aCreateCaseLocals } from './locals.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
-export function buildSaveController(service: ManageService): AsyncRequestHandler {
+export function buildSaveController(service: ManageService): AsyncRequestHandlerWithLocals<S62aCreateCaseLocals> {
 	const { db, logger } = service;
 	return async (req, res) => {
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-
-		const journeyResponse = res.locals.journeyResponse;
-		const answers = journeyResponse.answers as unknown as CreateCaseAnswers;
-
-		if (typeof answers !== 'object') {
-			throw new Error('answers should be an object');
-		}
+		const answers = getAnswers<S62aCreateCaseAnswers>(res);
 
 		const { id, status, reference } = await db.$transaction(async ($tx) => {
 			async function createCase(caseRef: string, extraData: Partial<Prisma.S62aCaseCreateInput> = {}) {
@@ -127,7 +120,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
  * creation process.
  */
 export function toCreateInput(
-	answers: CreateCaseAnswers,
+	answers: S62aCreateCaseAnswers,
 	reference: string,
 	options: CreateInputOptions = {}
 ): Prisma.S62aCaseCreateInput {

@@ -1,14 +1,13 @@
 import type { ManageService } from '#service';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
-import type { JourneyResponse } from '@planning-inspectorate/dynamic-forms';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
 import {
 	PRE_APPLICATION_ADVICE_ID,
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { createJourney } from './journey.ts';
 import { getQuestions } from './questions.ts';
-import type { CreateCaseAnswers } from './s62a-case-mapper.ts';
 import { getPreApplicationCaseOptions } from '../util/pre-application.ts';
+import type { S62aCreateCaseLocals } from './locals.ts';
 
 /**
  * Builds the create-a-case journey for a request.
@@ -16,18 +15,19 @@ import { getPreApplicationCaseOptions } from '../util/pre-application.ts';
  * Replaces the library's buildGetJourney because the pre-application reference
  * options come from the database, and getQuestions is synchronous.
  */
-export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(
+	service: ManageService,
+	isQuestionView: boolean
+): AsyncRequestHandlerWithLocals<S62aCreateCaseLocals> {
 	const { db } = service;
 
 	return async (req, res, next) => {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-		const journeyResponse = res.locals?.journeyResponse as JourneyResponse | undefined;
+		const journeyResponse = res.locals?.journeyResponse;
 		if (!journeyResponse || !('journeyId' in journeyResponse)) {
 			throw new Error('no journey ID specified');
 		}
 
-		// answers is typed loosely by the library, so cast once here
-		const answers = journeyResponse.answers as unknown as Partial<CreateCaseAnswers>;
+		const answers = journeyResponse.answers;
 
 		// only queried when the PINS select will actually be built
 		const needsPreApplicationCases =
