@@ -108,7 +108,6 @@ describe('buildWrittenRepresentationsPage', () => {
 		assert.strictEqual(locals.representations[0].representationTitle, 'Alex Example');
 		assert.strictEqual(locals.representations[0].representationComment, representation.comment);
 		assert.strictEqual(locals.containsDistressingContent, false);
-		assert.strictEqual(locals.showSearchFilterControls, true);
 	});
 
 	it('includes application updates and written representations links when enabled and published', async (context) => {

@@ -5,7 +5,10 @@ import { hasQueries, mapWithAndWithoutToBoolean } from './filters.ts';
 describe('Filter helper functions', () => {
 	describe('hasQueries (representation-specific)', () => {
 		it('returns false when only representation excluded keys present', () => {
-			assert.strictEqual(hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test' }), false);
+			assert.strictEqual(
+				hasQueries({ itemsPerPage: '25', page: '2', searchCriteria: 'test', formType: 'mobile' }),
+				false
+			);
 		});
 		it('returns true when representation filter is present', () => {
 			assert.strictEqual(hasQueries({ filterSubmittedBy: ['party'] }), true);

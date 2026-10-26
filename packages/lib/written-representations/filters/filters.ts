@@ -6,7 +6,7 @@ import type { ErrorSummaryItem } from '../../util/types.ts';
 import { mapDateFilterErrorSummary } from '../../filters/filter-error-summary.ts';
 import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
 
-const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
+const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria', 'formType'] as const;
 
 export { getFilterQueryItems };
 
