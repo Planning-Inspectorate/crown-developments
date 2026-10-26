@@ -1,6 +1,6 @@
 import type { ManageService } from '#service';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
 import {
 	BOOLEAN_OPTIONS,
 	dateIsBeforeToday,
@@ -18,7 +18,7 @@ import {
 	VIEW_TAB_ID,
 	VIEW_TABS
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
+import { type S62aCaseAnswers, s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { isUnsafeObjectKey } from '@pins/crowndev-lib/util/session.ts';
 import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
@@ -36,19 +36,21 @@ import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { S62aCaseViewLocals } from './locals.ts';
 
-export function buildViewCaseDetails(): AsyncRequestHandler {
+export function buildViewCaseDetails(): AsyncRequestHandlerWithLocals<S62aCaseViewLocals> {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
-		const reference = getStringParam(res?.locals?.journeyResponse?.answers, 'reference');
-		const answers = getJourneyAnswers(res);
-		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
+		const answers = getAnswers<S62aCaseAnswers>(res);
+		const reference = getStringParam(answers, 'reference');
+		const applicationPhase = getStringParam(answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
-		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
+		const lastModified = res.locals.lastModified;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
-		const createdDate = res.locals.createdDate;
-		const publishDate = getJourneyAnswers(res)?.publishDate;
+		const createdDateFormatted = res.locals.createdDateFormatted;
+		const publishDate = answers.publishDate;
 		const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 
 		// Show publish case validation errors
@@ -87,12 +89,15 @@ export function buildViewCaseDetails(): AsyncRequestHandler {
 			banner,
 			foldersUrl: `/s62a/cases/${id}/case-folders`,
 			lastModifiedDate,
-			createdDate
+			createdDateFormatted
 		});
 	};
 }
 
-export function buildGetJourneyMiddleware(service: ManageService, isQuestionView: boolean): AsyncRequestHandler {
+export function buildGetJourneyMiddleware(
+	service: ManageService,
+	isQuestionView: boolean
+): AsyncRequestHandlerWithLocals<S62aCaseViewLocals> {
 	const { db, logger, getEntraClient, audit } = service;
 	const groupIds = service.entraGroupIds;
 
@@ -123,9 +128,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		});
 
 		const answers = s62aCaseToViewModel(s62aCase);
-		const sessionAnswers = getJourneyAnswers(res);
+		const sessionAnswers = res.locals.journeyResponse?.answers;
 
-		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
+		const finalAnswers: S62aCaseAnswers = { ...combineSessionAndDbData(answers, sessionAnswers) };
 
 		// Derived after the merge so an entry added this session is counted, and
 		// so a stale session copy of a total cannot win over the current figure.
@@ -137,7 +142,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		if (currentTab === VIEW_TAB_ID.CASE_AUDIT) {
 			res.locals.lastModified = await audit.getLastModifiedInfo(id, groupMembers, CASE_DATA_MODEL.S62A);
 		}
-		const createdDate = formatDateTime(s62aCase.createdDate);
+		const createdDateFormatted = formatDateTime(s62aCase.createdDate);
 
 		// Only queried when the PINS select will actually be built
 		const preApplicationCaseOptions =
@@ -179,11 +184,9 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		);
 
 		res.locals.fieldDisplayNames = fieldDisplayNames;
-		res.locals.createdDate = createdDate;
+		res.locals.createdDateFormatted = createdDateFormatted;
 
-		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
-		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
@@ -216,8 +219,9 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 	const caseUpdated = readCaseUpdatedSession(req, id);
 
 	clearCaseUpdatedSession(req, id);
+	const answers = getAnswers<S62aCaseViewModel>(res);
 
-	const publishDate = getJourneyAnswers(res)?.publishDate;
+	const publishDate = answers.publishDate;
 	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 
 	if (caseUpdated && casePublished) {
@@ -228,7 +232,6 @@ function getBannerMessages(id: string, res: Response, req: Request) {
 	}
 
 	if (req.params.tab === VIEW_TAB_ID.RESIDENTIAL) {
-		const answers = getJourneyAnswers(res);
 		const prompt = answers && residentialPromptMessage(answers, id);
 
 		if (prompt) {
@@ -303,11 +306,4 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
 
 	const caseProps = (req.session?.cases && req.session.cases[id]) || {};
 	delete caseProps.updated;
-}
-
-/**
- * Get the journey answers
- */
-function getJourneyAnswers(res: Response): S62aCaseViewModel | undefined {
-	return res.locals.journeyResponse?.answers as unknown as S62aCaseViewModel;
 }
