@@ -256,21 +256,27 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		const updatedFieldNames = Object.keys(toSave);
 		const answersSnapshot = { ...toSave };
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const fullViewModel = res.locals?.journeyResponse?.answers || {};
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		customUpdateCaseActions(service, id, toSave, fullViewModel);
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		if (toSave.hasAgent === false && fullViewModel.hasAgent === 'yes') {
 			addSessionData(req, id, { agentStatusUpdated: true });
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		if (toSave.hasAgent === true && fullViewModel.hasAgent === 'no') {
 			addSessionData(req, id, { agentStatusUpdated: true });
 		}
 
 		if (
 			toSave.manageApplicantDetails &&
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 			toSave.manageApplicantDetails.length > (fullViewModel.manageApplicantDetails?.length ?? 0)
 		) {
 			addSessionData(req, id, { applicantOrgAdded: true });

@@ -33,6 +33,7 @@ import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
  * Get the journey answers
  */
 function getJourneyAnswers(res: Response): CrownDevelopmentViewModel | undefined {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	return res.locals.journeyResponse?.answers;
 }
 
@@ -120,9 +121,12 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		bannerBuilder.addLinkedCase(linkedCaseLink);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const publishDate = res.locals?.journeyResponse?.answers?.publishDate;
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const casePublished = publishDate && (dateIsToday(publishDate) || dateIsBeforeToday(publishDate));
 	const successParam = req.query.success;
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const casePublishSuccess = successParam === 'published' && casePublished;
 	if (casePublishSuccess) {
 		bannerBuilder.addSuccessText('Application published');
@@ -135,13 +139,16 @@ async function getBannerMessages(id: string, res: Response, req: Request, db: Ma
 		return bannerBuilder.build();
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const crownDevelopmentView = res.locals.originalAnswers;
 
 	const agentStatusUpdated = readSessionData(req, id, 'agentStatusUpdated', false);
 	const applicantOrgAdded = readSessionData(req, id, 'applicantOrgAdded', false);
 
 	if (crownDevelopmentView) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const invalidStateBannerHtml = getInvalidStateBannerHtml(crownDevelopmentView, {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 			relatedFieldUpdated: agentStatusUpdated || (applicantOrgAdded && crownDevelopmentView.hasAgent === 'no')
 		});
 		if (invalidStateBannerHtml) {
@@ -193,7 +200,9 @@ export function buildViewCaseDetails({ db, getSharePointDrive, isCaseNotesLive, 
 		const baseUrl = req.baseUrl;
 
 		const banner = await getBannerMessages(id, res, req, db);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const notes = res.locals.caseNotes ?? [];
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const allCaseNotesCount = res.locals.allCaseNotesCount ?? 0;
 		const lastModified = res.locals.lastModified as { updatedDate: string | null; by: string | null } | undefined;
 		const lastModifiedDate = lastModified?.updatedDate ?? '-';
@@ -321,6 +330,7 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		// put these on locals for the list controller
 		res.locals.originalAnswers = { ...viewModel };
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
 		// set a back link to the case details page when viewing a section/question not within a manage list question
@@ -358,6 +368,7 @@ function clearAllSessionData(req: Request, res: Response, id: string) {
 
 	const errors = readSessionData<ErrorSummaryItem[]>(req, id, 'updateErrors', [], 'cases');
 	if (errors && errors.length > 0) {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		res.locals.errorSummary = [...(res.locals.errorSummary ?? []), ...errors];
 	}
 	clearSessionData(req, id, 'updateErrors', 'cases');

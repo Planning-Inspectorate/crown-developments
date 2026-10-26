@@ -47,8 +47,10 @@ export function buildGetJourneyMiddleware(service: ManageService): AsyncRequestH
 		}
 
 		const answers = s62aRepresentationToManageViewModel(representation, s62aCase.reference);
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const sessionAnswers = res.locals.journeyResponse?.answers;
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const finalAnswers = combineSessionAndDbData(answers, sessionAnswers);
 
 		const taskListUrl = req.baseUrl + '/manage/task-list';
@@ -98,6 +100,7 @@ export async function renderRepresentation(req: Request, res: Response, viewData
 		'representations'
 	);
 	const banner = getBannerMessages(res, req, { representationUpdated });
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const answers: Record<string, unknown> | undefined = res.locals?.journeyResponse?.answers;
 
 	await list(req, res, '', {
