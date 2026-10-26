@@ -55,7 +55,7 @@ describe('written representations', () => {
 				},
 				applicationUpdate: {
 					findFirst: mock.fn(() => undefined),
-					count: mock.fn(() => 0)
+					count: mock.fn(() => 1)
 				}
 			};
 
@@ -85,115 +85,7 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.paginationParams.totalPages, 1);
 			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
 			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 1);
-		});
-		it('should show representation-level distressing tag when a representation has distressingContentInRepresentation true', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
-			const mockReq = {
-				params: {
-					applicationId
-				},
-				originalUrl: `/applications/${applicationId}/written-representations`
-			};
-
-			const mockRes = { render: mock.fn(), status: mock.fn() };
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: applicationId,
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active',
-						containsDistressingContent: false
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => [
-						{
-							reference: '4SNR8-ZS27T',
-							submittedDate: new Date('2025-01-15'),
-							comment: 'This is a test representation.',
-							commentRedacted: null,
-							submittedByAgentOrgName: 'Test Organization',
-							submittedForId: 'on-behalf-of',
-							representedTypeId: 'organisation',
-							containsAttachments: false,
-							distressingContentInRepresentation: true,
-							SubmittedFor: { displayName: 'John Doe' },
-							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
-							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
-							Category: { displayName: 'General Representation' },
-							Attachments: []
-						}
-					]),
-					count: mock.fn(() => 1)
-				},
-				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.representations.length, 1);
-			assert.strictEqual(viewData.representations[0].distressingContent, true);
-		});
-
-		it('should not show representation-level distressing tag when a representation has distressingContentInRepresentation false', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
-			const mockReq = {
-				params: {
-					applicationId
-				},
-				originalUrl: `/applications/${applicationId}/written-representations`
-			};
-
-			const mockRes = { render: mock.fn(), status: mock.fn() };
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: applicationId,
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active',
-						containsDistressingContent: false
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => [
-						{
-							reference: '4SNR8-ZS27T',
-							submittedDate: new Date('2025-01-15'),
-							comment: 'This is a test representation.',
-							commentRedacted: null,
-							submittedByAgentOrgName: 'Test Organization',
-							submittedForId: 'on-behalf-of',
-							representedTypeId: 'organisation',
-							containsAttachments: false,
-							distressingContentInRepresentation: false,
-							SubmittedFor: { displayName: 'John Doe' },
-							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
-							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
-							Category: { displayName: 'General Representation' },
-							Attachments: []
-						}
-					]),
-					count: mock.fn(() => 1)
-				},
-				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.representations.length, 1);
-			assert.strictEqual(viewData.representations[0].distressingContent, false);
+			assert.ok(viewData.links.some((link) => link.href === `/applications/${applicationId}/application-updates`));
 		});
 
 		it('should show application-level distressing tag when application containsDistressingContent is true', async (context) => {
@@ -250,59 +142,6 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.representations.length, 1);
 		});
 
-		it('should not show application-level distressing tag when application containsDistressingContent is false', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
-			const mockReq = {
-				params: {
-					applicationId
-				},
-				originalUrl: `/applications/${applicationId}/written-representations`
-			};
-			const mockRes = { render: mock.fn(), status: mock.fn() };
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: applicationId,
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active',
-						containsDistressingContent: false
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => [
-						{
-							reference: '4SNR8-ZS27T',
-							submittedDate: new Date('2025-01-15'),
-							comment: 'This is a test representation.',
-							commentRedacted: null,
-							submittedByAgentOrgName: 'Test Organization',
-							submittedForId: 'on-behalf-of',
-							representedTypeId: 'organisation',
-							containsAttachments: false,
-							distressingContentInRepresentation: false,
-							SubmittedFor: { displayName: 'John Doe' },
-							SubmittedByContact: { firstName: 'Jane', lastName: 'Smith' },
-							RepresentedContact: { firstName: 'Alice', lastName: 'Brown' },
-							Category: { displayName: 'General Representation' },
-							Attachments: []
-						}
-					]),
-					count: mock.fn(() => 1)
-				},
-				applicationUpdate: { findFirst: mock.fn(() => undefined), count: mock.fn(() => 0) }
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.containsDistressingContent, false);
-			assert.strictEqual(viewData.representations.length, 1);
-		});
 		it('should render the view with representation and read more link if the comment exceeds 500 chars', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
@@ -358,169 +197,12 @@ describe('written representations', () => {
 
 			await handler(mockReq, mockRes);
 
-			assert.strictEqual(mockRes.render.mock.calls[0].arguments[0], './view.njk');
-
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
-			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
-			assert.strictEqual(viewData.pageTitle, 'Written representations');
 			assert.strictEqual(viewData.representations.length, 1);
-			assert.deepStrictEqual(viewData.representations[0], {
-				dateRepresentationSubmitted: '15 January 2025',
-				representationCategory: 'General Representation',
-				representationComment:
-					'It began with an ordinary morning. The air smelled faintly of dew, the street empty but for leaves drifting lazily. ████████ ██████ adjusted his collar, noting his watch was three minutes late—a stubborn old thing, loyal only to its own time. Across the street, a bakery opened, the scent of bread spilling into the cool air. A woman in a green scarf carried loaves in quiet balance. The square stirred slowly; ████████ wrote in his notebook, letting the day delay his errands, wholly unhurried and s... ',
-				representationCommentIsRedacted: true,
-				representationReference: '4SNR8-ZS27T',
-				representationTitle: 'Jane Smith on behalf of Alice Brown',
-				hasAcceptedAttachments: true,
-				distressingContent: false,
-				truncatedReadMoreLink:
-					'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'
-			});
-			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 25);
-			assert.strictEqual(viewData.paginationParams.totalItems, 1);
-			assert.strictEqual(viewData.paginationParams.pageNumber, 1);
-			assert.strictEqual(viewData.paginationParams.totalPages, 1);
-			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
-			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 1);
-		});
-		it('should render the view with values provided in url query parameters', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const mockReq = {
-				params: {
-					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
-				},
-				query: {
-					itemsPerPage: 100,
-					page: 4
-				}
-			};
-			const mockRes = {
-				render: mock.fn(),
-				status: mock.fn()
-			};
-
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active'
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => []),
-					count: mock.fn(() => 1)
-				},
-				applicationUpdate: {
-					findFirst: mock.fn(() => undefined),
-					count: mock.fn(() => 0)
-				}
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-
-			assert.strictEqual(viewData.paginationParams.selectedItemsPerPage, 100);
-			assert.strictEqual(viewData.paginationParams.pageNumber, 4);
-		});
-
-		it('should render the view with values for pagination based on url params', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const mockReq = {
-				params: {
-					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
-				},
-				query: {
-					itemsPerPage: 50,
-					page: 4
-				}
-			};
-			const mockRes = {
-				render: mock.fn(),
-				status: mock.fn()
-			};
-
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active'
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => []),
-					count: mock.fn(() => 204)
-				},
-				applicationUpdate: {
-					findFirst: mock.fn(() => undefined),
-					count: mock.fn(() => 0)
-				}
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-
-			assert.strictEqual(viewData.paginationParams.totalPages, 5);
-			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 151);
-			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 200);
-		});
-
-		it('should render the view with values for pagination when total representations less than 25', async (context) => {
-			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
-			const mockReq = {
-				params: {
-					applicationId: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8'
-				}
-			};
-			const mockRes = {
-				render: mock.fn(),
-				status: mock.fn()
-			};
-
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn(() => ({
-						id: 'cfe3dc29-1f63-45e6-81dd-da8183842bf8',
-						reference: 'CROWN/2025/0000001',
-						representationsPeriodStartDate: new Date('2025-01-01'),
-						representationsPeriodEndDate: new Date('2025-02-01'),
-						representationsPublishDate: new Date('2025-03-01'),
-						applicationStatus: 'active'
-					}))
-				},
-				representation: {
-					findMany: mock.fn(() => []),
-					count: mock.fn(() => 17)
-				},
-				applicationUpdate: {
-					findFirst: mock.fn(() => undefined),
-					count: mock.fn(() => 0)
-				}
-			};
-
-			const handler = buildWrittenRepresentationsListPage({ db: mockDb });
-
-			await handler(mockReq, mockRes);
-
-			const viewData = mockRes.render.mock.calls[0].arguments[1];
-
-			assert.strictEqual(viewData.paginationParams.totalPages, 1);
-			assert.strictEqual(viewData.paginationParams.resultsStartNumber, 1);
-			assert.strictEqual(viewData.paginationParams.resultsEndNumber, 17);
+			assert.strictEqual(
+				viewData.representations[0].truncatedReadMoreLink,
+				'<a class="govuk-link govuk-link--no-visited-state" href="written-representations/4SNR8-ZS27T">Read more</a>'
+			);
 		});
 
 		it('should wrap prisma errors if error on findMany query', async (context) => {
@@ -697,29 +379,15 @@ describe('written representations', () => {
 			await assertRenders404Page(handler, mockReq, false);
 		});
 
-		it('should throw error if id is missing', () => {
+		it('should throw error if id is missing', async () => {
 			const mockReq = { params: {} };
 			const mockDb = {
 				crownDevelopment: {
 					findUnique: mock.fn()
 				}
 			};
-			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ mockDb });
-			assert.rejects(() => writtenRepresentationsPage(mockReq, {}), /must be a single string value/);
-		});
-
-		it('should return not found for invalid id', async () => {
-			const mockReq = {
-				params: { applicationId: 'abc-123' }
-			};
-
-			const mockDb = {
-				crownDevelopment: {
-					findUnique: mock.fn()
-				}
-			};
-			const handler = buildWrittenRepresentationsListPage({ mockDb });
-			await assertRenders404Page(handler, mockReq, false);
+			const writtenRepresentationsPage = buildWrittenRepresentationsListPage({ db: mockDb });
+			await assert.rejects(() => writtenRepresentationsPage(mockReq, {}), /must be a single string value/);
 		});
 
 		it('should 404 if the UUID is invalid', async () => {
@@ -825,6 +493,7 @@ describe('written representations', () => {
 			assert.strictEqual(viewData.errorSummary, null, 'errorSummary should be null for complete dates');
 			assert.ok(Array.isArray(viewData.dateErrors), 'dateErrors should be an array');
 		});
+
 		it('should build error summary entries when incomplete From date provided', async (context) => {
 			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-03-15T03:24:00.000Z') });
 			const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';

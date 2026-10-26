@@ -4,6 +4,7 @@ import type { Request } from 'express';
 import type { Service } from '../../app/base-service.ts';
 import type { ErrorSummaryItem } from '../../util/types.ts';
 import { mapDateFilterErrorSummary } from '../../filters/filter-error-summary.ts';
+import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
 
 const excludedFilterKeys = ['itemsPerPage', 'page', 'searchCriteria'] as const;
 
@@ -70,18 +71,4 @@ export async function getFiltersAndErrors(
 		dateErrors,
 		isMobileFilterOpen: filterQueryItems.length > 0 || dateErrors.length > 0
 	};
-}
-
-function toQueryFilters(query: Request['query'] | undefined): QueryFilters {
-	const filters: QueryFilters = {};
-
-	for (const [key, value] of Object.entries(query ?? {})) {
-		if (typeof value === 'string') {
-			filters[key] = value;
-		} else if (Array.isArray(value)) {
-			filters[key] = value.filter((item): item is string => typeof item === 'string');
-		}
-	}
-
-	return filters;
 }

@@ -15,6 +15,7 @@ import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { shouldDisplayApplicationUpdatesLink } from '../../../util/application-util.ts';
 
 /**
  * Render written representations page
@@ -168,6 +169,8 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			return notFoundHandler(req, res);
 		}
 
+		const displayApplicationUpdates = await shouldDisplayApplicationUpdatesLink(db, id);
+
 		// Duplicate filters for mobile with unique ids
 		const mobileFilters = filters.map((filter) => {
 			// Create a shallow copy of the filter object
@@ -197,6 +200,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			totalAcceptedRepresentations,
 			totalRepresentations,
 			{},
+			displayApplicationUpdates,
 			false,
 			filters,
 			mobileFilters,

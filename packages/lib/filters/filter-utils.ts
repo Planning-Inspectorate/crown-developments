@@ -1,6 +1,7 @@
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { dateFilter } from './date-filter.ts';
 import type { DateFilter, FilterQueryItem, FilterSection, QueryFilters } from './filter-types.ts';
+import type { Request } from 'express';
 
 /**
  * Extracts a string value from query filters which may be strings, arrays, or null
@@ -160,4 +161,18 @@ export function hasQueries(query: QueryFilters | undefined, excludedKeys: readon
 		}
 		return Array.isArray(value) ? value.some((v) => v !== '' && v != null) : value !== '' && value != null;
 	});
+}
+
+export function toQueryFilters(query: Request['query'] | undefined): QueryFilters {
+	const filters: QueryFilters = {};
+
+	for (const [key, value] of Object.entries(query ?? {})) {
+		if (typeof value === 'string') {
+			filters[key] = value;
+		} else if (Array.isArray(value)) {
+			filters[key] = value.filter((item): item is string => typeof item === 'string');
+		}
+	}
+
+	return filters;
 }
