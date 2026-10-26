@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { APPLICATION_PUBLISH_STATUS } from '@pins/crowndev-lib/util/applications.ts';
 import { APPLICATION_PROCEDURE_ID, ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { APPLICANT_TYPE_ID, OUTCOME_TYPE_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
+import { s62aCaseToRawViewModel, s62aCaseToViewModel, type S62aCaseWithRelations } from './view-model.ts';
 
 describe('s62aCaseToViewModel', () => {
 	it('should map base fields correctly', () => {
@@ -179,7 +179,8 @@ describe('s62aCaseToViewModel', () => {
 				extendedTargetDecisionDate: new Date('2024-04-15T12:00:00Z'),
 				decisionDate: new Date('2024-02-15T12:00:00Z'),
 				withdrawnDate: new Date('2024-05-15T12:00:00Z')
-			}
+			},
+			representationsPublishDate: new Date('2024-06-15T12:00:00Z')
 		} as unknown as S62aCaseWithRelations;
 
 		const result = s62aCaseToViewModel(mockCase);
@@ -189,6 +190,44 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.extendedTargetDecisionDate, '15 April 2024');
 		assert.strictEqual(result.decisionDate, '15 February 2024');
 		assert.strictEqual(result.withdrawnDate, '15 May 2024');
+		assert.strictEqual(result.representationsPublishDate, '15 June 2024');
+	});
+
+	it('should return all dates unformatted in the raw view model', () => {
+		const dates = {
+			applicationValidDate: new Date('2024-01-15T12:00:00Z'),
+			targetDecisionDate: new Date('2024-03-15T12:00:00Z'),
+			extendedTargetDecisionDate: new Date('2024-04-15T12:00:00Z'),
+			decisionDate: new Date('2024-02-15T12:00:00Z'),
+			withdrawnDate: new Date('2024-05-15T12:00:00Z')
+		};
+		const representationsPeriodStartDate = new Date('2024-01-01T09:30:00Z');
+		const representationsPeriodEndDate = new Date('2024-01-31T17:45:00Z');
+		const hearingDate = new Date('2024-06-20T13:30:00Z');
+		const representationsPublishDate = new Date('2024-02-01T00:00:00Z');
+		const documentPublishDate = new Date('2025-10-22T10:00:00Z');
+		const mockCase = {
+			S62aDates: dates,
+			representationsPeriodStartDate,
+			representationsPeriodEndDate,
+			representationsPublishDate,
+			procedureId: APPLICATION_PROCEDURE_ID.HEARING,
+			S62aEvent: { hearingDate },
+			Documents: [{ fileName: 'document.pdf', size: 0, publishDate: documentPublishDate }]
+		} as unknown as S62aCaseWithRelations;
+
+		const result = s62aCaseToRawViewModel(mockCase);
+
+		assert.strictEqual(result.applicationValidDate, dates.applicationValidDate);
+		assert.strictEqual(result.targetDecisionDate, dates.targetDecisionDate);
+		assert.strictEqual(result.extendedTargetDecisionDate, dates.extendedTargetDecisionDate);
+		assert.strictEqual(result.decisionDate, dates.decisionDate);
+		assert.strictEqual(result.withdrawnDate, dates.withdrawnDate);
+		assert.strictEqual(result.representationsPeriodStartDateTime, representationsPeriodStartDate);
+		assert.strictEqual(result.representationsPeriodEndDateTime, representationsPeriodEndDate);
+		assert.strictEqual(result.hearingDate, hearingDate);
+		assert.strictEqual(result.representationsPublishDate, representationsPublishDate);
+		assert.strictEqual(result.documents[0].date, documentPublishDate);
 	});
 
 	it('should format representation period dates when both are provided', () => {

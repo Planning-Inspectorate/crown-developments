@@ -107,7 +107,8 @@ export function applicationLinks(
 	representationsPublishDate: Date | null,
 	displayApplicationUpdates: boolean,
 	applicationStatus: ApplicationPublishStatus | undefined = undefined,
-	tabText?: Record<string, string>
+	tabText?: Record<string, string>,
+	repsTabAlwaysVisible: boolean = false
 ): ApplicationLink[] {
 	const links = [
 		{
@@ -124,6 +125,7 @@ export function applicationLinks(
 		href: `/applications/${id}/documents`,
 		text: tabText?.documents ?? 'Documents'
 	});
+
 	if (
 		!isWithdrawnOrExpired(applicationStatus) &&
 		haveYourSayPeriod?.start &&
@@ -142,7 +144,7 @@ export function applicationLinks(
 		});
 	}
 
-	if (representationsPublishDate && isNowAfterStartDate(representationsPublishDate)) {
+	if (repsTabAlwaysVisible || (representationsPublishDate && isNowAfterStartDate(representationsPublishDate))) {
 		links.push({
 			href: `/applications/${id}/written-representations`,
 			text: tabText?.writtenRepresentations ?? 'Written representations'

@@ -13,6 +13,11 @@ import { createPaginationParams } from '@pins/crowndev-lib/views/pagination/pagi
 import type { FilterQueryItem, FilterSection } from '@pins/crowndev-lib/filters/filter-types.ts';
 import type { ErrorSummaryItem } from '@pins/crowndev-lib/util/types.ts';
 
+type WrittenRepresentationsPageOptions = {
+	showSearchFilterControls?: boolean;
+	representationMapper?: (representation: RepresentationWithContacts) => ReturnType<typeof representationToViewModel>;
+};
+
 export function buildWrittenRepresentationsPage(
 	caseFields: WrittenRepresentationsCaseFields,
 	representations: RepresentationWithContacts[],
@@ -28,7 +33,8 @@ export function buildWrittenRepresentationsPage(
 	hasSearch: boolean,
 	filterQueries: FilterQueryItem[],
 	errorSummary: ErrorSummaryItem[] | null,
-	dateErrors: ErrorSummaryItem[]
+	dateErrors: ErrorSummaryItem[],
+	options: WrittenRepresentationsPageOptions = {}
 ): AsyncRequestHandler {
 	return (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
@@ -55,7 +61,8 @@ export function buildWrittenRepresentationsPage(
 			representationPublishDate,
 			displayApplicationUpdates,
 			applicationStatus,
-			tabText
+			tabText,
+			repsTabAlwaysVisible
 		);
 
 		const reference = caseFields.reference;
@@ -72,10 +79,12 @@ export function buildWrittenRepresentationsPage(
 			pageCaption: reference,
 			pageTitle: 'Written representations',
 			applicationReference: reference,
-			representations: representations.map((representation) =>
-				representationToViewModel(representation, true, {
-					showWithheldNameAsInterestedParty: true
-				})
+			representations: representations.map(
+				options.representationMapper ??
+					((representation) =>
+						representationToViewModel(representation, true, {
+							showWithheldNameAsInterestedParty: true
+						}))
 			),
 			representationMessages,
 			links,
@@ -84,6 +93,7 @@ export function buildWrittenRepresentationsPage(
 			currentUrl: req.originalUrl,
 			caseFields,
 			queryParams: req.query,
+			showSearchFilterControls: options.showSearchFilterControls ?? true,
 			clearQueryUrl: req.baseUrl,
 			searchValue: req.query?.searchCriteria || '',
 

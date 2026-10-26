@@ -88,6 +88,32 @@ export type S62aCaseView = {
 	documents: DocumentViewModel[];
 };
 
+type RawDocumentViewModel = Omit<DocumentViewModel, 'date'> & { date: Date | '' };
+export type S62aCaseRawView = Omit<
+	S62aCaseView,
+	| 'applicationValidDate'
+	| 'representationsPeriodStartDateTime'
+	| 'representationsPeriodEndDateTime'
+	| 'targetDecisionDate'
+	| 'extendedTargetDecisionDate'
+	| 'decisionDate'
+	| 'withdrawnDate'
+	| 'hearingDate'
+	| 'representationsPublishDate'
+	| 'documents'
+> & {
+	applicationValidDate?: Date;
+	representationsPeriodStartDateTime?: Date;
+	representationsPeriodEndDateTime?: Date;
+	targetDecisionDate?: Date;
+	extendedTargetDecisionDate?: Date;
+	decisionDate?: Date;
+	withdrawnDate?: Date;
+	hearingDate?: Date;
+	representationsPublishDate: Date | null;
+	documents: RawDocumentViewModel[];
+};
+
 /**
  * Safely format dates if they exist
  */
@@ -120,19 +146,19 @@ function formatApplicants(s62aCase: S62aCaseWithRelations) {
 }
 
 /**
- * Creates the view model for the s62a case
+ * Creates the raw view model for the s62a case.
  */
-export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
+export function s62aCaseToRawViewModel(s62aCase: S62aCaseWithRelations): S62aCaseRawView {
 	const { S62aDates, SiteAddress, S62aEvent, Documents } = s62aCase;
 
 	const hasRepPeriod = !!(s62aCase.representationsPeriodStartDate && s62aCase.representationsPeriodEndDate);
 	const isCaseHearing = isHearing(s62aCase.procedureId);
-	const hearingDate = formatDate(S62aEvent?.hearingDate, `d MMMM yyyy 'at' h:mmaaa`);
+	const hearingDate = S62aEvent?.hearingDate ?? undefined;
 	const hearingVenue = S62aEvent?.venue;
 
 	const isDecision = s62aCase.outcomeTypeId === OUTCOME_TYPE_ID.DECISION;
 
-	return {
+	const viewModel: S62aCaseRawView = {
 		id: s62aCase.id,
 		reference: s62aCase.reference,
 
@@ -155,17 +181,15 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 				: undefined,
 
 		// Key Dates
-		applicationValidDate: formatDate(S62aDates?.applicationValidDate, 'd MMMM yyyy'),
-		targetDecisionDate: formatDate(S62aDates?.targetDecisionDate, 'd MMMM yyyy'),
-		extendedTargetDecisionDate: formatDate(S62aDates?.extendedTargetDecisionDate, 'd MMMM yyyy'),
-		decisionDate: formatDate(S62aDates?.decisionDate, 'd MMMM yyyy'),
-		withdrawnDate: formatDate(S62aDates?.withdrawnDate, 'd MMMM yyyy'),
+		applicationValidDate: S62aDates?.applicationValidDate ?? undefined,
+		targetDecisionDate: S62aDates?.targetDecisionDate ?? undefined,
+		extendedTargetDecisionDate: S62aDates?.extendedTargetDecisionDate ?? undefined,
+		decisionDate: S62aDates?.decisionDate ?? undefined,
+		withdrawnDate: S62aDates?.withdrawnDate ?? undefined,
 		representationsPeriodStartDateTime: hasRepPeriod
-			? formatDate(s62aCase.representationsPeriodStartDate, `d MMMM yyyy 'at' h:mmaaa`)
+			? (s62aCase.representationsPeriodStartDate ?? undefined)
 			: undefined,
-		representationsPeriodEndDateTime: hasRepPeriod
-			? formatDate(s62aCase.representationsPeriodEndDate, `d MMMM yyyy 'at' h:mmaaa`)
-			: undefined,
+		representationsPeriodEndDateTime: hasRepPeriod ? (s62aCase.representationsPeriodEndDate ?? undefined) : undefined,
 
 		// Hearing
 		hearingDate: isCaseHearing ? hearingDate : undefined,
@@ -177,11 +201,43 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 		decisionOutcome: s62aCase.DecisionOutcome?.displayName || undefined,
 
 		// HYS
-		representationsPublishDate: formatDate(s62aCase.representationsPublishDate, 'd MMMM yyyy'),
+		representationsPublishDate: s62aCase.representationsPublishDate,
 		isMajor: s62aCase.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR,
 
 		// Documents
 		documents: documentsToViewModel(Documents)
+	};
+
+	return viewModel;
+}
+
+/**
+ * Creates the display-ready view model for the s62a case.
+ */
+export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseView {
+	const rawViewModel = s62aCaseToRawViewModel(s62aCase);
+
+	return {
+		...rawViewModel,
+		applicationValidDate: formatDate(rawViewModel.applicationValidDate, 'd MMMM yyyy'),
+		targetDecisionDate: formatDate(rawViewModel.targetDecisionDate, 'd MMMM yyyy'),
+		extendedTargetDecisionDate: formatDate(rawViewModel.extendedTargetDecisionDate, 'd MMMM yyyy'),
+		decisionDate: formatDate(rawViewModel.decisionDate, 'd MMMM yyyy'),
+		withdrawnDate: formatDate(rawViewModel.withdrawnDate, 'd MMMM yyyy'),
+		representationsPeriodStartDateTime: formatDate(
+			rawViewModel.representationsPeriodStartDateTime,
+			`d MMMM yyyy 'at' h:mmaaa`
+		),
+		representationsPeriodEndDateTime: formatDate(
+			rawViewModel.representationsPeriodEndDateTime,
+			`d MMMM yyyy 'at' h:mmaaa`
+		),
+		hearingDate: formatDate(rawViewModel.hearingDate, `d MMMM yyyy 'at' h:mmaaa`),
+		representationsPublishDate: formatDate(rawViewModel.representationsPublishDate, 'd MMMM yyyy'),
+		documents: rawViewModel.documents.map((document) => ({
+			...document,
+			date: document.date ? formatInTimeZone(document.date, 'Europe/London', 'dd MMM yyyy') : ''
+		}))
 	};
 }
 
@@ -194,7 +250,7 @@ export const tabText = {
  */
 function documentsToViewModel(
 	documents: Prisma.DocumentGetPayload<{ include: { DocumentCategory: true } }>[]
-): DocumentViewModel[] {
+): RawDocumentViewModel[] {
 	if (!documents) return [];
 	return documents.map((document) => {
 		return {
@@ -202,7 +258,7 @@ function documentsToViewModel(
 			fileName: document.fileName,
 			fileType: getFileExtension(document.fileName),
 			size: formatBytes(Number(document.size)),
-			date: document.publishDate ? formatInTimeZone(document.publishDate, 'Europe/London', 'dd MMM yyyy') : '',
+			date: document.publishDate ?? '',
 			caseId: document.s62aCaseId,
 			category: document.DocumentCategory?.displayName || '',
 			categoryId: document.categoryId || '',

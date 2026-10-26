@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { formatDate, isInquiry, isHearing, applicationLinks, mapDevelopmentToViewModel } from './shared-view-model.ts';
 import type { BaseDevelopmentView, BaseDevelopmentPayload } from './shared-view-model.ts';
+import { APPLICATION_PUBLISH_STATUS } from './applications.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('Application Utilities', () => {
@@ -146,11 +147,21 @@ describe('Application Utilities', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, undefined);
-			assert(result.some((link) => link.text === 'Documents'));
-			assert(result.some((link) => link.text === 'Have your say'));
-			assert(result.some((link) => link.text === 'Application updates'));
-			assert(result.some((link) => link.text === 'Written representations'));
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				APPLICATION_PUBLISH_STATUS.ACTIVE,
+				undefined
+			);
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'Application information' },
+				{ href: `/applications/${id}/documents`, text: 'Documents' },
+				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
+				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
+				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
 		});
 
 		it('should not include have your say link when applicationStatus is withdrawn', (context) => {
@@ -176,7 +187,14 @@ describe('Application Utilities', () => {
 				end: new Date('2025-01-30T23:59:59.000Z')
 			};
 			const representationsPublishDate = new Date('2025-01-01T00:00:00.000Z');
-			const result = applicationLinks(id, haveYourSayPeriod, representationsPublishDate, true, 'expired');
+			const result = applicationLinks(
+				id,
+				haveYourSayPeriod,
+				representationsPublishDate,
+				true,
+				APPLICATION_PUBLISH_STATUS.EXPIRED,
+				undefined
+			);
 			assert.deepStrictEqual(result, [
 				{
 					href: `/applications/${id}/application-information`,
@@ -199,6 +217,67 @@ describe('Application Utilities', () => {
 				{ href: `/applications/${id}/have-your-say`, text: 'Have your say' },
 				{ href: `/applications/${id}/application-updates`, text: 'Application updates' },
 				{ href: `/applications/${id}/written-representations`, text: 'Written representations' }
+			]);
+		});
+
+		it('should include Have your say at the start and end of the submission period', (context) => {
+			const id = 'id-1';
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-01T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+
+			for (const now of [haveYourSayPeriod.start, haveYourSayPeriod.end]) {
+				context.mock.timers.enable({ apis: ['Date'], now });
+				const result = applicationLinks(id, haveYourSayPeriod, null, false);
+				assert(result.some((link) => link.text === 'Have your say'));
+				context.mock.timers.reset();
+			}
+		});
+
+		it('should omit Have your say before the submission period or when a period boundary is missing', (context) => {
+			const id = 'id-1';
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2025-01-01T00:00:00.000Z') });
+			const haveYourSayPeriod = {
+				start: new Date('2025-01-02T00:00:00.000Z'),
+				end: new Date('2025-01-30T23:59:59.000Z')
+			};
+
+			const beforePeriod = applicationLinks(id, haveYourSayPeriod, null, false);
+			assert(!beforePeriod.some((link) => link.text === 'Have your say'));
+
+			const missingStart = applicationLinks(id, { ...haveYourSayPeriod, start: null }, null, false);
+			assert(!missingStart.some((link) => link.text === 'Have your say'));
+
+			const missingEnd = applicationLinks(id, { ...haveYourSayPeriod, end: null }, null, false);
+			assert(!missingEnd.some((link) => link.text === 'Have your say'));
+		});
+
+		it('should include Written representations on the publish date', (context) => {
+			const id = 'id-1';
+			const publishDate = new Date('2025-01-01T00:00:00.000Z');
+			context.mock.timers.enable({ apis: ['Date'], now: publishDate });
+
+			const result = applicationLinks(id, { start: null, end: null }, publishDate, false);
+			assert(result.some((link) => link.text === 'Written representations'));
+		});
+
+		it('should include Written representations when the always-visible override is set without a publish date', () => {
+			const id = 'id-1';
+			const result = applicationLinks(id, { start: null, end: null }, null, false, undefined, undefined, true);
+			assert(result.some((link) => link.text === 'Written representations'));
+		});
+
+		it('should use supplied tab text for application links', () => {
+			const id = 'id-1';
+			const result = applicationLinks(id, { start: null, end: null }, null, false, undefined, {
+				applicationInformation: 'About',
+				documents: 'Files'
+			});
+
+			assert.deepStrictEqual(result, [
+				{ href: `/applications/${id}/application-information`, text: 'About' },
+				{ href: `/applications/${id}/documents`, text: 'Files' }
 			]);
 		});
 	});
