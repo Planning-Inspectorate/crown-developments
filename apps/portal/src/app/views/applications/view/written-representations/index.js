@@ -1,7 +1,7 @@
 import { Router as createRouter } from 'express';
 import { buildWrittenRepresentationsListPage } from './controller.js';
 import { asyncHandler } from '@planning-inspectorate/core/util';
-import { buildWrittenRepresentationsReadMorePage } from './read-more/controller.js';
+import { buildCrownWrittenRepresentationsReadMorePage } from './read-more/controller.ts';
 import { buildDocumentView } from '../../../util/documents-util.js';
 import { buildCachingDynamicContentMiddleware } from '../../../util/caching-middleware.js';
 
@@ -12,7 +12,7 @@ import { buildCachingDynamicContentMiddleware } from '../../../util/caching-midd
 export function createWrittenRepresentationsRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const viewWrittenRepresentationsListPage = buildWrittenRepresentationsListPage(service);
-	const viewWrittenRepresentationsReadMorePage = buildWrittenRepresentationsReadMorePage(service);
+	const viewWrittenRepresentationsReadMorePage = buildCrownWrittenRepresentationsReadMorePage(service);
 	const viewWrittenRepresentationsDocumentPage = buildDocumentView(service);
 	const cachingMiddleware = buildCachingDynamicContentMiddleware(service);
 

@@ -1,16 +1,5 @@
-import { formatDateForDisplay, addressToViewModel, TRUNCATED_MAX_LENGTH } from '@planning-inspectorate/dynamic-forms';
-import {
-	ORGANISATION_ROLES_ID,
-	REPRESENTATION_STATUS_ID,
-	REPRESENTATION_SUBMITTED_FOR_ID,
-	REPRESENTED_TYPE_ID
-} from '@pins/crowndev-database/src/seed/data-static.ts';
-import { nameToViewModel } from '@pins/crowndev-lib/util/name.js';
-import {
-	shouldTruncateComment,
-	truncateComment,
-	truncatedReadMoreCommentLink
-} from '@pins/crowndev-lib/util/questions.ts';
+import { formatDateForDisplay, addressToViewModel } from '@planning-inspectorate/dynamic-forms';
+import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getApplicationStatus, type ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
@@ -26,15 +15,6 @@ import { insertWbr } from '@pins/crowndev-lib/util/string.ts';
 
 export const formatDate = (date: Date | null | undefined, options?: { format?: string }): string =>
 	formatDateForDisplay(date as Date | undefined, options);
-
-type RepresentationWithContacts = Prisma.RepresentationGetPayload<
-	Prisma.RepresentationDefaultArgs & {
-		include: {
-			SubmittedByContact: true;
-			RepresentedContact: true;
-		};
-	}
->;
 
 export type CrownDevelopmentView = {
 	id: string;
@@ -68,17 +48,6 @@ export type CrownDevelopmentView = {
 	containsDistressingContent?: boolean;
 	applicationStatus?: ApplicationPublishStatus;
 	withdrawnDate?: string;
-};
-
-type RepresentationView = {
-	representationReference: string;
-	representationTitle?: string;
-	representationComment: string;
-	representationCommentIsRedacted: boolean;
-	representationCategory?: string | null;
-	dateRepresentationSubmitted: string;
-	hasAcceptedAttachments: boolean | null;
-	distressingContent: boolean;
 };
 
 export function crownDevelopmentToViewModel(
@@ -233,55 +202,6 @@ export type CrownDevelopmentWithRelations = Prisma.CrownDevelopmentGetPayload<{
 		Organisations: { include: { Organisation: true } };
 	};
 }>;
-
-export function representationToViewModel(
-	representation: RepresentationWithContacts,
-	truncateCommentForView: boolean = false
-): RepresentationView {
-	const representationComment = representation.commentRedacted || representation.comment;
-	return {
-		representationReference: representation.reference,
-		representationTitle: representationTitle(representation),
-		representationComment: truncateCommentForView
-			? truncateComment(representationComment, TRUNCATED_MAX_LENGTH)
-			: representationComment,
-		representationCommentIsRedacted: Boolean(representation.commentRedacted),
-		representationCategory: representation.Category?.displayName,
-		dateRepresentationSubmitted: formatDateForDisplay(representation.submittedDate, { format: 'd MMMM yyyy' }),
-		hasAcceptedAttachments:
-			representation.Attachments?.some((doc) => doc.statusId === REPRESENTATION_STATUS_ID.ACCEPTED) &&
-			representation.containsAttachments,
-		distressingContent: representation.distressingContentInRepresentation || false,
-		...(truncateCommentForView &&
-			shouldTruncateComment(representationComment, TRUNCATED_MAX_LENGTH) && {
-				truncatedReadMoreLink: truncatedReadMoreCommentLink(`written-representations/${representation.reference}`)
-			})
-	};
-}
-
-export function representationTitle(representation: RepresentationWithContacts): string | undefined {
-	const getDisplayName = (contact: Prisma.ContactGetPayload<Prisma.ContactDefaultArgs> | null): string =>
-		contact?.orgName ?? nameToViewModel(contact?.firstName ?? undefined, contact?.lastName ?? undefined) ?? '';
-
-	const getOnBehalfTitle = (agent: string | null, organisation: string | null, represented: string | null): string =>
-		organisation ? `${agent} (${organisation}) on behalf of ${represented}` : `${agent} on behalf of ${represented}`;
-
-	const { submittedForId, representedTypeId, submittedByAgentOrgName, SubmittedByContact, RepresentedContact } =
-		representation;
-
-	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.MYSELF) {
-		return getDisplayName(SubmittedByContact);
-	}
-
-	if (submittedForId === REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF) {
-		const agentName = getDisplayName(SubmittedByContact);
-		const representedName = getDisplayName(RepresentedContact);
-
-		return representedTypeId === REPRESENTED_TYPE_ID.ORGANISATION
-			? `${agentName} on behalf of ${representedName}`
-			: getOnBehalfTitle(agentName, submittedByAgentOrgName, representedName);
-	}
-}
 
 export function applicationUpdateToTimelineItem(
 	applicationUpdate: Prisma.ApplicationUpdateGetPayload<object>

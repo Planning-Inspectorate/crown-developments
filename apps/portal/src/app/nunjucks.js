@@ -23,6 +23,12 @@ export function configureNunjucks() {
 	const customFormsRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'forms');
 	// path to packages/lib/forms folder with custom views
 	const customViewsRoot = path.resolve(require.resolve('@pins/crowndev-lib'), '..', 'views');
+	// path to packages/lib/written-representations folder with shared views
+	const writtenRepresentationsRoot = path.resolve(
+		require.resolve('@pins/crowndev-lib'),
+		'..',
+		'written-representations'
+	);
 	// path to @planning-inspectorate/core folder for core UI components
 	const coreUiRoot = path.resolve(require.resolve('@planning-inspectorate/core'), '..');
 	const appDir = path.join(config.srcDir, 'app');
@@ -30,7 +36,16 @@ export function configureNunjucks() {
 	// configure nunjucks
 	const env = nunjucks.configure(
 		// ensure nunjucks templates can use govuk-frontend components, and templates we've defined in `web/src/app`
-		[dynamicFormsRoot, govukFrontendRoot, mojFrontendRoot, customFormsRoot, customViewsRoot, coreUiRoot, appDir],
+		[
+			dynamicFormsRoot,
+			govukFrontendRoot,
+			mojFrontendRoot,
+			customFormsRoot,
+			customViewsRoot,
+			writtenRepresentationsRoot,
+			coreUiRoot,
+			appDir
+		],
 		{
 			// output with dangerous characters are escaped automatically
 			autoescape: true,
