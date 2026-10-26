@@ -1,5 +1,6 @@
 import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { toDate } from '@pins/crowndev-lib/util/date-util.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
@@ -44,7 +45,7 @@ export function buildWrittenRepresentationsPage(
 		}
 
 		const applicationStatus = caseFields.applicationStatus;
-		const representationPublishDate = caseFields.representationsPublishDate;
+		const representationPublishDate = toDate(caseFields.representationsPublishDate);
 
 		const links = applicationLinks(
 			id,
@@ -68,6 +69,10 @@ export function buildWrittenRepresentationsPage(
 			hasSearch || representations.length > 0 ? [] : getRepresentationMessages(caseFields, acceptedReps, reps);
 
 		const paginationParams = createPaginationParams(req, totalAcceptedRepresentations);
+
+		console.log('Shared Written Reps Debug');
+		console.log(errorSummary);
+		console.log(dateErrors);
 
 		res.render('./view.njk', {
 			pageCaption: reference,
