@@ -277,6 +277,7 @@ export function safeDeleteUploadedFilesSession(req: Request, representationRef: 
 export function redactConfirmationHandler(req: Request, res: Response) {
 	const representationRef = getStringParam(req.params, 'representationRef');
 	const commentRedacted = readRepRedactedCommentSession(req, representationRef);
+	// @ts-expect-error -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const answers = res.locals.journeyResponse.answers as { myselfComment?: string; submitterComment?: string };
 	const originalComment = (answers.myselfComment || answers.submitterComment) as string;
 

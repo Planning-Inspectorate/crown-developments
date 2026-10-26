@@ -40,10 +40,10 @@ import type { Request, Response } from 'express';
 export function buildViewCaseDetails(): AsyncRequestHandler {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
+
 		const reference = getStringParam(res?.locals?.journeyResponse?.answers, 'reference');
 		const answers = getJourneyAnswers(res);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- TODO: remove once Response Locals typing is fixed (follow-up PR)
+
 		const applicationPhase = getStringParam(res?.locals?.journeyResponse?.answers, 'applicationPhaseId');
 		const banner = getBannerMessages(id, res, req);
 		const baseUrl = req.baseUrl;
@@ -186,7 +186,6 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		res.locals.fieldDisplayNames = fieldDisplayNames;
 		res.locals.createdDate = createdDate;
 
-		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.originalAnswers = { ...answers };
 		// @ts-expect-error - we haven't defined the view model on the locals object
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
@@ -315,6 +314,6 @@ export function clearCaseUpdatedSession(req: Request, id: string): void {
  */
 function getJourneyAnswers(res: Response): S62aCaseViewModel | undefined {
 	// @ts-expect-error -- TODO: remove once Response Locals typing is fixed (follow-up PR); answers is typed as CrownDevelopmentViewModel here
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
+
 	return res.locals.journeyResponse?.answers as S62aCaseViewModel;
 }

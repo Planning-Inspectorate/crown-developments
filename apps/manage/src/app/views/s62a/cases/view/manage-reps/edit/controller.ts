@@ -33,6 +33,7 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 			return;
 		}
 
+		// @ts-expect-error -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 		const fullViewModel = (res.locals?.originalAnswers || {}) as RepresentationAnswers;
 
 		const hasRepAttachments =
