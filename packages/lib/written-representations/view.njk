@@ -16,24 +16,26 @@
 	<div class="govuk-grid-row">
 		<div class="govuk-grid-column-one-third">
 			{{ applicationLinks(links, currentUrl) }}
-			<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
-			<div class="pins-visible-from-tablet">
-				<form id="search-filter-form" method="GET">
-					<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
-					<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-					{# Remove hidden date inputs, only keep filterAccordion #}
-					{% for filter in filters %}
-						{% if filter.type != 'date-input' %}
-							{% for option in filter.options.items %}
-								{% if option.checked %}
-									<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
-								{% endif %}
-							{% endfor %}
-						{% endif %}
-					{% endfor %}
-					{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
-				</form>
-			</div>
+			{% if showSearchFilterControls %}
+				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
+				<div class="pins-visible-from-tablet">
+					<form id="search-filter-form" method="GET">
+						<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
+						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
+						{# Remove hidden date inputs, only keep filterAccordion #}
+						{% for filter in filters %}
+							{% if filter.type != 'date-input' %}
+								{% for option in filter.options.items %}
+									{% if option.checked %}
+										<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
+									{% endif %}
+								{% endfor %}
+							{% endif %}
+						{% endfor %}
+						{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
+					</form>
+				</div>
+			{% endif %}
 		</div>
 
 		<div class="govuk-grid-column-two-thirds">
@@ -57,6 +59,7 @@
 					{% endfor %}
 				</div>
 			</div>
+			{% if showSearchFilterControls %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
@@ -127,6 +130,7 @@
 					{% endif %}
 				</div>
 			</div>
+			{% endif %}
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
 					{% if representations|length == 0 and (hasSearch or hasQueries) %}
@@ -155,6 +159,7 @@
 				</div>
 			</div>
 		</div>
+		{% if showSearchFilterControls %}
 		<script {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
 			document.querySelectorAll('.selected-filter-tag').forEach(function(button) {
 				button.addEventListener('click', function(e) {
@@ -177,5 +182,6 @@
 				});
 			});
 		</script>
+		{% endif %}
 	</div>
 {% endblock %}
