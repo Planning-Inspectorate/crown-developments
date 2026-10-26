@@ -1,15 +1,16 @@
 import type { Request, Response } from 'express';
 import { renderRepresentation } from '../view/controller.ts';
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
-import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
+import type { RepresentationViewLocals } from '../view/locals.ts';
 
-export async function viewRepresentationAwaitingReview(req: Request, res: Response) {
+export async function viewRepresentationAwaitingReview(req: Request, res: Response<unknown, RepresentationViewLocals>) {
 	getStringParams(req.params, ['id', 'representationRef']);
 
 	await renderRepresentation(req, res);
 }
 
-export function buildReviewRepresentation(): AsyncRequestHandler {
+export function buildReviewRepresentation(): AsyncRequestHandlerWithLocals<RepresentationViewLocals> {
 	return async (req, res) => {
 		const body = (req.body ?? {}) as {
 			errors?: Record<string, unknown>;

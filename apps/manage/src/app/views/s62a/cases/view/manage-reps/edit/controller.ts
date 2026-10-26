@@ -4,36 +4,27 @@ import { addSessionData, clearSessionData } from '@pins/crowndev-lib/util/sessio
 import { getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import type { ManageService } from '#service';
 import type { SaveDataFn } from '@planning-inspectorate/dynamic-forms';
-import type { Request, Response } from 'express';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
-import type { HaveYourSayManageModel } from '@pins/crowndev-lib/forms/representations/types.js';
+import type { HaveYourSaySaveModel } from '@pins/crowndev-lib/forms/representations/types.js';
 import { recordS62aRepresentationUpdates } from '../../../audit/representations.ts';
+import type { RepresentationViewLocals } from '../view/locals.ts';
 
-interface Attachment {
-	fileName: string;
-	itemId: string;
-}
-
-type RepresentationAnswers = HaveYourSayManageModel & {
-	myselfBlobAttachments?: Attachment[];
-	submitterBlobAttachments?: Attachment[];
-	ajaxWithdrawalRequests?: Attachment[];
-};
-
-export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
+export function buildUpdateRepresentation(
+	service: ManageService
+): SaveDataFn<{ answers?: HaveYourSaySaveModel }, RepresentationViewLocals> {
 	const { db, logger } = service;
 
-	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: unknown } }) => {
+	return async ({ req, res, data }) => {
 		const { id, representationRef } = getStringParams(req.params, ['id', 'representationRef']);
 
-		const toSave = (data?.answers || {}) as RepresentationAnswers;
+		const toSave = data?.answers || {};
 
 		if (Object.keys(toSave).length === 0) {
 			logger.info({ id, representationRef }, 'no representation updates to apply');
 			return;
 		}
 
-		const fullViewModel = (res.locals?.originalAnswers || {}) as RepresentationAnswers;
+		const fullViewModel = res.locals.originalAnswers;
 
 		const hasRepAttachments =
 			(toSave.myselfBlobAttachments && toSave.myselfBlobAttachments.length > 0) ||
@@ -155,9 +146,9 @@ export function buildUpdateRepresentation(service: ManageService): SaveDataFn {
 		await recordS62aRepresentationUpdates(service, req, {
 			caseId: id,
 			representationReference: representationRef,
-			answers: toSave as unknown as Record<string, unknown>,
-			previous: fullViewModel as unknown as Record<string, unknown>,
-			questionLabels: res.locals?.fieldDisplayNames as Record<string, string> | undefined
+			answers: toSave,
+			previous: fullViewModel,
+			questionLabels: res.locals.fieldDisplayNames
 		});
 
 		clearSessionData(req, id, req.params.question, 'files');

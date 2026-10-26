@@ -16,9 +16,10 @@ import { extractAgentContactFields, extractApplicantContactFields } from '../uti
 import { AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/index.ts';
 import { retryGrantPermissions } from '#util/sharepoint.js';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 
 /**
- * @typedef {import('./types.d.ts').CreateCaseAnswers} CreateCaseAnswers
+ * @typedef {import('./types.d.ts').CrownCreateCaseAnswers} CrownCreateCaseAnswers
  * @typedef {import('@pins/crowndev-database').Prisma.CrownDevelopmentCreateInput} CrownDevelopmentCreateInput
  * @typedef {import('@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js').SharePointDrive} SharePointDrive
  * @typedef {import('@pins/crowndev-lib/govnotify/gov-notify-client.ts').GovNotifyClient} GovNotifyClient
@@ -33,18 +34,8 @@ import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 export function buildSaveController(service) {
 	const { db, appSharePointDrive, logger, notifyClient, audit } = service;
 	return async (req, res) => {
-		if (!res.locals || !res.locals.journeyResponse) {
-			throw new Error('journey response required');
-		}
-		/** @type {import('@planning-inspectorate/dynamic-forms/src/journey/journey-response.js').JourneyResponse} */
-		const journeyResponse = res.locals.journeyResponse;
-		/**
-		 * @type {import('./types.d.ts').CreateCaseAnswers}
-		 */
-		const answers = journeyResponse.answers;
-		if (typeof answers !== 'object') {
-			throw new Error('answers should be an object');
-		}
+		/** @type {import('./types.d.ts').CrownCreateCaseAnswers} */
+		const answers = getAnswers(res);
 		let reference;
 		let lbcReference;
 		let id;
@@ -204,7 +195,7 @@ export function buildSuccessController({ db }) {
 /**
  * Validate that all contacts are linked to an organisation in the answers.
  * This is an extra safety check - the UI should prevent this from happening, but we want to be sure before we try to create records in the database.
- * @param {CreateCaseAnswers} answers
+ * @param {CrownCreateCaseAnswers} answers
  */
 function validateOrphanedContacts(answers) {
 	if (!hasAnswers(answers, 'manageApplicantDetails') || !hasAnswers(answers, 'manageApplicantContactDetails')) {
@@ -227,7 +218,7 @@ function validateOrphanedContacts(answers) {
 /**
  * Extract applicant organisations and their linked contacts from answers.
  *
- * @param {CreateCaseAnswers} answers
+ * @param {CrownCreateCaseAnswers} answers
  * @returns {Array<{
  *  role: string,
  *  organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput,
@@ -274,7 +265,7 @@ function extractApplicantParties(answers) {
 /**
  * Extract the single agent organisation and its contacts from answers.
  *
- * @param {CreateCaseAnswers} answers
+ * @param {CrownCreateCaseAnswers} answers
  * @returns {{
  *  role: string,
  *  organisation: import('@pins/crowndev-database').Prisma.OrganisationCreateInput,
@@ -320,7 +311,7 @@ function extractAgentParty(answers) {
  * - nested case creation (Organisation.create + OrganisationToContact.create)
  * - shared-party creation (create once, then connect multiple cases)
  *
- * @param {CreateCaseAnswers} answers
+ * @param {CrownCreateCaseAnswers} answers
  * @returns {{
  *  organisations: Array<{
  *    role: string,
@@ -376,7 +367,7 @@ function toNestedOrganisationCreates(model) {
  * This is specifically used for the Planning + LBC linked pair creation.
  *
  * @param {import('@pins/crowndev-database').Prisma.TransactionClient} $tx
- * @param {CreateCaseAnswers} answers
+ * @param {CrownCreateCaseAnswers} answers
  * @returns {Promise<import('@pins/crowndev-database').Prisma.CrownDevelopmentToOrganisationCreateWithoutCrownDevelopmentInput[]>}
  */
 async function createSharedPartiesAndBuildOrganisationConnects($tx, answers) {
@@ -412,7 +403,7 @@ async function createSharedPartiesAndBuildOrganisationConnects($tx, answers) {
 }
 
 /**
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {import('./types.d.ts').CrownCreateCaseAnswers} answers
  * @param {string} reference
  * @param {string|null} subType
  * @param {{
@@ -487,10 +478,10 @@ function toAddressInput(address) {
 /**
  * Does an answer with the exact given key exist and have a value?
  *
- * @template {keyof CreateCaseAnswers} K
- * @param {CreateCaseAnswers} answers
+ * @template {keyof CrownCreateCaseAnswers} K
+ * @param {CrownCreateCaseAnswers} answers
  * @param {K} key
- * @returns {answers is CreateCaseAnswers & Required<Pick<CreateCaseAnswers, K>>}
+ * @returns {answers is CrownCreateCaseAnswers & Required<Pick<CrownCreateCaseAnswers, K>>}
  */
 function hasAnswers(answers, key) {
 	const value = answers[key];
@@ -551,7 +542,7 @@ function idFromReference(reference = '') {
  * Grant Sharepoint access to all relevant users for a case, including multiple applicants if applicable.
  *
  * @param {import('#service').ManageService} service
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {import('./types.d.ts').CrownCreateCaseAnswers} answers
  * @param {string} folderName
  * @returns {Promise<Array<{ email: string, link: string }>>}
  */
@@ -620,7 +611,7 @@ async function grantUsersAccess(service, answers, folderName) {
  *
  * @param {import('#service').ManageService} service
  * @param {string} folderName
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {import('./types.d.ts').CrownCreateCaseAnswers} answers
  * @returns {Promise<NotificationData>}
  */
 async function createCaseSharePointActions(service, folderName, answers) {
@@ -679,7 +670,7 @@ async function sendAcknowledgementPreNotification(
  *
  * @param {import('#service').ManageService} service
  * @param {string} reference
- * @param {import('./types.d.ts').CreateCaseAnswers} answers
+ * @param {import('./types.d.ts').CrownCreateCaseAnswers} answers
  * @returns {Promise<NotificationData>}
  */
 async function getNotificationData(service, reference, answers) {

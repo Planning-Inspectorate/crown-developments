@@ -2,12 +2,27 @@ import { describe, it, mock, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildUpdateRepresentation } from './controller.ts';
 import type { Logger } from 'pino';
-import type { Request, Response } from 'express';
 import type { ManageService } from '#service';
-import type { SaveParams } from '@planning-inspectorate/dynamic-forms';
+import { asReq, asRes } from '@pins/crowndev-lib/testing/mock-express.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+
+type RepresentationSaveParams = Parameters<ReturnType<typeof buildUpdateRepresentation>>[0];
+
+const makeSaveParams = (
+	req: object,
+	res: object,
+	data: RepresentationSaveParams['data']
+): RepresentationSaveParams => ({
+	req: asReq(req),
+	res: asRes(res) as RepresentationSaveParams['res'],
+	data,
+	journeyId: 'representation-edit',
+	referenceId: 'REP-001',
+	isManageListItem: false,
+	isDynamicSection: false
+});
 
 describe('buildUpdateRepresentation', () => {
 	const infoMock = mock.fn();
@@ -48,22 +63,22 @@ describe('buildUpdateRepresentation', () => {
 		s62aRepresentation: { update: updateMock }
 	} as unknown as ManageService['db'];
 
-	const mockRes = (): Response => {
+	const mockRes = () => {
 		const statusMock = mock.fn();
-		const res = {
+		const res = asRes({
 			render: mock.fn(),
 			status: statusMock,
 			send: mock.fn(),
 			locals: {
 				originalAnswers: { existingField: 'oldValue' }
 			}
-		} as unknown as Response;
+		});
 		statusMock.mock.mockImplementation(() => res as unknown as undefined);
 		return res;
 	};
 
-	const mockReq = (overrides: Record<string, unknown> = {}): Request =>
-		({
+	const mockReq = (overrides: Record<string, unknown> = {}) =>
+		asReq({
 			params: {
 				id: 'case-123',
 				representationRef: 'REP-001',
@@ -71,7 +86,7 @@ describe('buildUpdateRepresentation', () => {
 			},
 			session: {},
 			...overrides
-		}) as unknown as Request;
+		});
 
 	const service = { db: mockDb, logger: mockLogger } as unknown as ManageService;
 
@@ -100,7 +115,7 @@ describe('buildUpdateRepresentation', () => {
 			const data = { answers: {} };
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(infoMock.mock.callCount(), 1);
 			assert.deepStrictEqual(infoMock.mock.calls[0].arguments[0], { id: 'case-123', representationRef: 'REP-001' });
@@ -113,10 +128,10 @@ describe('buildUpdateRepresentation', () => {
 		it('should update representation and set session data when no attachments are present', async () => {
 			const req = mockReq();
 			const res = mockRes();
-			const data = { answers: { representedName: 'John Doe' } };
+			const data = { answers: { myselfFirstName: 'John' } };
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(transactionMock.mock.callCount(), 0);
 
@@ -134,7 +149,7 @@ describe('buildUpdateRepresentation', () => {
 			const res = mockRes();
 			const data = {
 				answers: {
-					representedName: 'Jane Doe',
+					submitterFirstName: 'Jane',
 					submitterBlobAttachments: [{ fileName: 'doc.pdf', itemId: 'doc-123' }]
 				}
 			};
@@ -147,7 +162,7 @@ describe('buildUpdateRepresentation', () => {
 			);
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(transactionMock.mock.callCount(), 1);
 
@@ -172,7 +187,7 @@ describe('buildUpdateRepresentation', () => {
 			const res = mockRes();
 			const data = {
 				answers: {
-					representedName: 'Jane Doe',
+					submitterFirstName: 'Jane',
 					ajaxWithdrawalRequests: [{ fileName: 'withdraw.pdf', itemId: 'wd-123' }]
 				}
 			};
@@ -186,7 +201,7 @@ describe('buildUpdateRepresentation', () => {
 			);
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(transactionMock.mock.callCount(), 1);
 
@@ -230,7 +245,7 @@ describe('buildUpdateRepresentation', () => {
 			);
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(transactionMock.mock.callCount(), 1);
 
@@ -253,7 +268,7 @@ describe('buildUpdateRepresentation', () => {
 			findUniqueTxMock.mock.mockImplementation(() => Promise.resolve(null) as unknown as undefined);
 
 			const handler = buildUpdateRepresentation(service);
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.strictEqual(createManyBlobMock.mock.callCount(), 0);
 			assert.strictEqual(deleteManyDraftMock.mock.callCount(), 0);
@@ -265,7 +280,7 @@ describe('buildUpdateRepresentation', () => {
 		it('should handle errors thrown during the main representation update', async () => {
 			const req = mockReq();
 			const res = mockRes();
-			const data = { answers: { field: 'value' } };
+			const data = { answers: { myselfComment: 'value' } };
 
 			const dbError = new Error('Database disconnected');
 			updateMock.mock.mockImplementation(() => Promise.reject(dbError) as unknown as undefined);
@@ -273,7 +288,7 @@ describe('buildUpdateRepresentation', () => {
 			const handler = buildUpdateRepresentation(service);
 
 			try {
-				await handler({ req, res, data } as unknown as SaveParams);
+				await handler(makeSaveParams(req, res, data));
 			} catch (err: unknown) {
 				assert.ok(err);
 			}
@@ -292,7 +307,7 @@ describe('buildUpdateRepresentation', () => {
 					originalAnswers: { categoryId: REPRESENTATION_CATEGORY_ID.CONSULTEES },
 					fieldDisplayNames: { categoryId: 'Representation type' }
 				}
-			} as unknown as Response;
+			};
 			const data = { answers: { categoryId: REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES } };
 
 			return { handler: buildUpdateRepresentation(auditedService), req, res, data, recordMany };
@@ -302,7 +317,7 @@ describe('buildUpdateRepresentation', () => {
 			const { handler, req, res, data, recordMany } = withAudit();
 			updateMock.mock.mockImplementation(() => Promise.resolve() as unknown as undefined);
 
-			await handler({ req, res, data } as unknown as SaveParams);
+			await handler(makeSaveParams(req, res, data));
 
 			assert.deepStrictEqual((recordMany.mock.calls[0] as any).arguments, [
 				[
@@ -328,7 +343,7 @@ describe('buildUpdateRepresentation', () => {
 				() => Promise.reject(new Error('Database disconnected')) as unknown as undefined
 			);
 
-			await assert.rejects(() => handler({ req, res, data } as unknown as SaveParams));
+			await assert.rejects(() => handler(makeSaveParams(req, res, data)));
 			assert.strictEqual(recordMany.mock.callCount(), 0);
 		});
 	});

@@ -22,7 +22,7 @@ export interface ApplicantOrganisation {
 	organisationAddress?: Address;
 }
 
-export interface CreateCaseAnswers {
+export interface CrownCreateCaseAnswers {
 	typeOfApplication?: string;
 	lpaId?: string;
 	hasSecondaryLpa?: YesNo;

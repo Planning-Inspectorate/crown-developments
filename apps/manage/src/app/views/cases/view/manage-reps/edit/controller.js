@@ -18,7 +18,7 @@ import { getRepresentationWithdrawalRequestsFolder } from '../withdraw/controlle
  * @param {import('#service').ManageService} service
  * @param {import('@pins/crowndev-lib/util/handle-attachments.js').MoveAttachmentsToCaseFolderFn} [moveAttachmentsToCaseFolderFn] Optional function to move attachments to case folder for testing
  * @param {import('@pins/crowndev-lib/util/handle-attachments.js').DeleteRepresentationAttachmentsFolderFn} [deleteRepresentationAttachmentsFolderFn] Optional function to delete representation attachments folder for testing
- * @returns {import('@planning-inspectorate/dynamic-forms/src/controller.js').SaveDataFn}
+ * @returns {import('./save.js').RepresentationSaveDataFn}
  */
 export function buildUpdateRepresentation(
 	{ db, logger, getSharePointDrive },
@@ -34,7 +34,7 @@ export function buildUpdateRepresentation(
 			return;
 		}
 		/** @type {import('@pins/crowndev-lib/forms/representations/types.js').HaveYourSayManageModel} */
-		const fullViewModel = res.locals?.originalAnswers || {};
+		const fullViewModel = res.locals.originalAnswers || {};
 
 		if (toSave.containsAttachments && fullViewModel.sharePointFolderCreated !== BOOLEAN_OPTIONS.YES) {
 			await addRepresentationFolderToSharepoint(

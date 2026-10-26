@@ -42,6 +42,8 @@ import { resolveAuditAction } from '@pins/crowndev-lib/audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import { CROWN_FIELD_RESOLVERS } from '../audit/field-resolvers.ts';
+import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
+import type { CaseViewLocals } from './locals.ts';
 
 /**
  * Send a notification in the background and update the emailSent flag only on success.
@@ -228,15 +230,18 @@ function buildSummaryError(message: string, errorSummary: ErrorSummaryItem[]): E
  * @param service - the manage service instance
  * @param clearAnswer - whether to clear the answer before saving
  */
-export function buildUpdateCase(service: ManageService, clearAnswer: boolean = false): SaveDataFn {
-	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: CrownDevelopmentSaveModel } }) => {
+export function buildUpdateCase(
+	service: ManageService,
+	clearAnswer: boolean = false
+): SaveDataFn<{ answers?: CrownDevelopmentSaveModel }, CaseViewLocals> {
+	return async ({ req, res, data }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
 		const userId = req.session?.account?.localAccountId;
 
 		logger.info({ id }, 'case update');
 
-		const toSave: CrownDevelopmentSaveModel = data?.answers || {};
+		const toSave = data?.answers || {};
 		if (clearAnswer) {
 			// clear the answer if requested
 			typedObjectKeys(toSave).forEach((key) => {
@@ -256,8 +261,10 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 		const updatedFieldNames = Object.keys(toSave);
 		const answersSnapshot = { ...toSave };
 
-		const fullViewModel = res.locals?.journeyResponse?.answers || {};
-		const originalAnswers: Partial<CrownDevelopmentViewModel> = res.locals?.originalAnswers || {};
+		// The full (unmerged) view model is the single source of truth for pre-update state.
+		// This is always populated by the journey middleware before this handler runs.
+		const fullViewModel = getAnswers<CrownDevelopmentViewModel>(res);
+		const originalAnswers = res.locals.originalAnswers || {};
 
 		customUpdateCaseActions(service, id, toSave, fullViewModel);
 
@@ -309,7 +316,7 @@ export function buildUpdateCase(service: ManageService, clearAnswer: boolean = f
 				}
 
 				const viewModelForUpdates: CrownDevelopmentViewModel = { ...dbViewModel };
-				for (const [key, value] of typedObjectEntries(originalAnswers)) {
+				for (const [key, value] of typedObjectEntries<CrownDevelopmentViewModel>(originalAnswers)) {
 					if (viewModelForUpdates[key] === undefined || viewModelForUpdates[key] === null) {
 						setViewModelAnswer(viewModelForUpdates, key, value);
 					}
@@ -582,7 +589,7 @@ async function recordAuditEntries(
 	answersSnapshot: Record<string, unknown>,
 	updatedFieldNames: string[],
 	logger: Logger,
-	res: Response
+	res: Response<unknown, CaseViewLocals>
 ): Promise<void> {
 	// Bail out early if userId is missing — audit.recordMany requires a userId for every entry
 	// and will throw/log when missing. This avoids noisy error logs and wasted work.
