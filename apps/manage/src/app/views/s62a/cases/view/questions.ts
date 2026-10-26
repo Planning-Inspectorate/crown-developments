@@ -611,26 +611,6 @@ export function getQuestions(
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'bng-exempt/remove' }]
 			}
 		},
-		lastUpdated: {
-			type: COMPONENT_TYPES.DATE,
-			title: 'Last updated',
-			question: 'not editable',
-			fieldName: 'updatedDate',
-			url: '',
-			validators: [],
-			editable: false,
-			dateFormat: 'h:mmaaa, d MMMM yyyy'
-		},
-		createdDate: {
-			type: COMPONENT_TYPES.DATE,
-			title: 'Created date',
-			question: 'not editable',
-			fieldName: 'createdDate',
-			url: '',
-			validators: [],
-			editable: false,
-			dateFormat: 'h:mmaaa, d MMMM yyyy'
-		},
 		notificationReceivedDate: {
 			type: COMPONENT_TYPES.DATE,
 			title: 'Notification received date',

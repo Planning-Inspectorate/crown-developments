@@ -90,8 +90,6 @@ describe('s62a case details journey', () => {
 				title: '',
 				segment: 'details',
 				questions: [
-					'lastUpdated',
-					'createdDate',
 					'category',
 					'procedure',
 					'applicationStatus',

@@ -136,8 +136,6 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.withCondition(isApplicationCase),
 			new Section('', 'details')
 				.withSectionCondition(() => currentTab === VIEW_TAB_ID.DETAILS)
-				.addQuestion(questions.lastUpdated)
-				.addQuestion(questions.createdDate)
 				.startMultiQuestionCondition('details-is-application-1', isApplicationCase)
 				.addQuestion(questions.category)
 				.addQuestion(questions.procedure)

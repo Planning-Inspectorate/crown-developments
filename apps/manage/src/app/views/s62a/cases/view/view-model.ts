@@ -287,8 +287,6 @@ export interface S62aCaseViewModel {
 	cilLiable?: YesNo;
 	bngExempt?: YesNo;
 	cilAmount?: number | null;
-	updatedDate?: Date;
-	createdDate?: Date;
 
 	lpaFirstName?: string;
 	lpaLastName?: string;
@@ -425,11 +423,6 @@ const DIRECT_UNMAPPED_FIELDS = Object.freeze([
 ] as const);
 
 /**
- * Audit date fields that map directly (read-only on the Details tab)
- */
-const DATE_FIELDS = Object.freeze(['updatedDate', 'createdDate'] as const);
-
-/**
  * Fields that represent foreign key relations in the database and are included in the view model
  * as simple ID fields for ease of use in the UI.
  */
@@ -454,8 +447,7 @@ const RELATION_ID_FIELDS = Object.freeze([
 type DirectUnmappedField =
 	| (typeof DIRECT_UNMAPPED_FIELDS)[number]
 	| (typeof RELATION_ID_FIELDS)[number]
-	| (typeof INTEGER_STRING_FIELDS)[number]
-	| (typeof DATE_FIELDS)[number];
+	| (typeof INTEGER_STRING_FIELDS)[number];
 
 /**
  * Assign an S62aCase field that maps directly to the view model,
@@ -491,7 +483,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 		viewModel[field] = typeof dbCase[field] === 'boolean' ? booleanToYesNoValue(dbCase[field]) : undefined;
 	}
 
-	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS, ...DATE_FIELDS]) {
+	for (const field of [...RELATION_ID_FIELDS, ...DIRECT_UNMAPPED_FIELDS, ...INTEGER_STRING_FIELDS]) {
 		assignNullableDirectField(viewModel, dbCase, field);
 	}
 
