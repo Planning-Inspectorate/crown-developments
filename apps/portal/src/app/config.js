@@ -93,6 +93,10 @@ export function loadConfig() {
 		throw new Error('SQL_CONNECTION_STRING is required');
 	}
 
+	if (!APP_HOSTNAME) {
+		throw new Error('APP_HOSTNAME is required');
+	}
+
 	config = {
 		appName: 'portal',
 		appHostname: APP_HOSTNAME,
