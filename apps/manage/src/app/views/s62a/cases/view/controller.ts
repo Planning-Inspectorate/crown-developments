@@ -37,6 +37,7 @@ import { getNonResidentialTotals, nonResidentialTotalAnswers } from '../util/non
 import { getPreApplicationCaseOptions, showPreApplicationTab } from '../util/pre-application.ts';
 import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 import type { Request, Response } from 'express';
+import type { ApplicantOrganisationAnswer } from '../util/party-types.ts';
 import { randomUUID } from 'node:crypto';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 
@@ -323,14 +324,17 @@ export function applicantContactPromptMessages(
 	}
 
 	const contacts = answers.manageApplicantContactDetails ?? [];
+	// /s62a/cases/:id/:tab/:section/:question - the Contacts tab and its section are both 'contacts'
+	const contactsListUrl = `/s62a/cases/${id}/${VIEW_TAB_ID.CONTACTS}/contacts/check-applicant-contact-details`;
 
 	return (answers.manageApplicantOrganisations ?? [])
-		.filter((org) => org.id && !contacts.some((contact) => contact.applicantContactOrganisation === org.id))
+		.filter(
+			(org): org is ApplicantOrganisationAnswer & { id: string } =>
+				Boolean(org.id) && !contacts.some((contact) => contact.applicantContactOrganisation === org.id)
+		)
 		.map((org) => {
-			const orgId = encodeURIComponent(org.id ?? '');
 			// A fresh item id per link, as the manage list's own 'Add' link does
-			const href = `/s62a/cases/${id}/contacts/contacts/check-applicant-contact-details/add/${newItemId()}/applicant-contact?${PRESELECTED_ORGANISATION_QUERY}=${orgId}`;
-			// The organisation name is user input, so it's escaped; everything else is trusted.
+			const href = `${contactsListUrl}/add/${newItemId()}/applicant-contact?${PRESELECTED_ORGANISATION_QUERY}=${encodeURIComponent(org.id)}`;
 			return `<a class="govuk-link" href="${href}">Add a contact for ${escapeHtml(org.organisationName)}</a>`;
 		});
 }

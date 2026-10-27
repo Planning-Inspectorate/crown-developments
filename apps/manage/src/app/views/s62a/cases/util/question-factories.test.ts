@@ -130,7 +130,7 @@ describe('multiContactQuestions factory', () => {
 		assert.strictEqual(validator.fields[4].validators?.length, 1);
 	});
 
-	it('should pass a default organisation to the radio when given', () => {
+	it('should pre-select defaultOrganisation on the organisation radio when one is provided', () => {
 		const organisationOptions = [
 			{ text: 'Acme Corp', value: 'org-1' },
 			{ text: 'Stark Industries', value: 'org-2' }
@@ -147,7 +147,7 @@ describe('multiContactQuestions factory', () => {
 		assert.strictEqual('defaultValue' in field && field.defaultValue, 'org-2');
 	});
 
-	it('should leave the radio without a default when none is given', () => {
+	it('should not pre-select any organisation on the radio when defaultOrganisation is not provided', () => {
 		const organisationOptions = [
 			{ text: 'Acme Corp', value: 'org-1' },
 			{ text: 'Stark Industries', value: 'org-2' }
