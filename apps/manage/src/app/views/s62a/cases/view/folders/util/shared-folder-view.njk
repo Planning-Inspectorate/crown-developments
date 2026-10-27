@@ -46,6 +46,13 @@
 					classes: "govuk-button--secondary",
 					attributes: { "data-cy": "create-folder-btn" }
 				}) }}
+
+				{{ govukButton({
+					text: "Rename folder",
+					href: currentPath + "/rename-folder",
+					classes: "govuk-button--secondary",
+					attributes: { "data-cy": "rename-folder-btn" }
+				}) }}
 			{% endif %}
 
             {% if subFolders|length !== 0 %}

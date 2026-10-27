@@ -1,6 +1,7 @@
 import type { ManageService } from '#service';
-import { getOptionalStringParams, getStringParam } from '@pins/crowndev-lib/util/params.ts';
+import { getOptionalStringParams, getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import { sanitisePath } from '@pins/crowndev-lib/util/string.ts';
+import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import { addSessionData } from '@planning-inspectorate/core/util';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { ParamsDictionary } from 'express-serve-static-core';
@@ -39,6 +40,44 @@ export function buildValidateFolderCreate(
 		const duplicateError = await getDuplicateErrorsCreate(db, caseId, parentFolderId, folderName);
 		if (duplicateError) {
 			return handleFolderValidationError(req, res, setSessionData, caseId, folderName, duplicateError, returnUrl);
+		}
+
+		req.body.folderName = folderName;
+		next();
+	};
+}
+
+/**
+ * Validates that a folder being renamed has a valid name.
+ * The folderId (folder being renamed) is required.
+ */
+export function buildValidateFolderRename(
+	service: ManageService,
+	setSessionData: typeof addSessionData = addSessionData
+): RequestHandler {
+	const { db } = service;
+
+	return async (req: Request<ParamsDictionary, unknown, { folderName: string }>, res: Response, next: NextFunction) => {
+		const {
+			id: caseId,
+			folderId,
+			folderName: currentFolderName
+		} = getStringParams(req.params, ['id', 'folderId', 'folderName']);
+		const folderName = sanitisePath(req.body.folderName);
+		const returnUrl = `/s62a/cases/${caseId}/case-folders/${folderId}/${encodeURIComponent(currentFolderName)}/rename-folder`;
+
+		const syntaxError = getFolderSyntaxError(folderName);
+		if (syntaxError) {
+			return handleFolderValidationError(req, res, setSessionData, caseId, folderName, syntaxError, returnUrl);
+		}
+
+		try {
+			const duplicateError = await getDuplicateErrorsRename(req, res, db, caseId, folderId, folderName);
+			if (duplicateError) {
+				return handleFolderValidationError(req, res, setSessionData, caseId, folderName, duplicateError, returnUrl);
+			}
+		} catch (err) {
+			return next(err);
 		}
 
 		req.body.folderName = folderName;
@@ -111,6 +150,48 @@ export async function getDuplicateErrorsCreate(
 			parentFolderId: parentFolderId,
 			displayName: folderName,
 			deletedAt: null
+		}
+	});
+
+	if (existingFolder && existingFolder.displayName.toLowerCase() === folderName.toLowerCase()) {
+		return {
+			text: 'Folder name already exists',
+			href: '#folderName'
+		};
+	}
+
+	return null;
+}
+
+/**
+ * Checks that you are not renaming a folder to an existing folder within the same parent
+ */
+export async function getDuplicateErrorsRename(
+	req: Request,
+	res: Response,
+	db: ManageService['db'],
+	caseId: string,
+	currentFolderId: string,
+	folderName: string
+) {
+	const currentFolder = await db.folder.findUnique({
+		select: {
+			parentFolderId: true
+		},
+		where: {
+			id: currentFolderId
+		}
+	});
+
+	if (!currentFolder) return notFoundHandler(req, res);
+
+	const existingFolder = await db.folder.findFirst({
+		where: {
+			s62aCaseId: caseId,
+			parentFolderId: currentFolder.parentFolderId,
+			displayName: folderName,
+			deletedAt: null,
+			NOT: { id: currentFolderId }
 		}
 	});
 
