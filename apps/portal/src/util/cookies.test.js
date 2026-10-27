@@ -65,6 +65,33 @@ describe('cookies', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
 		describe('handle cookie banner POST', () => {
+			it('should clear analytics cookies at both scopes when cookies are rejected via the banner', () => {
+				const req = {
+					method: 'POST',
+					body: { cookiePreference: 'reject' },
+					headers: {
+						cookie:
+							'_ga=test; _clck=test; _clsk=test; ANONCHK=test; CLID=test; MR=test; MUID=test; SM=test; ' +
+							'CrownDevAnalyticsEnabled=true; connect.sid=test'
+					},
+					session: {},
+					url: '/test'
+				};
+				const res = { cookie: mock.fn(), clearCookie: mock.fn(), redirect: mock.fn() };
+				const next = mock.fn();
+				buildAnalyticsCookiesMiddleware({ appHostname: 'example.com' })(req, res, next);
+				assert.deepStrictEqual(
+					res.clearCookie.mock.calls.map((call) => call.arguments),
+					['_ga', '_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'].flatMap((name) => [
+						[name, { path: '/' }],
+						[name, { domain: '.example.com', path: '/' }]
+					])
+				);
+				assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'false');
+				assert.strictEqual(req.session.cookies.settings.preferenceSetViaBanner, true);
+				assert.deepStrictEqual(res.redirect.mock.calls[0].arguments, ['/test']);
+				assert.strictEqual(next.mock.callCount(), 0);
+			});
 			it('should set the analytics cookies preference if cookies are accepted', () => {
 				const req = {
 					method: 'POST',
@@ -113,6 +140,13 @@ describe('cookies', () => {
 	});
 
 	describe('setAnalyticsCookiesPreference', () => {
+		it('should not clear analytics cookies if the user opts in', () => {
+			const req = { headers: { cookie: '_ga=test; _clck=test; _clsk=test' } };
+			const res = { cookie: mock.fn(), clearCookie: mock.fn() };
+			setAnalyticsCookiesPreference(req, res, true, false, 'example.com');
+			assert.strictEqual(res.clearCookie.mock.callCount(), 0);
+			assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'true');
+		});
 		it('should set the analytics cookies preference in the response', () => {
 			const req = { headers: {} };
 			const res = { cookie: mock.fn() };
@@ -139,6 +173,49 @@ describe('cookies', () => {
 	});
 
 	describe('removeAnalyticsCookies', () => {
+		it('should clear only GA4, Clarity and Microsoft advertising cookies at both scopes', () => {
+			const req = {
+				headers: {
+					cookie:
+						'_ga=test; _ga_first=test; _ga_second=test; _clck=test; _clsk=test; ' +
+						'ANONCHK=test; CLID=test; MR=test; MUID=test; SM=test; ' +
+						'_gateway=test; _clck_extra=test; _clsk_extra=test; CrownDevAnalyticsEnabled=false; ' +
+						'connect.sid=test; _csrf=test'
+				}
+			};
+			const res = { clearCookie: mock.fn() };
+			removeAnalyticsCookies(req, res, 'example.com');
+			assert.deepStrictEqual(
+				res.clearCookie.mock.calls.map((call) => call.arguments),
+				['_ga', '_ga_first', '_ga_second', '_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'].flatMap((name) => [
+					[name, { path: '/' }],
+					[name, { domain: '.example.com', path: '/' }]
+				])
+			);
+		});
+
+		it('should preserve an existing leading dot in the configured domain', () => {
+			const req = { headers: { cookie: '_clck=test' } };
+			const res = { clearCookie: mock.fn() };
+			removeAnalyticsCookies(req, res, '.example.com');
+			assert.deepStrictEqual(
+				res.clearCookie.mock.calls.map((call) => call.arguments),
+				[
+					['_clck', { path: '/' }],
+					['_clck', { domain: '.example.com', path: '/' }]
+				]
+			);
+		});
+
+		for (const cookie of [undefined, '']) {
+			it(`should not clear cookies when the Cookie header is ${JSON.stringify(cookie)}`, () => {
+				const req = { headers: { cookie } };
+				const res = { clearCookie: mock.fn() };
+				removeAnalyticsCookies(req, res, 'example.com');
+				assert.strictEqual(res.clearCookie.mock.callCount(), 0);
+			});
+		}
+
 		it('should clear the analytics cookies from the response', () => {
 			const req = { headers: { cookie: '_ga=GA1.2.1234567890.1234567890' } };
 			const res = { clearCookie: mock.fn() };

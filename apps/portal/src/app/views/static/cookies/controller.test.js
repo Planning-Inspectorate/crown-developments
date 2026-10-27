@@ -69,10 +69,14 @@ describe('cookies', () => {
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cookies');
 		});
-		it('should clear GA4 cookies if acceptCookies is "no"', () => {
+		it('should clear GA4 and Clarity cookies if acceptCookies is "no"', () => {
 			const mockReq = {
 				body: { acceptCookies: 'no' },
-				headers: { cookie: '_ga=notReal; otherCookie=hello; _ga_other=someValue' },
+				headers: {
+					cookie:
+						'_ga=notReal; otherCookie=hello; _ga_other=someValue; _clck=test; _clsk=test; ' +
+						'CrownDevAnalyticsEnabled=true; connect.sid=test'
+				},
 				session: {}
 			};
 			const mockRes = {
@@ -82,13 +86,15 @@ describe('cookies', () => {
 			};
 			const cookiesSaveController = buildCookiesSaveController({ secureSession: false, appHostname: 'example.com' });
 			cookiesSaveController(mockReq, mockRes);
-			assert.strictEqual(mockRes.clearCookie.mock.callCount(), 4);
-			assert.strictEqual(mockRes.clearCookie.mock.calls[0].arguments[0], '_ga');
-			assert.strictEqual(mockRes.clearCookie.mock.calls[1].arguments[0], '_ga');
-			assert.strictEqual(mockRes.clearCookie.mock.calls[2].arguments[0], '_ga_other');
-			assert.strictEqual(mockRes.clearCookie.mock.calls[3].arguments[0], '_ga_other');
-			const clearedNames = mockRes.clearCookie.mock.calls.map((c) => c.arguments[0]);
-			assert.ok(!clearedNames.includes('otherCookie'), 'otherCookie should not be cleared');
+			assert.deepStrictEqual(
+				mockRes.clearCookie.mock.calls.map((call) => call.arguments),
+				['_ga', '_ga_other', '_clck', '_clsk'].flatMap((name) => [
+					[name, { path: '/' }],
+					[name, { domain: '.example.com', path: '/' }]
+				])
+			);
+			assert.strictEqual(mockRes.cookie.mock.calls[0].arguments[1], 'false');
+			assert.strictEqual(mockReq.session.cookies.settings.preferenceSet, true);
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
 			assert.strictEqual(mockRes.redirect.mock.calls[0].arguments[0], '/cookies');
 		});
