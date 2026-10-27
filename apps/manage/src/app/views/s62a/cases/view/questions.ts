@@ -1410,7 +1410,10 @@ export function getQuestions(
 			url: 'vehicle-parking',
 			fieldName: 'vehicleParking',
 			titleSingular: 'vehicle parking',
-			emptyListText: 'Add one or more vehicle parking details. No vehicle parking details have been added.',
+			// The table only reads emptyListText from viewData
+			viewData: {
+				emptyListText: 'Add one or more vehicle parking details. No vehicle parking details have been added.'
+			},
 			showAnswersInSummary: true,
 			maximumAnswers: 10,
 			hideCancel: true,
