@@ -54,6 +54,78 @@ describe('TableManageListQuestion', () => {
 		it('should set the custom view folder', () => {
 			assert.strictEqual(tableQuestion.viewFolder, 'custom-components/manage-list/table');
 		});
+
+		describe('template options', () => {
+			const build = (params: Record<string, unknown>) =>
+				new TableManageListQuestion({
+					title: 'Test Table',
+					fieldName: 'testTable',
+					titleSingular: 'Item',
+					question: 'What items do you want to add?',
+					...params
+				} as any);
+
+			it('should pass template options given as params to the template through viewData', () => {
+				const question = build({
+					emptyListText: 'None yet',
+					emptyName: 'thing',
+					emptyNamePlural: 'things',
+					hideCancel: true,
+					hideBackLink: true,
+					hideButtonsEmpty: true,
+					warningText: 'Careful'
+				});
+
+				assert.deepStrictEqual(
+					{
+						emptyListText: question.viewData.emptyListText,
+						emptyName: question.viewData.emptyName,
+						emptyNamePlural: question.viewData.emptyNamePlural,
+						hideCancel: question.viewData.hideCancel,
+						hideBackLink: question.viewData.hideBackLink,
+						hideButtonsEmpty: question.viewData.hideButtonsEmpty,
+						warningText: question.viewData.warningText
+					},
+					{
+						emptyListText: 'None yet',
+						emptyName: 'thing',
+						emptyNamePlural: 'things',
+						hideCancel: true,
+						hideBackLink: true,
+						hideButtonsEmpty: true,
+						warningText: 'Careful'
+					}
+				);
+			});
+
+			it('should leave out options that are not given', () => {
+				const question = build({});
+
+				assert.strictEqual('emptyListText' in question.viewData, false);
+				assert.strictEqual('hideCancel' in question.viewData, false);
+			});
+
+			it('should keep a value set in viewData over the same param', () => {
+				const question = build({ emptyListText: 'From params', viewData: { emptyListText: 'From viewData' } });
+
+				assert.strictEqual(question.viewData.emptyListText, 'From viewData');
+			});
+
+			it("should show only Add on an empty list for emptyStateAddStyle 'force'", () => {
+				assert.strictEqual(build({ emptyStateAddStyle: 'force' }).viewData.hideButtonsEmpty, true);
+			});
+
+			it("should show Add and Save on an empty list for emptyStateAddStyle 'prominent'", () => {
+				assert.strictEqual('hideButtonsEmpty' in build({ emptyStateAddStyle: 'prominent' }).viewData, false);
+			});
+
+			it('should let hideButtonsEmpty take priority over emptyStateAddStyle', () => {
+				assert.strictEqual(
+					build({ emptyStateAddStyle: 'force', hideButtonsEmpty: false }).viewData.hideButtonsEmpty,
+					false
+				);
+			});
+		});
 	});
 
 	describe('createRows()', () => {

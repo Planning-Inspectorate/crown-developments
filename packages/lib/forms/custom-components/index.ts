@@ -149,6 +149,8 @@ type TableManageListQuestionProps = CrownCommonQuestionProps & {
 	hideButtonsEmpty?: boolean;
 	warningText?: string;
 	removalSummary?: (item: Record<string, unknown>) => string[];
+	emptyListText?: string;
+	emptyStateAddStyle?: 'force' | 'prominent';
 };
 
 type DefinedColumnsTableQuestionProps = Omit<TableManageListQuestionProps, 'type'> & {

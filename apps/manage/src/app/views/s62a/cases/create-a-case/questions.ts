@@ -32,6 +32,7 @@ import { getApplicantOrganisationOptions } from '../../../../views/cases/util/ap
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custom-multi-field-input/question.js';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import { applicantOrganisationColumns, contactColumns } from '../util/table-columns.ts';
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 import type { S62aCreateCaseAnswers } from './s62a-case-mapper.ts';
 
@@ -206,16 +207,20 @@ export function getQuestions(
 			validators: [new AddressValidator()]
 		},
 		manageAgentContacts: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
 			question: 'Check agent contact details',
 			url: 'check-agent-contact-details',
 			fieldName: 'manageAgentContactDetails',
 			titleSingular: 'Contact',
-			emptyListText: 'No agent contacts found',
 			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'No agent contacts found',
 			emptyStateAddStyle: 'force',
-			maximumAnswers: 10
+			hideCancel: true,
+			viewData: { continueOnly: true },
+			columns: contactColumns('agent')
 		},
 		...multiContactQuestions({
 			prefix: 'agent',
@@ -232,16 +237,20 @@ export function getQuestions(
 			options: APPLICANT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
 		},
 		manageApplicantOrganisations: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check applicant organisation details' : 'Applicant organisations',
 			question: 'Check applicant organisation details',
 			url: 'check-applicant-details',
 			fieldName: 'manageApplicantOrganisations',
 			titleSingular: 'Applicant organisation',
-			emptyListText: 'No applicants found',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: 'force',
 			maximumAnswers: 10,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'No applicants found',
+			emptyStateAddStyle: 'force',
+			hideCancel: true,
+			viewData: { continueOnly: true },
+			columns: applicantOrganisationColumns(),
 			removalPrompt:
 				'Removing this organisation will also remove any linked contacts. You will not be able to undo this.'
 		},
@@ -262,17 +271,22 @@ export function getQuestions(
 			validators: [new AddressValidator()]
 		},
 		manageApplicantContactDetails: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? `Check applicant contact details${hasAgent ? ' (optional)' : ''}` : 'Applicant contacts',
-			question: 'Check applicant contact details',
+			// The table's heading is the question, so it carries '(optional)' too
+			question: `Check applicant contact details${hasAgent ? ' (optional)' : ''}`,
 			url: 'check-applicant-contact-details',
 			fieldName: 'manageApplicantContactDetails',
 			titleSingular: 'Applicant contact',
-			emptyListText: 'No applicant contacts found',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: hasAgent ? 'prominent' : 'force',
 			maximumAnswers: 10,
-			isAllowedEmpty: !!hasAgent,
+			// With an agent the list is optional, so the last contact can be removed
+			hideRemoveOnLastItem: !hasAgent,
+			emptyListText: 'No applicant contacts found',
+			emptyStateAddStyle: hasAgent ? 'prominent' : 'force',
+			hideCancel: true,
+			viewData: { continueOnly: true },
+			columns: contactColumns('applicant', applicantOrganisationOptions),
 			validators: applicantContactsValidator,
 			hint: hasAgent ? 'You can skip adding applicant contact details if you have an agent.' : undefined
 		},

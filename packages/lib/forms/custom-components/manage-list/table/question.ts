@@ -61,6 +61,20 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		this.removalSummary = params.removalSummary;
 
 		this.viewFolder = 'custom-components/manage-list/table';
+
+		const templateOptions: Record<string, unknown> = {
+			emptyListText: params.emptyListText,
+			emptyName: params.emptyName,
+			emptyNamePlural: params.emptyNamePlural,
+			hideCancel: params.hideCancel,
+			hideBackLink: params.hideBackLink,
+			hideButtonsEmpty: params.hideButtonsEmpty ?? (params.emptyStateAddStyle === 'force' ? true : undefined),
+			warningText: params.warningText
+		};
+		this.viewData = {
+			...Object.fromEntries(Object.entries(templateOptions).filter(([, value]) => value !== undefined)),
+			...this.viewData
+		};
 	}
 
 	/**

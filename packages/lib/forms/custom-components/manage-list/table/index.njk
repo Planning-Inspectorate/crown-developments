@@ -18,10 +18,15 @@
 
 				{# With no rows we show a placeholder and, optionally, hide the save/cancel buttons #}
 				{% set hasData = question.tableRows | length > 0 %}
+				{% set continueShown = not hideButtonsEmpty or hasData %}
 				{% set itemName = emptyName or (titleSingular | lower) %}
 				{% set itemNamePlural = emptyNamePlural or (itemName + "s") %}
 
-				<h1 class="govuk-heading-l">{{ question.question }}</h1>
+				<h1 class="govuk-heading-l {{ 'govuk-!-margin-bottom-2' if question.hint }}">{{ question.question }}</h1>
+
+				{% if question.hint %}
+					<div class="govuk-hint govuk-!-margin-bottom-7">{{ question.hint }}</div>
+				{% endif %}
 
 				{% if hasData and warningText %}
 					{{ govukWarningText({
@@ -55,16 +60,17 @@
 						<a class="govuk-link" href="{{ util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink }}" data-cy="link-add-another">{{ addAnotherLinkText }}</a>
 					</p>
 				{% else %}
+					{# Add is primary only when it's the only button, so there are never two primary buttons #}
 					{{ govukButton({
 						text: addMoreButtonText,
 						href: util.trimTrailingSlash(originalUrl) + "/" + question.addAnotherLink,
-						classes: "" if (hideCancel and not hasData) else "govuk-button--secondary",
+						classes: "" if not continueShown else "govuk-button--secondary",
 						attributes: { "data-cy": "button-add-details" }
 					}) }}
 				{% endif %}
 
 				{# Save and cancel are always shown, unless configured to appear only once there is data #}
-				{% if not hideButtonsEmpty or hasData %}
+				{% if continueShown %}
 					<div class="govuk-button-group">
 						{{ govukButton({
 							text: continueButtonText,
