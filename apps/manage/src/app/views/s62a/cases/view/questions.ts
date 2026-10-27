@@ -1489,6 +1489,8 @@ export function getQuestions(
 				new UniqueMultipleListFieldValidator({
 					listFieldName: 'vehicleParking',
 					secondaryFieldNames: ['otherVehicleType', 'vehicleType_otherVehicleType'],
+					// Names the duplicate as the user sees it, not by its id
+					displayNameFor: (value, item) => vehicleTypeName({ ...item, vehicleType: value }) ?? value,
 					buildErrorMessage: (name) =>
 						`You have already added ${name}. Select a different vehicle type or change the existing entry`
 				}),
