@@ -254,6 +254,19 @@ describe('DefinedColumnsTableQuestion', () => {
 			assert.strictEqual(result, new Date('01/01/2024').getTime());
 		});
 
+		it('should fall back to the cell content when the linked DateQuestion has no date', () => {
+			const col = { header: 'Date appointed', fieldName: 'appointed', sortType: 'date' } as TableColumn;
+			const dateQuestion = new DateQuestion({
+				fieldName: 'appointed',
+				title: 'Date appointed',
+				question: 'What date was this appointed?'
+			} as never) as unknown as Question;
+
+			const result = question.handleSorting('-', col, dateQuestion, undefined);
+
+			assert.strictEqual(result, '-');
+		});
+
 		it('should return the cell content as a fallback', () => {
 			const col = { header: 'Ref', fieldName: 'ref' } as TableColumn;
 
@@ -279,6 +292,44 @@ describe('DefinedColumnsTableQuestion', () => {
 
 			assert.strictEqual(result[2].question, 'Decision Date');
 			assert.strictEqual(result[2].answer, '-');
+		});
+
+		it('should leave out an empty column marked hideInSummaryWhenEmpty', () => {
+			question.columns = [
+				{ header: 'Reference', fieldName: 'caseRef' },
+				{ header: 'Decision Date', fieldName: 'date', hideInSummaryWhenEmpty: true }
+			];
+
+			const result = formatItemAnswers({ caseRef: 'REF-123' });
+
+			assert.deepStrictEqual(
+				result.map((r) => r.question),
+				['Reference']
+			);
+		});
+
+		it('should still show a hideInSummaryWhenEmpty column that has a value', () => {
+			question.columns = [{ header: 'Reference', fieldName: 'caseRef', hideInSummaryWhenEmpty: true }];
+
+			assert.strictEqual(formatItemAnswers({ caseRef: 'REF-123' })[0].answer, 'REF-123');
+		});
+
+		it('should prefix the value with its summaryLabel', () => {
+			question.columns = [{ header: 'Reference', fieldName: 'caseRef', summaryLabel: 'Case reference' }];
+
+			assert.strictEqual(formatItemAnswers({ caseRef: 'REF-123' })[0].answer, 'Case reference: REF-123');
+		});
+
+		it('should label an empty value with a dash', () => {
+			question.columns = [{ header: 'Reference', fieldName: 'caseRef', summaryLabel: 'Case reference' }];
+
+			assert.strictEqual(formatItemAnswers({})[0].answer, 'Case reference: -');
+		});
+
+		it('should escape the summaryLabel', () => {
+			question.columns = [{ header: 'Reference', fieldName: 'caseRef', summaryLabel: 'A & B' }];
+
+			assert.strictEqual(formatItemAnswers({ caseRef: 'x' })[0].answer, 'A &amp; B: x');
 		});
 
 		it('should return an empty array when no columns are defined', () => {

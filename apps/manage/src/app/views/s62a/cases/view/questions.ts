@@ -86,6 +86,12 @@ import { housingQuestions, residentialTotalQuestions } from '../util/housing-que
 import { floorspaceQuestions } from '../util/floorspace-questions.ts';
 import type { ResidentialTotals } from '../util/residential-totals.ts';
 import type { ColumnFormatContext } from '@pins/crowndev-lib/forms/custom-components/manage-list/table/defined-columns-list-table/question.ts';
+import {
+	additionalContactColumns,
+	applicantOrganisationColumns,
+	caseTeamInspectorColumns,
+	contactColumns
+} from '../util/table-columns.ts';
 import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/manage-list-items-complete-validator.ts';
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
@@ -1591,17 +1597,19 @@ export function getQuestions(
 			}
 		},
 		manageCaseTeamInspectors: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check appointed person/inspector details' : 'Appointed persons/inspectors',
 			question: 'Check inspectors assigned to this case',
 			url: 'check-case-team-inspectors',
 			fieldName: 'manageCaseTeamInspectors',
 			titleSingular: 'Inspector',
-			emptyListText: 'Add one or more appointed person/inspector details. No details have been added.',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: 'force',
 			maximumAnswers: 10,
-			isAllowedEmpty: false,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'Add one or more appointed person/inspector details. No details have been added.',
+			emptyStateAddStyle: 'force',
+			hideCancel: true,
+			columns: caseTeamInspectorColumns(),
 			validators: []
 		},
 		inspectorId: {
@@ -1704,16 +1712,19 @@ export function getQuestions(
 			options: APPLICANT_TYPES.map((t) => ({ text: t.displayName, value: t.id }))
 		},
 		manageApplicantOrganisations: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check applicant organisation details' : 'Applicant organisations',
 			question: 'Check applicant organisation details',
 			url: 'check-applicant-details',
 			fieldName: 'manageApplicantOrganisations',
 			titleSingular: 'Applicant organisation',
-			emptyListText: 'No applicants found',
 			showAnswersInSummary: true,
-			emptyStateAddStyle: 'prominent',
 			maximumAnswers: 10,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'No applicants found',
+			emptyStateAddStyle: 'prominent',
+			hideCancel: true,
+			columns: applicantOrganisationColumns(),
 			removalPrompt:
 				'Removing this organisation will also remove any linked contacts. You will not be able to undo this.'
 		},
@@ -1736,16 +1747,19 @@ export function getQuestions(
 			validators: [new AddressValidator()]
 		},
 		manageApplicantContactDetails: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check applicant contact details' : 'Applicant contacts',
 			question: 'Check applicant contact details',
 			url: 'check-applicant-contact-details',
 			fieldName: 'manageApplicantContactDetails',
 			titleSingular: 'Applicant contact',
-			emptyListText: 'No applicant contacts found',
 			showAnswersInSummary: true,
 			maximumAnswers: 10,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'No applicant contacts found',
 			emptyStateAddStyle: 'prominent',
+			hideCancel: true,
+			columns: contactColumns('applicant', applicantOrganisationOptions),
 			validators: applicantContactsValidator
 		},
 		...multiContactQuestions({
@@ -1793,16 +1807,19 @@ export function getQuestions(
 			validators: [new AddressValidator()]
 		},
 		manageAgentContacts: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check agent contact details' : 'Agent contacts',
 			question: 'Check agent contact details',
 			url: 'check-agent-contact-details',
 			fieldName: 'manageAgentContactDetails',
 			titleSingular: 'Contact',
-			emptyListText: 'No agent contacts found',
 			showAnswersInSummary: true,
+			maximumAnswers: 10,
+			hideRemoveOnLastItem: true,
+			emptyListText: 'No agent contacts found',
 			emptyStateAddStyle: 'prominent',
-			maximumAnswers: 10
+			hideCancel: true,
+			columns: contactColumns('agent')
 		},
 		...multiContactQuestions({
 			prefix: 'agent',
@@ -1830,17 +1847,18 @@ export function getQuestions(
 			editable: false
 		},
 		manageAdditionalContacts: {
-			type: CUSTOM_COMPONENTS.CUSTOM_MANAGE_LIST,
+			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
 			title: isQuestionView ? 'Check additional contact details' : 'Additional contact(s)',
 			question: 'Check additional contact details',
 			url: 'check-additional-contact-details',
 			fieldName: 'manageAdditionalContacts',
 			titleSingular: 'Additional contact',
-			emptyListText: 'No additional contacts found',
 			showAnswersInSummary: false,
+			hideRemoveOnLastItem: false,
+			emptyListText: 'No additional contacts found',
 			emptyStateAddStyle: 'prominent',
-			// A case may have no additional contacts, so the last one can be removed
-			isAllowedEmpty: true
+			hideCancel: true,
+			columns: additionalContactColumns((id) => CONTACT_ROLES.find((role) => role.id === id)?.displayName)
 		},
 		additionalContactType: {
 			type: CUSTOM_COMPONENTS.CONDITIONAL_RADIO,

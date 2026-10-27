@@ -1,4 +1,5 @@
 import { isValidUuidFormat } from '../util/uuid.ts';
+import { nameToViewModel } from './name.js';
 import type { Response, Request, NextFunction } from 'express';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
@@ -92,6 +93,26 @@ const HTML_ESCAPES: Record<string, string> = {
  */
 export function escapeHtml(value: string): string {
 	return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
+}
+
+/**
+ * A string or number as trimmed, HTML-escaped text, or '' when there isn't
+ * one. For putting untyped answers straight into HTML.
+ */
+export function escapeHtmlOrEmpty(value: unknown): string {
+	if (typeof value === 'number') {
+		return Number.isFinite(value) ? String(value) : '';
+	}
+	return typeof value === 'string' ? escapeHtml(value.trim()) : '';
+}
+
+/**
+ * First and last name joined with a space and HTML-escaped, or '' when
+ * neither is set. Either part can be missing.
+ */
+export function escapedFullName(firstName: unknown, lastName: unknown): string {
+	const asText = (value: unknown) => (typeof value === 'string' ? value : undefined);
+	return escapeHtml(nameToViewModel(asText(firstName), asText(lastName)) ?? '');
 }
 
 /**
