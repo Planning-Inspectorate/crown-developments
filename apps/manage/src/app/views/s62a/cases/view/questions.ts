@@ -73,7 +73,12 @@ import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-nu
 import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
-import { vehicleParkingRemovalSummary, vehicleTypeName } from '../util/vehicle-parking.ts';
+import {
+	MAX_VEHICLE_PARKING_SPACES,
+	toVehicleParkingRow,
+	vehicleParkingRemovalSummary,
+	vehicleTypeName
+} from '../util/vehicle-parking.ts';
 import { escapeHtml, insertWbr } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
@@ -1412,7 +1417,7 @@ export function getQuestions(
 			fieldName: 'vehicleParking',
 			// Heads the 'Remove vehicle type' page, its button and prompt
 			titleSingular: 'vehicle type',
-			removalSummary: vehicleParkingRemovalSummary,
+			removalSummary: (item: Record<string, unknown>) => vehicleParkingRemovalSummary(toVehicleParkingRow(item)),
 			// The table only reads emptyListText from viewData
 			viewData: {
 				emptyListText: 'Add one or more vehicle parking details. No vehicle parking details have been added.'
@@ -1432,7 +1437,7 @@ export function getQuestions(
 					header: 'Type of vehicle',
 					fieldName: 'vehicleType',
 					format: (_rawValue: unknown, item: Record<string, unknown>) => {
-						const name = vehicleTypeName(item);
+						const name = vehicleTypeName(toVehicleParkingRow(item));
 						return name ? `<strong>${escapeHtml(name)}</strong>` : '-';
 					}
 				},
@@ -1490,7 +1495,8 @@ export function getQuestions(
 					listFieldName: 'vehicleParking',
 					secondaryFieldNames: ['otherVehicleType', 'vehicleType_otherVehicleType'],
 					// Names the duplicate as the user sees it, not by its id
-					displayNameFor: (value, item) => vehicleTypeName({ ...item, vehicleType: value }) ?? value,
+					displayNameFor: (value, item) =>
+						vehicleTypeName(toVehicleParkingRow({ ...item, vehicleType: value })) ?? value,
 					buildErrorMessage: (name) =>
 						`You have already added ${name}. Select a different vehicle type or change the existing entry`
 				}),
@@ -1527,6 +1533,10 @@ export function getQuestions(
 				new NumericValidator({
 					regex: /^\d+$/,
 					regexMessage: 'The total number of existing spaces must be a number'
+				}),
+				new NumericValidator({
+					max: MAX_VEHICLE_PARKING_SPACES,
+					maxMessage: 'The total number of existing spaces must be 99,999 spaces or less'
 				})
 			]
 		},
@@ -1555,6 +1565,10 @@ export function getQuestions(
 				new NumericValidator({
 					regex: /^\d+$/,
 					regexMessage: 'The total number of proposed spaces must be a number'
+				}),
+				new NumericValidator({
+					max: MAX_VEHICLE_PARKING_SPACES,
+					maxMessage: 'The total number of proposed spaces must be 99,999 spaces or less'
 				})
 			]
 		},

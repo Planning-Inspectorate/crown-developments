@@ -5,56 +5,83 @@ import {
 import { toText } from '@pins/crowndev-lib/audit/resolvers/util/values.ts';
 import { escapeHtml } from '@pins/crowndev-lib/util/string.ts';
 
-type VehicleParkingItem = Record<string, unknown>;
+export const MAX_VEHICLE_PARKING_SPACES = 99_999;
 
 /**
- * The 'Other' vehicle type entered for an item. Conditional radios store it
- * as vehicleType_otherVehicleType in the session, and the view model as
- * otherVehicleType.
+ * A vehicle parking entry, with only what's needed to describe it. Any field
+ * can be missing, as an entry can be part-way through being added.
+ *
+ * Not the view model's VehicleParkingItem: that describes a saved row, while
+ * these helpers also see unsaved rows from the session, where the form stores
+ * the spaces as text and the 'Other' type under a different key.
  */
-function otherVehicleType(item: VehicleParkingItem): string | undefined {
-	return toText(item.vehicleType_otherVehicleType) ?? toText(item.otherVehicleType);
+export interface VehicleParkingRow {
+	/** A VEHICLE_PARKING_CATEGORY_ID */
+	vehicleType?: string;
+	/** The type entered for 'Other' */
+	otherVehicleType?: string;
+	existingSpaces?: number;
+	proposedSpaces?: number;
+}
+
+/** A whole number from text or a number, or undefined if it isn't one */
+function toSpaces(value: unknown): number | undefined {
+	const text = toText(value);
+	const spaces = text === undefined ? NaN : Number(text);
+	return Number.isInteger(spaces) ? spaces : undefined;
+}
+
+/**
+ * Reads a vehicle parking row from the untyped data the manage list passes
+ * around, whether a saved row from the view model or an unsaved one from the
+ * session.
+ */
+export function toVehicleParkingRow(item: Record<string, unknown>): VehicleParkingRow {
+	return {
+		vehicleType: toText(item.vehicleType),
+		// The session stores it under the conditional radio's key, the view model as otherVehicleType
+		otherVehicleType: toText(item.vehicleType_otherVehicleType) ?? toText(item.otherVehicleType),
+		existingSpaces: toSpaces(item.existingSpaces),
+		proposedSpaces: toSpaces(item.proposedSpaces)
+	};
 }
 
 /**
  * The vehicle type as plain text: its display name, with the entered type for
- * 'Other', e.g. 'Cars' or 'Other: Coaches'. Undefined when no type is set.
- * Not escaped.
+ * 'Other'.
  */
-export function vehicleTypeName(item: VehicleParkingItem): string | undefined {
-	const vehicleType = toText(item.vehicleType);
-	if (!vehicleType) {
+export function vehicleTypeName(row: VehicleParkingRow): string | undefined {
+	if (!row.vehicleType) {
 		return undefined;
 	}
 
-	const categoryName = VEHICLE_PARKING_CATEGORY_MAP.get(vehicleType) ?? vehicleType;
+	const categoryName = VEHICLE_PARKING_CATEGORY_MAP.get(row.vehicleType) ?? row.vehicleType;
 	// Only for 'Other': text left over from before the type was changed isn't shown
-	const other = vehicleType === VEHICLE_PARKING_CATEGORY_ID.OTHER ? otherVehicleType(item) : undefined;
+	const other = row.vehicleType === VEHICLE_PARKING_CATEGORY_ID.OTHER ? row.otherVehicleType : undefined;
 
 	return other ? `${categoryName}: ${other}` : categoryName;
 }
 
 /** e.g. '4 existing spaces', '1 existing space'. Undefined when the number isn't set */
-function spacesLine(value: unknown, kind: 'existing' | 'proposed'): string | undefined {
-	const spaces = toText(value);
+function spacesLine(spaces: number | undefined, kind: 'existing' | 'proposed'): string | undefined {
 	if (spaces === undefined) {
 		return undefined;
 	}
 
-	return `${escapeHtml(spaces)} ${kind} ${spaces === '1' ? 'space' : 'spaces'}`;
+	return `${spaces} ${kind} ${spaces === 1 ? 'space' : 'spaces'}`;
 }
 
 /**
- * Describes an item on its 'Remove vehicle type' page, as in the design:
+ * Describes an entry on its 'Remove vehicle type' page, as in the design:
  * the vehicle type in bold, then its existing and proposed spaces.
- * Returns HTML, with every value escaped.
+ * Returns HTML, with the entered text escaped.
  */
-export function vehicleParkingRemovalSummary(item: VehicleParkingItem): string[] {
-	const name = vehicleTypeName(item);
+export function vehicleParkingRemovalSummary(row: VehicleParkingRow): string[] {
+	const name = vehicleTypeName(row);
 
 	return [
 		name ? `<strong>${escapeHtml(name)}</strong>` : undefined,
-		spacesLine(item.existingSpaces, 'existing'),
-		spacesLine(item.proposedSpaces, 'proposed')
+		spacesLine(row.existingSpaces, 'existing'),
+		spacesLine(row.proposedSpaces, 'proposed')
 	].filter((line): line is string => line !== undefined);
 }
