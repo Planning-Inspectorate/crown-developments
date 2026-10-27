@@ -53,6 +53,13 @@
 					classes: "govuk-button--secondary",
 					attributes: { "data-cy": "rename-folder-btn" }
 				}) }}
+
+                {{ govukButton({
+                    text: "Delete folder",
+                    href: currentPath + "/delete-folder",
+                    classes: "govuk-button--secondary",
+                    attributes: { "data-cy": "delete-folder-btn" }
+                }) }}
 			{% endif %}
 
             {% if subFolders|length !== 0 %}
