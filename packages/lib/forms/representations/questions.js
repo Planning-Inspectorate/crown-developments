@@ -362,6 +362,7 @@ export const getQuestions = ({
 			type: COMPONENT_TYPES.DATE,
 			title: 'What date was the representation received?',
 			question: 'Date the representation was received',
+			hint: 'For example, 27 3 2007',
 			fieldName: 'submittedDate',
 			url: 'representation-date',
 			validators: [new DateValidator('representation received date')]
