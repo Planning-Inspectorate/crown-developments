@@ -73,6 +73,7 @@ import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-nu
 import MultiConditionalNumericValidator from '@pins/crowndev-lib/forms/custom-components/multi-conditional-radio/multi-conditional-numeric-validator.ts';
 import UniqueListFieldValidator from '@pins/crowndev-lib/validators/unique-list-field-validator.ts';
 import { toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { vehicleParkingRemovalSummary, vehicleTypeName } from '../util/vehicle-parking.ts';
 import { escapeHtml, insertWbr } from '@pins/crowndev-lib/util/string.ts';
 import type { EntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import RequiredGroupValidator from '@pins/crowndev-lib/validators/required-group-validator.ts';
@@ -1409,7 +1410,9 @@ export function getQuestions(
 			question: 'Check vehicle parking details',
 			url: 'vehicle-parking',
 			fieldName: 'vehicleParking',
-			titleSingular: 'vehicle parking',
+			// Heads the 'Remove vehicle type' page, its button and prompt
+			titleSingular: 'vehicle type',
+			removalSummary: vehicleParkingRemovalSummary,
 			// The table only reads emptyListText from viewData
 			viewData: {
 				emptyListText: 'Add one or more vehicle parking details. No vehicle parking details have been added.'
@@ -1429,23 +1432,8 @@ export function getQuestions(
 					header: 'Type of vehicle',
 					fieldName: 'vehicleType',
 					format: (_rawValue: unknown, item: Record<string, unknown>) => {
-						const vehicleType = typeof item?.vehicleType === 'string' ? item.vehicleType : undefined;
-
-						const otherVehicleType = typeof item?.otherVehicleType === 'string' ? item.otherVehicleType.trim() : '';
-						const nestedOtherVehicleType =
-							typeof item?.vehicleType_otherVehicleType === 'string' ? item.vehicleType_otherVehicleType.trim() : '';
-
-						const usableOtherType = nestedOtherVehicleType || otherVehicleType;
-						const safeOtherType = escapeHtml(usableOtherType);
-
-						const categoryName =
-							(vehicleType ? VEHICLE_PARKING_CATEGORY_MAP.get(vehicleType) : undefined) ?? vehicleType;
-
-						if (!categoryName) return '-';
-
-						const displayedText = safeOtherType.length > 0 ? `${categoryName}: ${safeOtherType}` : categoryName;
-
-						return `<strong>${displayedText}</strong>`;
+						const name = vehicleTypeName(item);
+						return name ? `<strong>${escapeHtml(name)}</strong>` : '-';
 					}
 				},
 				{

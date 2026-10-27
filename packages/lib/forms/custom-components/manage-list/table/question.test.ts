@@ -271,6 +271,50 @@ describe('TableManageListQuestion', () => {
 		});
 	});
 
+	describe('renderConfirmationAction()', () => {
+		/** Renders the remove page, returning the view and the model it was given */
+		const renderRemovePage = (question: TableManageListQuestion, item: Record<string, string>) => {
+			let rendered: { view: string; model: Record<string, unknown> } | undefined;
+			const res = {
+				render: (view: string, model: Record<string, unknown>) => {
+					rendered = { view, model };
+				}
+			};
+			question.renderConfirmationAction(res as never, { id: 'uuid-1', ...item }, {
+				question: {}
+			} as unknown as QuestionViewModel);
+			assert.ok(rendered, 'nothing rendered');
+			return rendered;
+		};
+
+		it('should describe the item with removalSummary when set', () => {
+			const question = new TableManageListQuestion({
+				title: 'Test Table',
+				fieldName: 'testTable',
+				titleSingular: 'Item',
+				question: 'Check items',
+				removalSummary: (item: Record<string, unknown>) => [`<strong>${String(item.name)}</strong>`, 'second line']
+			} as never);
+
+			const { view, model } = renderRemovePage(question, { name: 'First' });
+
+			assert.strictEqual(view, 'custom-components/manage-list/table/confirm');
+			assert.deepStrictEqual(model.questionSummary, [{ answer: '<strong>First</strong>' }, { answer: 'second line' }]);
+		});
+
+		it("should describe the item with the sub-questions' summaries otherwise", () => {
+			tableQuestion.section!.questions.forEach((q) => {
+				q.shouldDisplay = () => true;
+				q.formatAnswerForSummary = () => [{ value: 'from sub-question' } as SummaryListItem];
+			});
+
+			const { model } = renderRemovePage(tableQuestion, {});
+
+			const answers = (model.questionSummary as { answer: string }[]).map((line) => line.answer);
+			assert.ok(answers.length > 0 && answers.every((answer) => answer === 'from sub-question'));
+		});
+	});
+
 	describe('formatAnswerForSummary()', () => {
 		it('should return notStartedText when answer is an empty array', () => {
 			const mockJourney = {

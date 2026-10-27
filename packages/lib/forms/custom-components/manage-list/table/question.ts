@@ -43,6 +43,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	addAnotherLinkText?: string;
 	removeWithoutConfirmation: boolean;
 	maximumAnswers?: number;
+	removalSummary?: (item: Record<string, unknown>) => string[];
 
 	constructor(params: TableManageListQuestionParameters & CommonQuestionParams) {
 		super(params);
@@ -57,6 +58,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 		this.addAnotherLinkText = params.addAnotherLinkText;
 		this.removeWithoutConfirmation = params.removeWithoutConfirmation ?? false;
 		this.maximumAnswers = params.maximumAnswers;
+		this.removalSummary = params.removalSummary;
 
 		this.viewFolder = 'custom-components/manage-list/table';
 	}
@@ -378,6 +380,24 @@ export default class TableManageListQuestion extends ManageListQuestion {
 	 */
 	protected buildMockResponse(answers: Record<string, unknown>): JourneyResponse {
 		return { answers } as unknown as JourneyResponse;
+	}
+
+	/**
+	 * Uses removalSummary, when set, to describe the item on the 'Remove'
+	 * confirmation page. Otherwise the parent lists the sub-questions' summaries.
+	 */
+	override renderConfirmationAction(
+		res: Parameters<ManageListQuestion['renderConfirmationAction']>[0],
+		itemToRemove: Parameters<ManageListQuestion['renderConfirmationAction']>[1],
+		viewModel: Parameters<ManageListQuestion['renderConfirmationAction']>[2]
+	): void {
+		if (!this.removalSummary) {
+			return super.renderConfirmationAction(res, itemToRemove, viewModel);
+		}
+
+		const summaryViewModel = viewModel as typeof viewModel & { questionSummary?: { answer: string }[] };
+		summaryViewModel.questionSummary = this.removalSummary(itemToRemove).map((answer) => ({ answer }));
+		res.render(`${this.viewFolder}/${this.confirmationQuestionParam}`, summaryViewModel);
 	}
 
 	/**
