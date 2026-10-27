@@ -4,6 +4,8 @@ import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { createFoldersViewModel } from './view-model.ts';
+import { BannerBuilder } from '@pins/crowndev-lib/views/banner/banner-builder.ts';
+import { popSessionData } from '@pins/crowndev-lib/util/session.ts';
 
 /**
  * Builds the list view for the top-level folders associated with this case.
@@ -54,13 +56,31 @@ export function buildViewCaseFolders(service: ManageService): AsyncRequestHandle
 		// Boolean used to show a link to a special "folder" at the top for published docs, hidden if none.
 		const hasAtLeastOnePublishedDocument = (caseRow?._count.Documents ?? 0) > 0;
 
+		const deletedFolderName = popSessionData(req, id, 'deleted', false, 'folder');
+
+		const banner = getBannerMessages(deletedFolderName);
+
 		return res.render('views/s62a/cases/view/folders/view.njk', {
 			pageHeading: caseRow?.reference,
 			backLinkUrl: `/s62a/cases/${id}/overview`,
 			backLinkText: 'Back to overview',
 			folders: foldersViewModel,
 			currentUrl: req.originalUrl,
-			hasAtLeastOnePublishedDocument
+			hasAtLeastOnePublishedDocument,
+			banner
 		});
 	};
+}
+
+/**
+ * Builds out the various banners we will need on the case details page
+ */
+function getBannerMessages(deletedFolderName?: string | false) {
+	const bannerBuilder = new BannerBuilder();
+
+	if (typeof deletedFolderName === 'string') {
+		bannerBuilder.addSuccessText(`${deletedFolderName} folder deleted`);
+	}
+
+	return bannerBuilder.build();
 }

@@ -98,6 +98,7 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 		const createdFolderName = popSessionData(req, id, 'createdFolderName', false, 'folder');
 		const filesMoved = popSessionData(req, folderId, 'filesMoved', false, 'folder');
 		const folderRenamed = popSessionData(req, folderId, 'renamed', false, 'folder');
+		const deletedFolderName = popSessionData(req, id, 'deleted', false, 'folder');
 
 		const banner = getBannerMessages(
 			filesDeleted,
@@ -107,7 +108,8 @@ export function buildViewCaseFolder(service: ManageService): AsyncRequestHandler
 			errorSummary,
 			createdFolderName,
 			filesMoved,
-			folderRenamed
+			folderRenamed,
+			deletedFolderName
 		);
 
 		const paginationParams = createPaginationParams(req, totalDocCount);
@@ -154,7 +156,8 @@ function getBannerMessages(
 	errorSummary?: { text: string }[] | boolean,
 	createdFolderName?: string | false,
 	filesMoved?: number | boolean,
-	folderRenamed?: boolean
+	folderRenamed?: boolean,
+	deletedFolderName?: string | false
 ) {
 	if (errorSummary) {
 		return null;
@@ -198,6 +201,10 @@ function getBannerMessages(
 
 	if (folderRenamed) {
 		bannerBuilder.addSuccessText('Folder renamed');
+	}
+
+	if (typeof deletedFolderName === 'string') {
+		bannerBuilder.addSuccessText(`${deletedFolderName} folder deleted`);
 	}
 
 	return bannerBuilder.build();

@@ -1,5 +1,6 @@
 {% extends "views/layouts/main.njk" %}
 {% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/notification-banner/macro.njk" import govukNotificationBanner %}
 
 {% set title = pageHeading + " - Manage S62A Case Folders" %}
 
@@ -8,6 +9,13 @@
 {% endblock %}
 
 {% block content %}
+	{% if banner %}
+		<div class="govuk-grid-row">
+			<div class="govuk-grid-column-two-thirds">
+				{{ govukNotificationBanner(banner) }}
+			</div>
+		</div>
+	{% endif %}
     <div class="govuk-grid-row">
         <div class="govuk-grid-column-full govuk-!-margin-bottom-3">
             <h1 class="govuk-heading-l" data-cy="page-heading">
