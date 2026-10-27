@@ -4,6 +4,11 @@ import { parseCookie } from 'cookie';
 export const COOKIE_NAME_ANALYTICS_ENABLED = 'CrownDevAnalyticsEnabled';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
+/** Exact-match cookie names belonging to GA4 and Clarity */
+const ANALYTICS_COOKIE_NAMES = ['_ga', '_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'];
+/** Cookie name prefixes belonging to GA4 and Clarity */
+const ANALYTICS_COOKIE_PREFIXES = ['_ga_'];
+
 /**
  * @param {import('#service').PortalService} service
  * @returns {import('express').Handler}
@@ -51,18 +56,23 @@ export function setAnalyticsCookiesPreference(req, res, enabled, secureSession, 
 }
 
 /**
- * Clears all analytics cookies on the response.
+ * Clears request cookies belonging to GA4 and Clarity at path "/" for the host and configured domain.
+ * Cookies on other domains or paths cannot be identified from the request Cookie header.
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  * @param {string} domain
  */
 export function removeAnalyticsCookies(req, res, domain) {
 	const cookies = parseCookies(req);
-	const gaCookieNames = Object.keys(cookies).filter((cookieName) => cookieName.startsWith('_ga'));
-	for (const cookieName of gaCookieNames) {
+	const analyticsCookieNames = Object.keys(cookies).filter(
+		(cookieName) =>
+			ANALYTICS_COOKIE_NAMES.includes(cookieName) ||
+			ANALYTICS_COOKIE_PREFIXES.some((prefix) => cookieName.startsWith(prefix))
+	);
+	for (const cookieName of analyticsCookieNames) {
 		res.clearCookie(cookieName, { path: '/' });
 		// GA cookies are set on ".domain"
-		res.clearCookie(cookieName, { domain: '.' + domain, path: '/' });
+		res.clearCookie(cookieName, { domain: domain.startsWith('.') ? domain : '.' + domain, path: '/' });
 	}
 }
 
