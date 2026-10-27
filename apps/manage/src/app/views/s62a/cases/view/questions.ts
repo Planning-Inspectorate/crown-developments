@@ -1405,7 +1405,7 @@ export function getQuestions(
 		},
 		vehicleParking: {
 			type: CUSTOM_COMPONENTS.DEFINED_COLUMNS_TABLE,
-			title: isQuestionView ? 'Check vehicle parking details' : 'Vehicle Parking',
+			title: isQuestionView ? 'Check vehicle parking details' : 'Vehicle parking',
 			question: 'Check vehicle parking details',
 			url: 'vehicle-parking',
 			fieldName: 'vehicleParking',
@@ -1473,14 +1473,14 @@ export function getQuestions(
 		},
 		vehicleParkingType: {
 			type: CUSTOM_COMPONENTS.MULTI_CONDITIONAL_RADIO,
-			title: 'Type of Vehicle',
+			title: 'Type of vehicle',
 			question: 'What is the type of vehicle for the proposed on-site parking spaces?',
 			fieldName: 'vehicleType',
 			url: 'vehicle-type',
 			boldSummaryValue: true,
 			conditionalTriggerValue: 'other',
 			conditionalDbFieldName: 'otherVehicleType',
-			summaryLabel: 'Vehicle Type',
+			summaryLabel: 'Vehicle type',
 			options: VEHICLE_PARKING_CATEGORIES.map((t) => ({
 				text: t.displayName,
 				value: t.id,
