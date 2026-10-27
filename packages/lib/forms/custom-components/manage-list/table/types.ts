@@ -45,6 +45,11 @@ export interface TableManageListQuestionParameters {
 	removeWithoutConfirmation?: boolean;
 	/** Hide the add button or link once there are this many items */
 	maximumAnswers?: number;
+	/**
+	 * Lines describing an item on its 'Remove' confirmation page, in place of
+	 * the sub-questions' summaries. Returned as HTML, so escape any user input.
+	 */
+	removalSummary?: (item: Record<string, unknown>) => string[];
 }
 
 export interface PreppedQuestion {
