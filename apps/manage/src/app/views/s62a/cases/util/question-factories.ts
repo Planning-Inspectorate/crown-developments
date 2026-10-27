@@ -115,6 +115,7 @@ export const multiContactQuestions = ({
 			question: `What are the ${title}'s contact details?`,
 			fieldName: `${prefix}ContactDetails`,
 			url: `${prefixUrl}-contact`,
+			viewData: { continueButtonText: 'Continue' },
 			inputFields: [
 				{
 					type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
