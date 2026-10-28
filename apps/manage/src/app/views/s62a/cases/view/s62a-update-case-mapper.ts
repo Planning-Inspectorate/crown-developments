@@ -86,7 +86,7 @@ export interface UpdateCaseAnswers {
 	applicationAcknowledgedDate?: Date | null;
 	furtherInformationRequestedDate?: Date | null;
 	agreedForAdditionalInformationDate?: Date | null;
-	applicationValidDate?: Date | null;
+	applicationValidDate?: Date;
 	validLettersSentDate?: Date | null;
 	lpaQuestionnaireSentDate?: Date | null;
 	lpaQuestionnaireReceivedDate?: Date | null;
