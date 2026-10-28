@@ -55,6 +55,13 @@ data "azurerm_private_dns_zone" "app_service" {
   provider = azurerm.tooling
 }
 
+data "azurerm_private_dns_zone" "service_bus" {
+  name                = "privatelink.servicebus.windows.net"
+  resource_group_name = var.tooling_config.network_rg
+
+  provider = azurerm.tooling
+}
+
 data "azurerm_private_dns_zone" "app_config" {
   name                = "privatelink.azconfig.io"
   resource_group_name = var.tooling_config.network_rg
