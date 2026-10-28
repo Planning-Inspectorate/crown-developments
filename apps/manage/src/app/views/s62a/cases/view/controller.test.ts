@@ -219,6 +219,70 @@ describe('S62A Controller Middleware', () => {
 			});
 		});
 
+		describe('appointed person/inspector options', () => {
+			const inspectors = [
+				{ id: 'tom', displayName: 'Tom Reeves' },
+				{ id: 'lisa', displayName: 'Lisa Knowles' },
+				{ id: 'sam', displayName: 'Sam Patel' }
+			];
+
+			/** Runs the middleware on a case team page, returning the inspector options offered */
+			async function inspectorOptions(
+				params: Record<string, string>,
+				sessionAnswers: Record<string, unknown> = {}
+			): Promise<string[]> {
+				mockService.getEntraClient = (() => ({
+					listAllGroupMembers: async (groupId: string) => (groupId === 's62a-inspectors-group' ? inspectors : [])
+				})) as unknown as ManageService['getEntraClient'];
+				mockService.entraGroupIds = {
+					...mockService.entraGroupIds,
+					s62aInspectors: 's62a-inspectors-group'
+				} as ManageService['entraGroupIds'];
+
+				const handler = buildGetJourneyMiddleware(mockService, true);
+				const req = {
+					params: {
+						id: 'case-123',
+						tab: 'case-team',
+						section: 'case-team',
+						question: 'check-case-team-inspectors',
+						...params
+					},
+					baseUrl: '/s62a/cases/case-123/case-team',
+					session: {}
+				} as unknown as Request;
+				const res = { locals: { journeyResponse: { answers: sessionAnswers } } } as unknown as Response;
+
+				await handler(req, res, () => {});
+
+				const question = findQuestion(res.locals.journey as Journey, 'case-team', 'inspectorId');
+				return (question.options ?? []).map((option) => option.value).filter(Boolean);
+			}
+
+			const caseTeam = {
+				manageCaseTeamInspectors: [
+					{ id: 'entry-1', inspectorId: 'tom' },
+					{ id: 'entry-2', inspectorId: 'lisa' }
+				]
+			};
+
+			it('does not offer inspectors already on the case when adding one', async () => {
+				const params = { manageListAction: 'add', manageListItemId: 'new-entry', manageListQuestion: 'inspector' };
+
+				assert.deepStrictEqual(await inspectorOptions(params, caseTeam), ['sam']);
+			});
+
+			it("still offers the entry's own inspector when changing it", async () => {
+				const params = { manageListAction: 'edit', manageListItemId: 'entry-1', manageListQuestion: 'inspector' };
+
+				assert.deepStrictEqual(await inspectorOptions(params, caseTeam), ['tom', 'sam']);
+			});
+
+			it('offers every inspector on the check page, which names them all', async () => {
+				assert.deepStrictEqual(await inspectorOptions({}, caseTeam), ['tom', 'lisa', 'sam']);
+			});
+		});
+
 		it('passes session housing to getQuestions for the existing side too', async () => {
 			const handler = buildGetJourneyMiddleware(mockService, true);
 
