@@ -36,13 +36,14 @@ variable "apps_config" {
     })
 
     feature_flags = object({
-      portal_not_live      = bool
-      s62a_portal_not_live = bool
-      s62a_manage_not_live = bool
-      case_notes_not_live  = bool
-      audit_not_live       = bool
-      upload_docs_not_live = bool
-      retry_not_live       = bool
+      portal_not_live                = bool
+      s62a_portal_not_live           = bool
+      s62a_manage_not_live           = bool
+      s62a_notify_call_back_not_live = bool
+      case_notes_not_live            = bool
+      audit_not_live                 = bool
+      upload_docs_not_live           = bool
+      retry_not_live                 = bool
     })
 
     dynamic_cache_control = object({
@@ -74,6 +75,13 @@ variable "apps_config" {
         app_rec_without_fee_template_id = string
         app_not_nat_imp_template_id     = string
         lpa_quest_sent_template_id      = string
+      })
+    })
+
+    s62a_gov_notify = object({
+      disabled = bool
+      templates = object({
+        test_template_id = string
       })
     })
 

@@ -70,8 +70,12 @@ export function loadConfig() {
 		GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID,
 		GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
 		GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID,
+		S62A_GOV_NOTIFY_DISABLED,
+		S62A_GOV_NOTIFY_API_KEY,
+		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
 		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
+		FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE,
 		FEATURE_FLAG_CASE_NOTES_NOT_LIVE,
 		FEATURE_FLAG_AUDIT_NOT_LIVE,
 		FEATURE_FLAG_RETRY_NOT_LIVE,
@@ -142,6 +146,18 @@ export function loadConfig() {
 			GOV_NOTIFY_APP_REC_WITHOUT_FEE_TEMPLATE_ID,
 			GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID,
 			GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID
+		};
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
+	const s62aGovNotifyDisabled = S62A_GOV_NOTIFY_DISABLED === 'true';
+	if (!s62aGovNotifyDisabled) {
+		const props = {
+			S62A_GOV_NOTIFY_API_KEY
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -229,7 +245,8 @@ export function loadConfig() {
 			isS62APortalLive: FEATURE_FLAG_S62A_PORTAL_NOT_LIVE !== 'true',
 			isCaseNotesLive: FEATURE_FLAG_CASE_NOTES_NOT_LIVE !== 'true',
 			isAuditLive: FEATURE_FLAG_AUDIT_NOT_LIVE !== 'true',
-			isRetryLive
+			isRetryLive,
+			isS62aNotifyCallBackEnabled: FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE !== 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use
@@ -268,6 +285,17 @@ export function loadConfig() {
 			},
 			retryConfig: {
 				enabled: isRetryLive
+			}
+		},
+		s62aGovNotify: {
+			disabled: s62aGovNotifyDisabled,
+			apiKey: S62A_GOV_NOTIFY_API_KEY,
+			webHookToken: GOV_NOTIFY_WEBHOOK_TOKEN, // Note: same as Crown
+			templateIds: {
+				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+			},
+			retryConfig: {
+				enabled: isRetryLive // Note: same as Crown
 			}
 		}
 	};
