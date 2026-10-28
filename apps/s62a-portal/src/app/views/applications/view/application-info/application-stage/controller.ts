@@ -9,7 +9,10 @@ import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 
 export type PublishedS62aApplication = Prisma.S62aCaseGetPayload<{
 	select: { stageId: true; procedureId: true; decisionOutcomeId: true };
-}>;
+}> & {
+	/** Optional because the fetch's return type doesn't carry its include, though the page always loads it */
+	S62aDates?: { decisionDate: Date | null } | null;
+};
 
 /**
  * Builds the application stages for an S62A application, resolving the current stage and any mismatches between the stageId and procedureId.
@@ -18,7 +21,8 @@ export function buildApplicationStages(applicationDetails: PublishedS62aApplicat
 	const stages = resolveS62AStages(applicationDetails);
 	const applicationStages = new ApplicationStageFactory(stages, {
 		stageId: getStageId(applicationDetails, stages),
-		decisionOutcomeId: applicationDetails.decisionOutcomeId
+		decisionOutcomeId: applicationDetails.decisionOutcomeId,
+		decisionDate: applicationDetails.S62aDates?.decisionDate
 	});
 	return applicationStages;
 }
