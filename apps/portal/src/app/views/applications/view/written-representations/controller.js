@@ -8,7 +8,7 @@ import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/s
 import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
 import { getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { hasQueries, mapWithAndWithoutToBoolean } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
-import { buildFilters } from './filters/filters.ts';
+import { buildCrownFilters } from './filters/filters.ts';
 import { getFiltersAndErrors } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
@@ -54,7 +54,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			errorSummary,
 			dateErrors,
 			isMobileFilterOpen
-		} = await getFiltersAndErrors({ db, logger }, id, req.query, buildFilters);
+		} = await getFiltersAndErrors({ db, logger }, id, req.query, buildCrownFilters);
 
 		const filters = builtFilters ?? [];
 		const filterSubmittedBy = req.query?.filterSubmittedBy ? [].concat(req.query.filterSubmittedBy) : [];

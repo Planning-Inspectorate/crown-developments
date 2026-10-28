@@ -8,7 +8,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { createWhereClause, normaliseSearchQuery, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { sanitiseQueryToStringArray, toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
-import { buildFilters } from './filters/filters.ts';
+import { buildS62AFilters } from './filters/filters.ts';
 import {
 	getFiltersAndErrors,
 	hasQueries,
@@ -72,12 +72,9 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 		const queryFilters = toQueryFilters(req.query);
 		const searchValue = normaliseSearchQuery(req.query?.searchCriteria) ?? '';
 		const hasSearch = searchValue.length > 0;
-		const { filters, filterQueryItems, errorSummary, dateErrors, isMobileFilterOpen } = await getFiltersAndErrors(
-			service,
-			id,
-			req.query,
-			buildFilters
-		);
+		const { filters, filterQueryItems, errorSummary, dateErrors, isMobileFilterOpen } = representationsArePublished
+			? await getFiltersAndErrors(service, id, req.query, buildS62AFilters)
+			: { filters: [], filterQueryItems: [], errorSummary: null, dateErrors: [], isMobileFilterOpen: false };
 
 		const notWithheld = { OR: [{ withholdName: false }, { withholdName: null }] };
 		const searchCriteria = createWhereClause(splitStringQueries(searchValue), [

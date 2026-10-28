@@ -1,18 +1,24 @@
 import { REPRESENTATION_CATEGORY_ID, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import { buildDateFilterSection, sanitiseQueryToStringArray } from '@pins/crowndev-lib/filters/filter-utils.ts';
+import type { FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';
+import { buildFilters } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
-import type { CheckboxFilter, FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';
 
-export async function buildFilters(
+export async function buildS62AFilters(
 	{ db, logger }: Pick<Service, 'db' | 'logger'>,
 	id: string,
 	queryFilters: QueryFilters
 ): Promise<FilterSection[]> {
 	const interestedParties = REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES;
 	const consultees = REPRESENTATION_CATEGORY_ID.CONSULTEES;
+
+	let interestedPartyCount = 0;
+	let consulteeCount = 0;
+	let withAttachmentsCount = 0;
+	let withoutAttachmentsCount = 0;
+
 	try {
-		const [interestedPartyCount, consulteeCount, withAttachmentsCount, withoutAttachmentsCount] = await Promise.all([
+		[interestedPartyCount, consulteeCount, withAttachmentsCount, withoutAttachmentsCount] = await Promise.all([
 			db.s62aRepresentation.count({
 				where: { categoryId: interestedParties, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
 			}),
@@ -26,72 +32,6 @@ export async function buildFilters(
 				where: { containsAttachments: false, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
 			})
 		]);
-
-		const normalizeToArray = (value: unknown): string[] =>
-			[value].flat(1).filter((v): v is string => typeof v === 'string' && true);
-
-		const submittedByArray = normalizeToArray(queryFilters?.filterSubmittedBy);
-		const attachmentsArray = normalizeToArray(queryFilters?.filterByAttachments);
-
-		const submittedBySection: CheckboxFilter = {
-			title: 'Submitted by',
-			type: 'checkboxes',
-			name: 'filterSubmittedBy',
-			options: {
-				items: [
-					{
-						displayName: 'Interested Party',
-						text: `Interested party (${interestedPartyCount})`,
-						value: interestedParties,
-						checked: sanitiseQueryToStringArray(queryFilters?.filterSubmittedBy).includes(interestedParties) || false
-					},
-					{
-						displayName: 'Consultee',
-						text: `Consultee (${consulteeCount})`,
-						value: consultees,
-						checked: sanitiseQueryToStringArray(queryFilters?.filterSubmittedBy).includes(consultees) || false
-					}
-				]
-			},
-			open: submittedByArray.some(Boolean)
-		};
-
-		const attachmentsSection: CheckboxFilter = {
-			title: 'Contains attachments',
-			name: 'filterByAttachments',
-			type: 'checkboxes',
-			options: {
-				items: [
-					{
-						displayName: 'Yes',
-						text: `Yes (${withAttachmentsCount})`,
-						value: 'withAttachments',
-						checked: sanitiseQueryToStringArray(queryFilters?.filterByAttachments).includes('withAttachments') || false
-					},
-					{
-						displayName: 'No',
-						text: `No (${withoutAttachmentsCount})`,
-						value: 'withoutAttachments',
-						checked:
-							sanitiseQueryToStringArray(queryFilters?.filterByAttachments).includes('withoutAttachments') || false
-					}
-				]
-			},
-			open: attachmentsArray.some(Boolean)
-		};
-
-		queryFilters = queryFilters || {};
-
-		const dateSubmissionsSection = buildDateFilterSection({
-			title: 'Date submitted',
-			name: 'submittedDate',
-			fromPrefix: 'submittedDateFrom',
-			toPrefix: 'submittedDateTo',
-			queryFilters,
-			hintText: 'For example, 5 7 2022'
-		});
-
-		return [submittedBySection, attachmentsSection, dateSubmissionsSection];
 	} catch (error) {
 		wrapPrismaError({
 			error,
@@ -99,6 +39,13 @@ export async function buildFilters(
 			message: 'fetching written representations',
 			logParams: { id }
 		});
-		return [];
 	}
+
+	return buildFilters(
+		queryFilters,
+		interestedPartyCount,
+		consulteeCount,
+		withAttachmentsCount,
+		withoutAttachmentsCount
+	);
 }
