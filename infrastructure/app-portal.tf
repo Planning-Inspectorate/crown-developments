@@ -113,6 +113,10 @@ module "app_portal" {
     # Analytics
     GOOGLE_ANALYTICS_ID  = var.apps_config.google_analytics_id
     MICROSOFT_CLARITY_ID = var.apps_config.microsoft_clarity_id
+
+    # ODW Service Bus
+    ODW_SERVICE_BUS_DISABLED = var.odw_config.disabled
+    ODW_SERVICE_BUS_ENDPOINT = var.odw_config.disabled ? "" : "${var.odw_config.service_bus_name}.servicebus.windows.net"
   }
 
   providers = {

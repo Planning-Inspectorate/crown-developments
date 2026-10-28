@@ -103,6 +103,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "keyvault" {
   provider = azurerm.tooling
 }
 
+resource "azurerm_private_dns_zone_virtual_network_link" "service_bus" {
+  name                = "${local.org}-vnetlink-service-bus-${local.resource_suffix}"
+  private_dns_zone_id = data.azurerm_private_dns_zone.service_bus.id
+  virtual_network_id  = azurerm_virtual_network.main.id
+
+  provider = azurerm.tooling
+}
+
 resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   name                = "${local.org}-vnetlink-storage-${local.resource_suffix}"
   private_dns_zone_id = data.azurerm_private_dns_zone.storage.id
