@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildFilters } from './filters.ts';
+import { buildS62AFilters } from './filters.ts';
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { mockLogger } from '@planning-inspectorate/core/testing';
@@ -27,7 +27,7 @@ function createMockDb(counts) {
 }
 
 describe('S62A FO Filters', () => {
-	describe('buildFilters', () => {
+	describe('buildS62AFilters', () => {
 		let logger;
 		beforeEach(() => {
 			logger = mockLogger();
@@ -40,7 +40,7 @@ describe('S62A FO Filters', () => {
 				withAttachmentsCount: 7,
 				withoutAttachmentsCount: 11
 			});
-			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', {});
+			const sections = await buildS62AFilters({ db: mockDb, logger }, 'app-123', {});
 			assert.ok(Array.isArray(sections));
 			assert.strictEqual(sections.length, 3);
 
@@ -74,7 +74,7 @@ describe('S62A FO Filters', () => {
 				filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES, REPRESENTATION_CATEGORY_ID.CONSULTEES],
 				filterByAttachments: ['withAttachments']
 			};
-			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', queryFilters);
+			const sections = await buildS62AFilters({ db: mockDb, logger }, 'app-123', queryFilters);
 			const submittedByItems = sections[0].options.items;
 			assert.strictEqual(submittedByItems[0].checked, true);
 			assert.strictEqual(submittedByItems[1].checked, true);
@@ -94,13 +94,13 @@ describe('S62A FO Filters', () => {
 			const queryFilters = {
 				filterByAttachments: ['withAttachments', 'withoutAttachments']
 			};
-			const sections = await buildFilters({ db: mockDb, logger }, 'app-123', queryFilters);
+			const sections = await buildS62AFilters({ db: mockDb, logger }, 'app-123', queryFilters);
 			const attachmentsItems = sections[1].options.items;
 			assert.strictEqual(attachmentsItems[0].checked, true);
 			assert.strictEqual(attachmentsItems[1].checked, true);
 		});
 
-		it('should return undefined on error and does not throw', async () => {
+		it('should throw a wrapped error when the count query fails', async () => {
 			const mockDb = {
 				s62aRepresentation: {
 					count: mock.fn(() => {
@@ -108,13 +108,13 @@ describe('S62A FO Filters', () => {
 					})
 				}
 			};
-			await assert.rejects(() => buildFilters({ db: mockDb, logger }, 'app-123', {}), {
+			await assert.rejects(() => buildS62AFilters({ db: mockDb, logger }, 'app-123', {}), {
 				message: 'Error fetching written representations (PrismaClientValidationError)'
 			});
 		});
 	});
 
-	describe('buildFilters open property', () => {
+	describe('buildS62AFilters open property', () => {
 		const mockDb = createMockDb({
 			interestedPartyCount: 1,
 			consulteeCount: 2,
@@ -138,13 +138,13 @@ describe('S62A FO Filters', () => {
 
 		cases.forEach(([desc, query, idx, expected]) => {
 			it(`open is ${expected} for ${desc}`, async () => {
-				const filters = await buildFilters({ db: mockDb, logger }, appId, query);
+				const filters = await buildS62AFilters({ db: mockDb, logger }, appId, query);
 				assert.strictEqual(filters[idx].open, expected);
 			});
 		});
 
 		it('open is true for all filters when all are set', async () => {
-			const filters = await buildFilters({ db: mockDb, logger }, appId, {
+			const filters = await buildS62AFilters({ db: mockDb, logger }, appId, {
 				filterSubmittedBy: [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES],
 				filterByAttachments: ['withAttachments'],
 				'submittedDateFrom-day': '1',
