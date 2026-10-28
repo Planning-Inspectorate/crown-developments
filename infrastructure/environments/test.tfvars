@@ -116,6 +116,15 @@ monitoring_config = {
   log_daily_cap                        = 0.2
 }
 
+odw_config = {
+  disabled                    = false
+  network_resource_group_name = "pins-rg-network-odw-test-uks"
+  network_name                = "vnet-odw-test-uks"
+  subscription_id             = "6b18ba9d-2399-48b5-a834-e0f267be122d"
+  resource_group_name         = "pins-rg-ingestion-odw-test-uks"
+  service_bus_name            = "pins-sb-odw-test-uks-hk2zun"
+}
+
 sql_config = {
   admin = {
     login_username = "pins-crown-sql-test"
