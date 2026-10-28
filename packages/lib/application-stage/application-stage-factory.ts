@@ -14,6 +14,7 @@ export interface StageItem extends StageBase {
 export interface ApplicationStageInput {
 	stageId: string | null;
 	decisionOutcomeId?: string | null;
+	decisionDate?: Date | null;
 }
 
 export class ApplicationStageFactory {
@@ -34,7 +35,8 @@ export class ApplicationStageFactory {
 	private build(stageItems: StageItem[], input: ApplicationStageInput): ApplicationStageEntity[] {
 		const visible = stageItems.filter((s) => s.shouldDisplay !== false);
 		const currentIndex = visible.findIndex((s) => s.stageId === input.stageId);
-		const hasOutcome = Boolean(input.decisionOutcomeId);
+		// A decision needs both an outcome and a date; with only one, the stage field decides
+		const isDecided = Boolean(input.decisionOutcomeId) && Boolean(input.decisionDate);
 
 		return visible.map(
 			(stage, index) =>
@@ -42,8 +44,8 @@ export class ApplicationStageFactory {
 					stageId: stage.stageId,
 					stageDisplayName: stage.stageDisplayName,
 					detailsTemplate: stage.detailsTemplate,
-					status: this.statusFor(stage, index, currentIndex, hasOutcome),
-					isCurrentStage: (index === currentIndex && !hasOutcome) || (index === visible.length - 1 && hasOutcome)
+					status: this.statusFor(stage, index, currentIndex, isDecided),
+					isCurrentStage: (index === currentIndex && !isDecided) || (index === visible.length - 1 && isDecided)
 				})
 		);
 	}
@@ -52,13 +54,13 @@ export class ApplicationStageFactory {
 		stage: StageItem,
 		index: number,
 		currentIndex: number,
-		hasOutcome: boolean
+		isDecided: boolean
 	): StageStatus | undefined {
 		if (stage.statusOverride !== undefined) return stage.statusOverride;
-		// Informational stages never show a status tag — not even once a decision outcome exists.
+		// Informational stages never show a status tag — not even once a decision is made.
 		if (stage.hasStatus === false) return undefined;
-		if (index < currentIndex || hasOutcome) return STAGE_STATUS.COMPLETED;
-		if (index === currentIndex && !hasOutcome) return STAGE_STATUS.IN_PROGRESS;
+		if (index < currentIndex || isDecided) return STAGE_STATUS.COMPLETED;
+		if (index === currentIndex && !isDecided) return STAGE_STATUS.IN_PROGRESS;
 		return STAGE_STATUS.NOT_STARTED;
 	}
 }

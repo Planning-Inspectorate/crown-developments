@@ -22,9 +22,28 @@ describe('ApplicationStageFactory', () => {
 		assert.strictEqual(factory.getCurrentStage()?.stageId, 'stage-2');
 	});
 
-	it('should mark the last stage as current if there is a decision outcome and all previous as completed', () => {
-		const factory = new ApplicationStageFactory(baseStageItems, { stageId: 'stage-2', decisionOutcomeId: 'outcome-1' });
+	it('should mark the last stage as current if there is a decision outcome and date and all previous as completed', () => {
+		const factory = new ApplicationStageFactory(baseStageItems, {
+			stageId: 'stage-2',
+			decisionOutcomeId: 'outcome-1',
+			decisionDate: new Date('2026-10-01')
+		});
 		assert.strictEqual(factory.getCurrentStage()?.stageId, 'stage-3');
+	});
+
+	it('should follow the stage if there is a decision outcome but no decision date', () => {
+		const factory = new ApplicationStageFactory(baseStageItems, { stageId: 'stage-2', decisionOutcomeId: 'outcome-1' });
+		assert.strictEqual(factory.getCurrentStage()?.stageId, 'stage-2');
+		assert.strictEqual(factory.stages[2].status, STAGE_STATUS.NOT_STARTED);
+	});
+
+	it('should follow the stage if there is a decision date but no decision outcome', () => {
+		const factory = new ApplicationStageFactory(baseStageItems, {
+			stageId: 'stage-2',
+			decisionDate: new Date('2026-10-01')
+		});
+		assert.strictEqual(factory.getCurrentStage()?.stageId, 'stage-2');
+		assert.strictEqual(factory.stages[2].status, STAGE_STATUS.NOT_STARTED);
 	});
 
 	it('should filter out stages with shouldDisplay set to false', () => {
@@ -72,7 +91,7 @@ describe('ApplicationStageFactory', () => {
 		assert.strictEqual(factory.getCurrentStage(), undefined);
 	});
 
-	it('should keep informational stages (hasStatus:false) status-less even with a decision outcome', () => {
+	it('should keep informational stages (hasStatus:false) status-less even once decided', () => {
 		const items: StageItem[] = [
 			{ ...baseStageItems[0], hasStatus: false }, // informational stage
 			baseStageItems[1],
@@ -80,11 +99,12 @@ describe('ApplicationStageFactory', () => {
 		];
 		const { stages } = new ApplicationStageFactory(items, {
 			stageId: 'stage-1',
-			decisionOutcomeId: 'outcome-1'
+			decisionOutcomeId: 'outcome-1',
+			decisionDate: new Date('2026-10-01')
 		});
 
 		assert.strictEqual(stages[0].status, undefined); // informational → no tag
-		assert.strictEqual(stages[1].status, STAGE_STATUS.COMPLETED); // outcome completes the rest
+		assert.strictEqual(stages[1].status, STAGE_STATUS.COMPLETED); // a decision completes the rest
 		assert.strictEqual(stages[2].status, STAGE_STATUS.COMPLETED);
 	});
 });

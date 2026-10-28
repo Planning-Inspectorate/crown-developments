@@ -30,17 +30,46 @@ describe('buildApplicationStages', () => {
 		assert.strictEqual(applicationStages.getCurrentStage()?.stageId, 'validation');
 	});
 
-	it('should resolve the current stage to the last stage if there is a decision outcome', () => {
+	it('should resolve the current stage to post-decision if there is a decision outcome and date', () => {
 		const applicationDetails = {
 			applicationId: 'app-1',
-			stageId: S62A_STAGE_ID.VALIDATION,
+			stageId: S62A_STAGE_ID.DECISION,
 			procedureId: null,
-			decisionOutcomeId: 'outcome-1'
+			decisionOutcomeId: 'outcome-1',
+			S62aDates: { decisionDate: new Date('2026-10-01') }
 		} as unknown as PublishedS62aApplication;
 
 		const applicationStages = buildApplicationStages(applicationDetails);
 
 		assert.strictEqual(applicationStages.getCurrentStage()?.stageId, 'post-decision');
+	});
+
+	it('should resolve the current stage from the stage if there is a decision outcome but no decision date', () => {
+		const applicationDetails = {
+			applicationId: 'app-1',
+			stageId: S62A_STAGE_ID.DECISION,
+			procedureId: null,
+			decisionOutcomeId: 'outcome-1',
+			S62aDates: { decisionDate: null }
+		} as unknown as PublishedS62aApplication;
+
+		const applicationStages = buildApplicationStages(applicationDetails);
+
+		assert.strictEqual(applicationStages.getCurrentStage()?.stageId, S62A_STAGE_ID.DECISION);
+	});
+
+	it('should resolve the current stage from the stage if there is a decision date but no decision outcome', () => {
+		const applicationDetails = {
+			applicationId: 'app-1',
+			stageId: S62A_STAGE_ID.DECISION,
+			procedureId: null,
+			decisionOutcomeId: null,
+			S62aDates: { decisionDate: new Date('2026-10-01') }
+		} as unknown as PublishedS62aApplication;
+
+		const applicationStages = buildApplicationStages(applicationDetails);
+
+		assert.strictEqual(applicationStages.getCurrentStage()?.stageId, S62A_STAGE_ID.DECISION);
 	});
 
 	it('should handle mismatches between stageId and procedureId by setting current stage to procedure-decision', () => {
