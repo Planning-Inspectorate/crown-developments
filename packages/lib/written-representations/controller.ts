@@ -56,7 +56,8 @@ export function buildWrittenRepresentationsPage(
 			representationPublishDate,
 			displayApplicationUpdates,
 			applicationStatus,
-			tabText
+			tabText,
+			repsTabAlwaysVisible
 		);
 
 		const reference = caseFields.reference;
