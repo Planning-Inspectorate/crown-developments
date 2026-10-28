@@ -51,6 +51,7 @@ import {
 import { UniqueMultipleListFieldValidator } from '@pins/crowndev-lib/validators/unique-multiple-list-field-validator.ts';
 import { ConditionalLengthValidator } from '@pins/crowndev-lib/validators/conditional-length-validator.ts';
 import {
+	type CaseTeamInspectorItem,
 	type NonResidentialFloorspaceItem,
 	type ResidentialHousingItem,
 	type S62aCaseViewModel
@@ -60,6 +61,7 @@ import { SEPARATOR_TYPE } from '@pins/crowndev-lib/forms/custom-components/custo
 import MultiFieldInputValidator from '@pins/crowndev-lib/validators/multi-field-input-validator.js';
 import { CASE_DETAILS_QUESTION_TEXT } from './constants.ts';
 import { getApplicantContactsValidator, isApplicationType } from '../util/questions.ts';
+import { inspectorsToOffer } from '../util/case-team-inspectors.ts';
 import { getLpaOptions, referenceDataToRadioOptions } from '@pins/crowndev-lib/util/questions.ts';
 import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date-period-validator.js';
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
@@ -98,6 +100,11 @@ interface QuestionOverrides {
 	preApplicationCaseOptions?: PreApplicationCaseOption[];
 	/** Applicant organisation pre-selected on a new applicant contact, from the contact prompt banner's link */
 	preselectedApplicantOrganisationId?: string;
+	/**
+	 * Passed separately for the same reason as the housing entries, so an
+	 * inspector added this session isn't offered again before Save.
+	 */
+	caseTeamInspectors?: CaseTeamInspectorItem[];
 }
 
 type ApplicantOrg = {
@@ -116,7 +123,8 @@ export function getQuestions(
 		existingHousing,
 		residentialTotals,
 		preApplicationCaseOptions,
-		preselectedApplicantOrganisationId
+		preselectedApplicantOrganisationId,
+		caseTeamInspectors
 	}: QuestionOverrides
 ) {
 	const isLbcCase = answers?.typeId === APPLICATION_TYPE_ID.PLANNING_AND_LISTED_BUILDING_CONSENT;
@@ -1592,8 +1600,20 @@ export function getQuestions(
 			question: 'Which appointed person/inspector is assigned to this case?',
 			fieldName: 'inspectorId',
 			url: 'inspector',
-			validators: [new RequiredValidator('Select an inspector')],
-			options: referenceDataToRadioOptions(groupMembers.s62aInspectors, true)
+			validators: [
+				new RequiredValidator('Select an inspector'),
+				new UniqueListFieldValidator({
+					listFieldName: 'manageCaseTeamInspectors',
+					displayNameFor: (id) =>
+						groupMembers.s62aInspectors.find((inspector) => inspector.id === id)?.displayName ?? 'this inspector',
+					buildErrorMessage: (name) =>
+						`${name} is already assigned to this case. Select a different appointed person/inspector`
+				})
+			],
+			options: referenceDataToRadioOptions(
+				inspectorsToOffer(groupMembers.s62aInspectors, caseTeamInspectors, manageListItemId),
+				true
+			)
 		},
 		inspectorAssignedDate: {
 			type: COMPONENT_TYPES.DATE,

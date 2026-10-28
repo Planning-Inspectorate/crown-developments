@@ -170,7 +170,8 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 			nonResidentialFloorspace: finalAnswers.manageNonResidentialFloorspace,
 			residentialTotals,
 			preApplicationCaseOptions,
-			preselectedApplicantOrganisationId: getPreselectedApplicantOrganisation(req)
+			preselectedApplicantOrganisationId: getPreselectedApplicantOrganisation(req),
+			caseTeamInspectors: finalAnswers.manageCaseTeamInspectors
 		});
 
 		type QuestionBase = { fieldName?: string; title?: string };
