@@ -141,4 +141,78 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.strictEqual(payload.representations.length, 1);
 		assert.ok(payload.links.some((link: { href: string }) => link.href.endsWith('/written-representations')));
 	});
+
+	it('should exclude withheld names from search matches and show withheld representations as Interested Party', async (context) => {
+		const mockDbCase = {
+			id: validUuid,
+			reference: 'S62A/2026/0001',
+			representationsPublishDate: new Date('2026-01-01'),
+			S62aDates: {
+				withdrawnDate: null
+			}
+		};
+		const dbMock = {
+			s62aCase: {
+				findUnique: context.mock.fn(async () => mockDbCase)
+			},
+			s62aRepresentation: {
+				findMany: context.mock.fn(async () => [
+					{
+						reference: 'REP-001',
+						submittedDate: new Date('2026-01-02'),
+						comment: 'A representation',
+						commentRedacted: null,
+						submittedByAgentOrgName: null,
+						submittedForId: REPRESENTATION_SUBMITTED_FOR_ID.ON_BEHALF_OF,
+						representedTypeId: REPRESENTED_TYPE_ID.GROUP,
+						representedGroupName: null,
+						withholdName: true,
+						containsAttachments: false,
+						distressingContentInRepresentation: false,
+						SubmittedFor: { displayName: 'Myself' },
+						SubmittedByContact: { firstName: 'Alex', lastName: 'Agent' },
+						RepresentedContacts: [
+							{ firstName: 'Group', lastName: 'One' },
+							{ firstName: 'Group', lastName: 'Two' }
+						],
+						Category: null,
+						Attachments: []
+					}
+				]),
+				count: context.mock.fn(async () => 1)
+			}
+		};
+		const service = { db: dbMock, logger: { error: context.mock.fn() } } as unknown as S62APortalService;
+		const req = {
+			params: { applicationId: validUuid },
+			query: { searchCriteria: 'Alex' },
+			originalUrl: `/applications/${validUuid}/written-representations`
+		} as any;
+		const res = {
+			status: context.mock.fn(() => res),
+			render: context.mock.fn(),
+			send: context.mock.fn()
+		} as any;
+
+		await buildS62AWrittenRepresentationsPage(service)(req, res, context.mock.fn() as any);
+
+		const findManyWhere = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
+		const countWhere = dbMock.s62aRepresentation.count.mock.calls[0].arguments[0].where;
+		const searchMatches = findManyWhere.AND[0].OR;
+		const notWithheld = { OR: [{ withholdName: false }, { withholdName: null }] };
+
+		const [, payload] = res.render.mock.calls[0].arguments;
+
+		assert.strictEqual(searchMatches.length, 7);
+		for (const match of searchMatches.slice(0, 5)) {
+			assert.deepStrictEqual(match.AND[1], notWithheld);
+		}
+		assert.deepStrictEqual(searchMatches[5], { commentRedacted: { contains: 'Alex' } });
+		assert.deepStrictEqual(searchMatches[6], {
+			AND: [{ comment: { contains: 'Alex' } }, { commentRedacted: { equals: null } }]
+		});
+		assert.deepStrictEqual(countWhere.AND, findManyWhere.AND);
+		assert.strictEqual(payload.representations.length, 1);
+		assert.strictEqual(payload.representations[0].representationTitle, 'Interested Party');
+	});
 });

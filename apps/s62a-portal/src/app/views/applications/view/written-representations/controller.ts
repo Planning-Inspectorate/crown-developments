@@ -57,9 +57,15 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 		const representationsArePublished = publishDate !== null && isNowAfterStartDate(publishDate);
 		const searchValue = normaliseSearchQuery(req.query?.searchCriteria) ?? '';
 		const hasSearch = searchValue.length > 0;
+		const notWithheld = { OR: [{ withholdName: false }, { withholdName: null }] };
 		const searchCriteria = createWhereClause(splitStringQueries(searchValue), [
-			{ parent: 'RepresentedContacts', parentIsList: true, fields: ['firstName', 'lastName', 'orgName'] },
-			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'] },
+			{
+				parent: 'RepresentedContacts',
+				parentIsList: true,
+				fields: ['firstName', 'lastName', 'orgName'],
+				constraints: [notWithheld]
+			},
+			{ parent: 'SubmittedByContact', fields: ['firstName', 'lastName'], constraints: [notWithheld] },
 			{ fields: ['commentRedacted'] },
 			{ fields: ['comment'], constraints: [{ commentRedacted: { equals: null } }] }
 		]);
