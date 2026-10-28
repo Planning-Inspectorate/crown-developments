@@ -140,6 +140,12 @@ describe('ManageApplicantsQuestion', () => {
 			assert.strictEqual(viewModel?.question.hideRemoveButton, true);
 		});
 
+		it('should show the remove button for only one answer if the list is allowed to be empty', (context) => {
+			const { question, journey } = questionWithManageQuestions(context, { isAllowedEmpty: true }, 1);
+			const viewModel = question.prepQuestionForRendering({}, journey);
+			assert.strictEqual(viewModel?.question.hideRemoveButton, false);
+		});
+
 		it('should show remove button if more than one answer', (context) => {
 			const { question, journey } = questionWithManageQuestions(context, {}, 3);
 			const viewModel = question.prepQuestionForRendering({}, journey);

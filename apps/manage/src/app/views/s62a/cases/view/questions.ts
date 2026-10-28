@@ -1812,7 +1812,9 @@ export function getQuestions(
 			titleSingular: 'Additional contact',
 			emptyListText: 'No additional contacts found',
 			showAnswersInSummary: false,
-			emptyStateAddStyle: 'prominent'
+			emptyStateAddStyle: 'prominent',
+			// A case may have no additional contacts, so the last one can be removed
+			isAllowedEmpty: true
 		},
 		additionalContactType: {
 			type: CUSTOM_COMPONENTS.CONDITIONAL_RADIO,
