@@ -1,4 +1,5 @@
-import type { NotifyConfig } from '@pins/crowndev-lib/govnotify/gov-notify-client';
+import type { CrownNotifyConfig } from '@pins/crowndev-lib/govnotify/crown/crown-gov-notify-client.ts';
+import type { S62aNotifyConfig } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { BaseConfig } from '@planning-inspectorate/core/app';
 
 interface Config extends BaseConfig {
@@ -44,8 +45,10 @@ interface Config extends BaseConfig {
 		isCaseNotesLive: boolean;
 		isAuditLive: boolean;
 		isRetryLive: boolean;
+		isS62aNotifyCallBackEnabled: boolean;
 	};
-	govNotify: NotifyConfig;
+	govNotify: CrownNotifyConfig;
+	s62aGovNotify: S62aNotifyConfig;
 	portalBaseUrl: string;
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection

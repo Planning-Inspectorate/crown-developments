@@ -13,6 +13,16 @@ export interface Config extends BaseConfig {
 	s62aDevContactInfo: {
 		email: string | undefined;
 	};
+	s62aGovNotify: {
+		disabled: boolean;
+		apiKey?: string;
+		templateIds: {
+			test?: string;
+		};
+		retryConfig: {
+			enabled: boolean;
+		};
+	};
 }
 
 // cache the config
@@ -44,10 +54,14 @@ export function loadConfig(): Config {
 		SQL_CONNECTION_STRING,
 		S62A_DEV_CONTACT_EMAIL,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
+		FEATURE_FLAG_RETRY_NOT_LIVE,
 		BLOB_STORE_DISABLED,
 		BLOB_STORE_HOST,
 		BLOB_STORE_CONTAINER,
-		BLOB_STORE_CONNECTION_STRING
+		BLOB_STORE_CONNECTION_STRING,
+		S62A_GOV_NOTIFY_DISABLED,
+		S62A_GOV_NOTIFY_API_KEY,
+		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -69,6 +83,19 @@ export function loadConfig(): Config {
 
 		if (NODE_ENV === 'production' && BLOB_STORE_CONNECTION_STRING) {
 			throw new Error('BLOB_STORE_CONNECTION_STRING must only be used for local development');
+		}
+	}
+
+	const govNotifyDisabled = S62A_GOV_NOTIFY_DISABLED === 'true';
+	const isRetryLive = FEATURE_FLAG_RETRY_NOT_LIVE !== 'true';
+	if (!govNotifyDisabled) {
+		const props = {
+			S62A_GOV_NOTIFY_API_KEY
+		};
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
 		}
 	}
 
@@ -115,6 +142,16 @@ export function loadConfig(): Config {
 		featureFlags: {
 			// by default with no feature flag set, the s62a portal is live
 			isLive: FEATURE_FLAG_S62A_PORTAL_NOT_LIVE !== 'true'
+		},
+		s62aGovNotify: {
+			disabled: govNotifyDisabled,
+			apiKey: S62A_GOV_NOTIFY_API_KEY,
+			templateIds: {
+				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+			},
+			retryConfig: {
+				enabled: isRetryLive
+			}
 		}
 	};
 

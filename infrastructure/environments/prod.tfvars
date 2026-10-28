@@ -27,13 +27,14 @@ apps_config = {
   }
 
   feature_flags = {
-    portal_not_live      = false
-    s62a_portal_not_live = true
-    s62a_manage_not_live = false
-    case_notes_not_live  = false
-    audit_not_live       = true
-    upload_docs_not_live = false
-    retry_not_live       = false
+    portal_not_live                = false
+    s62a_portal_not_live           = true
+    s62a_manage_not_live           = false
+    s62a_notify_call_back_not_live = true
+    case_notes_not_live            = false
+    audit_not_live                 = true
+    upload_docs_not_live           = false
+    retry_not_live                 = false
   }
 
   dynamic_cache_control = {
@@ -65,6 +66,13 @@ apps_config = {
       app_rec_without_fee_template_id = "c544f588-fdb2-449f-82ad-cf3f96c8aa43"
       app_not_nat_imp_template_id     = "8c8c5976-ddad-4837-8af5-b7a9ba0db4a4"
       lpa_quest_sent_template_id      = "1cd9d371-61d4-4643-aadf-3d1d98d9b6d4"
+    }
+  }
+
+  s62a_gov_notify = {
+    disabled = true
+    templates = {
+      test_template_id = ""
     }
   }
 

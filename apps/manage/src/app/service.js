@@ -1,7 +1,8 @@
 import { buildInitSharePointDrive } from '#util/sharepoint.js';
 import { MapCache } from '@planning-inspectorate/core/util';
 import { buildInitEntraClient } from '@pins/crowndev-lib/graph/cached-entra-client.js';
-import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+import { initCrownGovNotify } from '@pins/crowndev-lib/govnotify/crown/index.ts';
+import { initS62aGovNotify } from '@pins/crowndev-lib/govnotify/s62a/index.ts';
 import { TextAnalyticsClient } from '@azure/ai-text-analytics';
 import { DefaultAzureCredential, ManagedIdentityCredential } from '@azure/identity';
 import { DEFAULT_CATEGORIES } from '#util/azure-language-redaction.js';
@@ -43,9 +44,13 @@ export class ManageService extends Service {
 	 */
 	appEntraClient;
 	/**
-	 * @type {import('@pins/crowndev-lib/govnotify/gov-notify-client.js').GovNotifyClient|null}
+	 * @type {import('@pins/crowndev-lib/govnotify/crown/crown-gov-notify-client.ts').CrownGovNotifyClient|null}
 	 */
 	notifyClient;
+	/**
+	 * @type {import('@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts').S62aGovNotifyClient|null}
+	 */
+	s62aNotifyClient;
 	/**
 	 * @type {import('@azure/ai-text-analytics').TextAnalyticsClient|null}
 	 */
@@ -77,7 +82,8 @@ export class ManageService extends Service {
 		// share this cache between each instance of the EntraClient
 		const entraGroupCache = new MapCache(config.entra.cacheTtl);
 		this.getEntraClient = buildInitEntraClient(!config.auth.disabled, entraGroupCache);
-		this.notifyClient = initGovNotify(config.govNotify, logger);
+		this.notifyClient = initCrownGovNotify(config.govNotify, logger);
+		this.s62aNotifyClient = initS62aGovNotify(config.s62aGovNotify, logger);
 		this.blobStoreClient = initBlobStore(config.blobStore, logger);
 		this.appEntraClient = new EntraClient(graphClient);
 		this.createZipArchive = (options) => new ZipArchive(options);
@@ -157,5 +163,9 @@ export class ManageService extends Service {
 
 	get webHookToken() {
 		return this.#config.govNotify.webHookToken;
+	}
+
+	get s62aNotifyCallBackEnabled() {
+		return this.#config.featureFlags.isS62aNotifyCallBackEnabled;
 	}
 }

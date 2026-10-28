@@ -93,12 +93,18 @@ module "app_manage" {
     GOV_NOTIFY_APP_NOT_NAT_IMP_TEMPLATE_ID     = var.apps_config.gov_notify.templates.app_not_nat_imp_template_id
     GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID      = var.apps_config.gov_notify.templates.lpa_quest_sent_template_id
 
+    # s62a gov notify
+    S62A_GOV_NOTIFY_DISABLED         = var.apps_config.s62a_gov_notify.disabled
+    S62A_GOV_NOTIFY_API_KEY          = local.key_vault_refs["s62a-gov-notify-api-key"]
+    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.test_template_id
+
     #feature flags
-    FEATURE_FLAG_S62A_MANAGE_NOT_LIVE = var.apps_config.feature_flags.s62a_manage_not_live
-    FEATURE_FLAG_CASE_NOTES_NOT_LIVE  = var.apps_config.feature_flags.case_notes_not_live
-    FEATURE_FLAG_S62A_PORTAL_NOT_LIVE = var.apps_config.feature_flags.s62a_portal_not_live
-    FEATURE_FLAG_AUDIT_NOT_LIVE       = var.apps_config.feature_flags.audit_not_live
-    FEATURE_FLAG_RETRY_NOT_LIVE       = var.apps_config.feature_flags.retry_not_live
+    FEATURE_FLAG_S62A_MANAGE_NOT_LIVE           = var.apps_config.feature_flags.s62a_manage_not_live
+    FEATURE_FLAG_CASE_NOTES_NOT_LIVE            = var.apps_config.feature_flags.case_notes_not_live
+    FEATURE_FLAG_S62A_PORTAL_NOT_LIVE           = var.apps_config.feature_flags.s62a_portal_not_live
+    FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE = var.apps_config.feature_flags.s62a_notify_call_back_not_live
+    FEATURE_FLAG_AUDIT_NOT_LIVE                 = var.apps_config.feature_flags.audit_not_live
+    FEATURE_FLAG_RETRY_NOT_LIVE                 = var.apps_config.feature_flags.retry_not_live
 
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint

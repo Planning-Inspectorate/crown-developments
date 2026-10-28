@@ -5,6 +5,8 @@ import { createRoutes as createCasesRoutes } from './views/cases/index.js';
 import { createErrorRoutes } from './views/static/error/index.js';
 import { cacheNoCacheMiddleware } from '@planning-inspectorate/core/middleware';
 import { createNotifyRoutes } from './notify/router.js';
+import { createNotifyRoutes as createS62aNotifyRoutes } from './notify/s62a/index.ts';
+
 import { createRoutes as createS62aRoutes } from './views/s62a/index.ts';
 
 /**
@@ -17,12 +19,22 @@ export function buildRouter(service) {
 	const { router: authRoutes, guards: authGuards } = createAuthRoutesAndGuards(service);
 	const casesRoutes = createCasesRoutes(service);
 	const notifyRoutes = createNotifyRoutes(service);
+	const s62aNotifyRoutes = createS62aNotifyRoutes(service);
 	const s62aRoutes = createS62aRoutes(service);
 
 	router.use('/', monitoringRoutes);
 	if (!service.notifyCallBackDisabled) {
 		router.use('/notify', notifyRoutes);
 	}
+
+	// We mount this here, because it must be before the auth middleware
+	// as it is accessed from outside the application
+	if (service.s62aNotifyCallBackEnabled) {
+		router.use('/s62a/notify', s62aNotifyRoutes);
+	} else {
+		service.logger.warn('S62A notify callback not enabled; routes skipped');
+	}
+
 	// don't cache responses, note no-cache allows some caching, but with revalidation
 	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
 	router.use(cacheNoCacheMiddleware);

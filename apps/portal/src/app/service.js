@@ -2,7 +2,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { DefaultAzureCredential } from '@azure/identity';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials/index.js';
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
-import { initGovNotify } from '@pins/crowndev-lib/govnotify/index.ts';
+import { initCrownGovNotify } from '@pins/crowndev-lib/govnotify/crown/index.ts';
 import { Service } from '@pins/crowndev-lib/app/base-service.ts';
 
 /**
@@ -36,7 +36,7 @@ export class PortalService extends Service {
 		});
 
 		this.sharePointDrive = new SharePointDrive(graphClient, config.sharePoint.driveId);
-		this.notifyClient = initGovNotify(config.govNotify, this.logger);
+		this.notifyClient = initCrownGovNotify(config.govNotify, this.logger);
 	}
 
 	get appName() {
