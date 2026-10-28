@@ -750,16 +750,7 @@ export function getQuestions(
 			question: 'When was the application confirmed as valid?',
 			fieldName: 'applicationValidDate',
 			url: 'application-valid',
-			validators: [new DateValidator('application valid date')],
-			viewData: {
-				extraActionButtons: [
-					{
-						text: 'Remove and save',
-						type: 'submit',
-						formaction: 'application-valid/remove'
-					}
-				]
-			}
+			validators: [new DateValidator('application valid date')]
 		},
 		validLettersSentDate: {
 			type: COMPONENT_TYPES.DATE,
