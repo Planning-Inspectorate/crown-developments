@@ -25,11 +25,11 @@ import {
 	fetchCrownPublishCase,
 	unpublishCrownCase,
 	fetchCrownUnpublishCase,
-	answerValidation,
-	createPublishAuditHook,
-	createUnpublishAuditHook
+	answerValidation
 } from './publish.ts';
 import { CROWN_AUDIT_TEMPLATES } from '../audit/actions.ts';
+import { buildRecordCrownCaseAction } from '../audit/case-actions.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -45,8 +45,8 @@ export function createRoutes(service) {
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
-	const publishAuditHook = buildCaseAuditHook(service, createPublishAuditHook, 'publish');
-	const unpublishAuditHook = buildCaseAuditHook(service, createUnpublishAuditHook, 'unpublish');
+	const publishAuditHook = buildRecordCrownCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED);
+	const unpublishAuditHook = buildRecordCrownCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED);
 
 	const publishCase = createCasePublishRoutes(
 		service,
@@ -61,10 +61,8 @@ export function createRoutes(service) {
 		service,
 		unpublishCrownCase,
 		fetchCrownUnpublishCase,
-		undefined,
 		unpublishAuditHook
 	);
-
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));
@@ -124,35 +122,4 @@ export function createRoutes(service) {
 	router.post('/:section/:question/remove', validateIdFormat, getQuestionJourney, asyncHandler(clearAndUpdateCase));
 
 	return router;
-}
-
-/**
- * @param {import('#service').ManageService} service
- * @param {(audit: any, caseReference: string, isAuditLive: boolean) => import('@pins/crowndev-lib/util/types.ts').CaseActionHook} createAuditHook
- * @param {'publish' | 'unpublish'} eventName
- * @returns {import('@pins/crowndev-lib/util/types.ts').CaseActionHook}
- */
-function buildCaseAuditHook(service, createAuditHook, eventName) {
-	return async (req, caseId) => {
-		if (!service.audit || service.isAuditLive === false) {
-			return;
-		}
-
-		const caseData = await service.db.crownDevelopment
-			.findUnique({
-				where: { id: caseId },
-				select: { reference: true }
-			})
-			.catch((error) => {
-				service.logger.error({ err: error, caseId }, `Failed to record the case ${eventName} audit event`);
-				return null;
-			});
-
-		if (!caseData?.reference) {
-			return;
-		}
-
-		const auditHook = createAuditHook(service.audit, caseData.reference, service.isAuditLive !== false);
-		await auditHook(req, caseId);
-	};
 }
