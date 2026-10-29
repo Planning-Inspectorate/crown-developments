@@ -11,7 +11,7 @@ export function addLocalsConfiguration(service: S62APortalService, manifest: Man
 
 		const links = [
 			{
-				text: 'Home',
+				text: 'All applications',
 				href: '/'
 			},
 			{
