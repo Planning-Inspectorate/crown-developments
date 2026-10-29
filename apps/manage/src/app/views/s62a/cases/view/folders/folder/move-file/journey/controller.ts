@@ -2,6 +2,7 @@ import type { ManageService } from '#service';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { getStringParam, getStringParams } from '@pins/crowndev-lib/util/params.ts';
 import type { Request, RequestHandler, Response } from 'express';
+import type { AsyncRequestHandlerWithLocals } from '@planning-inspectorate/core/util';
 import { buildFolderTree, checkFileNamesConflict } from '../../../../../util/folders.ts';
 import type { Logger } from 'pino';
 import { clearDataFromSession, list } from '@planning-inspectorate/dynamic-forms';
@@ -12,6 +13,7 @@ import { JOURNEY_ID } from './journey.ts';
 import type { FolderNode } from '@pins/crowndev-lib/forms/custom-components/nested-folder-radio/question.ts';
 import { recordS62aFileAudit } from '../../../../../audit/files.ts';
 import { FILE_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/files.ts';
+import type { MoveFileJourneyLocals } from './locals.ts';
 
 const documentFindManySelectArg = {
 	id: true,
@@ -56,8 +58,13 @@ export function buildLoadCaseData(service: ManageService): RequestHandler {
  * Grabs the important data, files to move and the folder to move
  * them to. Errors, clears session, redirects if any issues are found.
  */
-export function validateRequestState(req: Request, res: Response, caseId: string, journeyId: string, logger: Logger) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
+export function validateRequestState(
+	req: Request,
+	res: Response<unknown, MoveFileJourneyLocals>,
+	caseId: string,
+	journeyId: string,
+	logger: Logger
+) {
 	const journeyResponse = res.locals?.journeyResponse;
 	const fileIds = req.session.moveFilesIds;
 
@@ -74,8 +81,7 @@ export function validateRequestState(req: Request, res: Response, caseId: string
 		return res.redirect(`/s62a/cases/${caseId}/case-folders`);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
-	const { fileLocation } = journeyResponse.answers as unknown as { fileLocation: string };
+	const { fileLocation } = journeyResponse.answers;
 
 	if (!fileLocation) {
 		throw new Error('No destination folder selected');
@@ -151,7 +157,7 @@ export function buildListController(listFn = list): RequestHandler {
 /**
  * Controller for saving the new folder to the documents. Redirects to the new folder.
  */
-export function buildSaveController(service: ManageService): RequestHandler {
+export function buildSaveController(service: ManageService): AsyncRequestHandlerWithLocals<MoveFileJourneyLocals> {
 	const { db, logger } = service;
 	return async (req, res) => {
 		const { id, folderId, folderName } = getStringParams(req.params, ['id', 'folderId', 'folderName']);
