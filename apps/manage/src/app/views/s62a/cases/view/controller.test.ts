@@ -630,7 +630,7 @@ describe('S62A Controller Middleware', () => {
 	describe('applicantContactPromptMessages', () => {
 		const id = 'a4f3e2d1-0000-4000-8000-000000000000';
 		const newItemId = () => 'new-item';
-		const addUrl = `/s62a/cases/${id}/contacts/contacts/check-applicant-contact-details/add/new-item/applicant-contact`;
+		const addUrl = `/s62a/cases/${id}/contacts/check-applicant-contact-details/add/new-item/applicant-contact`;
 
 		const organisations = [
 			{ id: 'org-a', organisationName: 'Bob and Co LLC' },
