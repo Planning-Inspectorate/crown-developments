@@ -28,6 +28,8 @@ import {
 	answerValidation
 } from './publish.ts';
 import { CROWN_AUDIT_TEMPLATES } from '../audit/actions.ts';
+import { buildRecordCrownCaseAction } from '../audit/case-actions.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
 
 /**
  * @param {import('#service').ManageService} service
@@ -43,14 +45,24 @@ export function createRoutes(service) {
 	const clearAndUpdateCaseFn = buildUpdateCase(service, true);
 	const clearAndUpdateCase = buildSave(clearAndUpdateCaseFn, true);
 	const updateCase = buildSave(updateCaseFn, true);
+	const publishAuditHook = buildRecordCrownCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_PUBLISHED);
+	const unpublishAuditHook = buildRecordCrownCaseAction(service, SHARED_AUDIT_ACTIONS.CASE_UNPUBLISHED);
+
 	const publishCase = createCasePublishRoutes(
 		service,
 		buildGetJourneyMiddleware,
 		publishCrownCase,
 		fetchCrownPublishCase,
-		answerValidation
+		answerValidation,
+		publishAuditHook
 	);
-	const unpublishCase = createCaseUnpublishRoutes(service, unpublishCrownCase, fetchCrownUnpublishCase);
+
+	const unpublishCase = createCaseUnpublishRoutes(
+		service,
+		unpublishCrownCase,
+		fetchCrownUnpublishCase,
+		unpublishAuditHook
+	);
 	const applicationUpdates = createApplicationUpdatesRoutes(service);
 	const getJourneyResponse = buildGetJourneyResponseFromSession(JOURNEY_ID);
 	const deleteManageListItemOnConfirmRemove = asyncHandler(buildDeleteManageListItemOnConfirmRemove(service));

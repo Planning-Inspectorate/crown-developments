@@ -13,11 +13,20 @@ import type { BaseService } from '@planning-inspectorate/core/app';
 export function buildPublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
 	publishCaseFunction: PublishOperation,
+	publishCaseFetcher?: CaseFetcher<unknown>,
 	onPublished?: CaseActionHook
 ) {
-	return async (req: Request, res: Response) => {
+	return async (req: Request & { caseReference?: string }, res: Response) => {
 		const id = getStringParam(req.params, 'id');
 		logger.info({ id }, 'publish case');
+
+		if (publishCaseFetcher) {
+			const caseData = (await publishCaseFetcher(db, id)) as { reference: string }; // Guard check: verifies case exists before publishing
+
+			if (!caseData) return notFoundHandler(req, res);
+
+			req.caseReference = caseData.reference;
+		}
 
 		try {
 			await publishCaseFunction(db, id);
@@ -31,7 +40,6 @@ export function buildPublishCase(
 		}
 
 		await onPublished?.(req, id);
-
 		const currentPath = req.originalUrl.split('?')[0];
 		const parentUrl = path.posix.dirname(currentPath);
 
