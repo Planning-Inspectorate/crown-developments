@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveDataFn } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '#service';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -29,6 +29,7 @@ import {
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
+import type { S62aCaseViewLocals } from './locals.ts';
 import { S62aManageNotificationService } from '../util/notification-service.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
@@ -37,9 +38,12 @@ import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notif
  * Save handler for S62A Case updates.
  * Takes the raw form answers, maps them to Prisma format, and updates the database.
  */
-export function buildS62aUpdateCase(service: ManageService, clearAnswer = false): SaveDataFn {
+export function buildS62aUpdateCase(
+	service: ManageService,
+	clearAnswer = false
+): SaveDataFn<{ answers?: UpdateCaseAnswers }, S62aCaseViewLocals> {
 	const notificationService = new S62aManageNotificationService(service.s62aNotifyClient, service.logger);
-	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
+	return async ({ req, res, data }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
 		const userId = req.session?.account?.localAccountId;
@@ -57,7 +61,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 			return;
 		}
 
-		// Wipes answers that were indentified as being removed
+		// Wipes answers that were identified as being removed
 		if (clearAnswer) {
 			Object.keys(answers).forEach((key) => {
 				Object.assign(answers, { [key]: null });
@@ -128,7 +132,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 			// fields that didn't change, e.g. the rest of a multi-field question, or
 			// the linked pre-application case's reference. It's the view model we've
 			// already loaded for the save, so this costs nothing extra.
-			previousCase = viewModel as unknown as Record<string, unknown>;
+			previousCase = { ...viewModel };
 
 			updateSucceeded = true;
 
@@ -175,7 +179,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 async function recordAuditEntries(
 	audit: AuditService,
 	logger: Logger,
-	res: Response,
+	res: Response<unknown, S62aCaseViewLocals>,
 	{
 		caseId,
 		userId,
@@ -212,20 +216,18 @@ async function recordAuditEntries(
 			answers,
 			config: {
 				// Set by the journey middleware, from the linkable pre-application cases it loads
-				fieldResolvers: createS62aFieldResolvers(
-					res.locals.preApplicationCaseReferences as ReadonlyMap<string, string> | undefined
-				),
+				fieldResolvers: createS62aFieldResolvers(res.locals.preApplicationCaseReferences),
 				auditableFields: AUDITABLE_SCALAR_FIELDS,
 				longFields: LONG_AUDIT_FIELDS,
 				groupedFields: S62A_GROUPED_FIELDS,
 				listResolvers: S62A_LIST_RESOLVERS,
 				labels: S62A_AUDIT_FIELD_LABELS
 			},
-			questionLabels: res.locals.fieldDisplayNames as Record<string, string> | undefined,
+			questionLabels: res.locals.fieldDisplayNames,
 			context: {
 				environmentConfig: envConfig,
 				environmentName: ENVIRONMENT_NAME,
-				userDisplayNameMap: res.locals.userDisplayNameMap as Map<string, string> | undefined
+				userDisplayNameMap: res.locals.userDisplayNameMap
 			}
 		});
 
