@@ -161,7 +161,7 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				logContext: { caseId: id }
 			});
 
-			handleUpdateEmails(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id);
+			handleUpdateEmails(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
 		}
 	};
 }
@@ -249,11 +249,12 @@ function handleUpdateEmails(
 	previousCase: S62aCaseViewModel,
 	notificationService: S62aNotificationService,
 	service: ManageService,
-	id: string
+	id: string,
+	req: Request
 ): void {
 	if (previousCase.publishedToLegacyGovUk) return;
 
-	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id);
+	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -265,6 +266,7 @@ export function acknowledgePreNotificationEmail(
 	notificationService: S62aNotificationService,
 	service: ManageService,
 	id: string,
+	req: Request,
 	sendNotificationFn = sendNotificationAndUpdateFlag
 ) {
 	const acknowledgePreNotificationEmailSent = previousCase.acknowledgePreNotificationEmailSent === BOOLEAN_OPTIONS.YES;
@@ -284,10 +286,10 @@ export function acknowledgePreNotificationEmail(
 
 	sendNotificationFn(
 		emailPromise,
-		service.db,
+		service,
 		id,
 		'acknowledgePreNotificationEmailSent',
-		service.logger,
-		'Send Acknowledgement Pre-notification (Update)'
+		'Send Acknowledgement Pre-notification (Update)',
+		req
 	);
 }

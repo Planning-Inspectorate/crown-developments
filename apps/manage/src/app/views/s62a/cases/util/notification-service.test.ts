@@ -1,5 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
+import type { Request } from 'express';
 import { S62aNotificationService, sendNotificationAndUpdateFlag } from './notification-service.ts';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
@@ -37,41 +38,41 @@ describe('S62aNotificationService', () => {
 		} as unknown as Logger;
 
 		mockNotifyClient = {
-			sendAcknowledgePreNotificationToMany: mock.fn(async () => {})
+			sendAcknowledgePreNotificationToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
 		service = new S62aNotificationService(mockNotifyClient, mockLogger);
 	});
 
 	describe('processAcknowledgementPreNotification', () => {
-		it('returns false when notificationReceivedDate is absent', async () => {
+		it('returns wasSent: false when notificationReceivedDate is absent', async () => {
 			const result = await service.processAcknowledgementPreNotification(
 				answers({ notificationReceivedDate: undefined }),
 				'REF-123',
 				emailObject
 			);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls.length, 0);
 		});
 
-		it('returns false and logs a warning when the notify client is null', async () => {
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
 			const nullClientService = new S62aNotificationService(null, mockLogger);
 			const result = await nullClientService.processAcknowledgementPreNotification(answers(), 'REF-123', emailObject);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
 			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
 		});
 
-		it('returns false and logs a warning when there are no valid notification contacts', async () => {
+		it('returns wasSent: false and logs a warning when there are no valid notification contacts', async () => {
 			const result = await service.processAcknowledgementPreNotification(
 				answers({ manageAgentContactDetails: [], manageApplicantContactDetails: [] }),
 				'REF-123',
 				emailObject
 			);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
 			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments[0], { reference: 'REF-123' });
 		});
@@ -88,7 +89,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			assert.strictEqual((mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls.length, 1);
 
 			const [contacts, options] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0]
@@ -107,7 +108,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			const [contacts] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0].arguments;
 			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'Alice', lastName: 'Jones' }]);
 		});
@@ -122,7 +123,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			const [contacts] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0].arguments;
 			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'Alice', lastName: 'Jones' }]);
 		});
@@ -176,42 +177,51 @@ describe('S62aNotificationService', () => {
 });
 
 describe('sendNotificationAndUpdateFlag', () => {
-	let mockLogger: Logger;
-	let mockDb: ManageService['db'];
+	let mockService: ManageService;
+	let mockReq: Request;
 
 	beforeEach(() => {
-		mockLogger = {
-			info: mock.fn(),
-			error: mock.fn()
-		} as unknown as Logger;
-
-		mockDb = {
-			s62aCase: {
-				update: mock.fn(async () => ({}))
+		mockService = {
+			logger: {
+				info: mock.fn(),
+				error: mock.fn()
+			},
+			db: {
+				s62aCase: {
+					update: mock.fn(async () => ({}))
+				}
 			}
-		} as unknown as ManageService['db'];
+		} as unknown as ManageService;
+
+		mockReq = {
+			session: {
+				account: {
+					localAccountId: 'test-user-id'
+				}
+			}
+		} as unknown as Request;
 	});
 
 	it('updates the database flag and logs success if the notification was sent', async () => {
 		sendNotificationAndUpdateFlag(
-			Promise.resolve(true),
-			mockDb,
+			Promise.resolve({ wasSent: true }),
+			mockService,
 			'case-1',
 			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
+			'AcknowledgePreNotification',
+			mockReq
 		);
 
 		await flushMicrotasks();
 
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockDb.s62aCase.update as any).mock.calls[0].arguments[0], {
+		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 1);
+		assert.deepStrictEqual((mockService.db.s62aCase.update as any).mock.calls[0].arguments[0], {
 			where: { id: 'case-1' },
 			data: { acknowledgePreNotificationEmailSent: true }
 		});
 
-		assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments[0], {
+		assert.strictEqual((mockService.logger.info as any).mock.calls.length, 1);
+		assert.deepStrictEqual((mockService.logger.info as any).mock.calls[0].arguments[0], {
 			caseId: 'case-1',
 			flagField: 'acknowledgePreNotificationEmailSent',
 			operation: 'AcknowledgePreNotification'
@@ -220,18 +230,18 @@ describe('sendNotificationAndUpdateFlag', () => {
 
 	it('does not update the database flag if the notification was not sent', async () => {
 		sendNotificationAndUpdateFlag(
-			Promise.resolve(false),
-			mockDb,
+			Promise.resolve({ wasSent: false }),
+			mockService,
 			'case-2',
 			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
+			'AcknowledgePreNotification',
+			mockReq
 		);
 
 		await flushMicrotasks();
 
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockLogger.info as any).mock.calls.length, 0);
+		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 0);
+		assert.strictEqual((mockService.logger.info as any).mock.calls.length, 0);
 	});
 
 	it('catches and logs an error if the notification promise rejects', async () => {
@@ -239,18 +249,18 @@ describe('sendNotificationAndUpdateFlag', () => {
 
 		sendNotificationAndUpdateFlag(
 			Promise.reject(networkError),
-			mockDb,
+			mockService,
 			'case-3',
 			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
+			'AcknowledgePreNotification',
+			mockReq
 		);
 
 		await flushMicrotasks();
 
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockLogger.error as any).mock.calls[0].arguments[0], {
+		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 0);
+		assert.strictEqual((mockService.logger.error as any).mock.calls.length, 1);
+		assert.deepStrictEqual((mockService.logger.error as any).mock.calls[0].arguments[0], {
 			error: networkError,
 			caseId: 'case-3',
 			operation: 'AcknowledgePreNotification'

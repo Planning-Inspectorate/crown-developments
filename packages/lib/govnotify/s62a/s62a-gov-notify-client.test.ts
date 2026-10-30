@@ -50,21 +50,52 @@ describe('S62aGovNotifyClient', () => {
 	});
 
 	describe('sendAcknowledgePreNotification', () => {
-		it('should call super.sendEmail with the correct template, email, and formatted personalisation', async (ctx) => {
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() =>
+					client.sendAcknowledgePreNotification(
+						{ email: 'applicant@test.com' },
+						{ reference: 'REF-123', s62aEmail: 'major@s62a.gov.uk' }
+					),
+				{
+					name: 'Error',
+					message: 'Acknowledge pre-notification template not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'acknowledge pre notification template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call super.sendEmailWithAudit with the correct arguments and return the audit result', async (ctx) => {
 			const logger = mockLogger() as any;
 			const templateIds = { acknowledgePreNotification: 'ack-pre-notify-789' };
 			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
 
-			const sendEmailMock = ctx.mock.method(client as any, 'sendEmail', async () => {});
+			const mockAuditResult = { notifyId: 'mock-notify-id-123', body: 'Rendered email body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
 
 			const notificationData = { email: 'applicant@test.com', firstName: 'Jane', lastName: 'Doe' };
 			const sharedData = { reference: 'REF-456', s62aEmail: 'major@s62a.gov.uk' };
 
-			await client.sendAcknowledgePreNotification(notificationData, sharedData);
+			const result = await client.sendAcknowledgePreNotification(notificationData, sharedData);
 
-			assert.strictEqual(sendEmailMock.mock.callCount(), 1);
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
 
-			const args = sendEmailMock.mock.calls[0].arguments;
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
 			assert.deepStrictEqual(args, [
 				'ack-pre-notify-789',
 				'applicant@test.com',
@@ -84,25 +115,36 @@ describe('S62aGovNotifyClient', () => {
 			const templateIds = { acknowledgePreNotification: 'ack-pre-notify-789' };
 			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
 
-			const sendEmailMock = ctx.mock.method(client as any, 'sendEmail', async () => {});
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
 
 			const notificationData = { email: 'applicant2@test.com', firstName: 'John' };
 			const sharedData = { reference: 'REF-789', s62aEmail: 'minor@s62a.gov.uk' };
 
 			await client.sendAcknowledgePreNotification(notificationData, sharedData);
 
-			const args = sendEmailMock.mock.calls[0].arguments;
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
 			assert.strictEqual(args[2].personalisation.applicantName, 'John');
 		});
 	});
 
 	describe('sendAcknowledgePreNotificationToMany', () => {
-		it('should call super.sendToMany with the mapped emails and correct error message', async (ctx) => {
+		it('should call super.sendToManyWithAudit with the mapped emails and correct error message', async (ctx) => {
 			const logger = mockLogger() as any;
 			const templateIds = { acknowledgePreNotification: 'ack-pre-notify-789' };
 			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
 
-			const sendToManyMock = ctx.mock.method(client as any, 'sendToMany', async () => {});
+			const mockAuditRecords = [
+				{ email: 'agent1@test.com', notifyId: 'notify-1', body: 'body-1' },
+				{ email: 'agent2@test.com', notifyId: 'notify-2', body: 'body-2' }
+			];
+			const sendToManyWithAuditMock = ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async () => mockAuditRecords
+			);
 
 			const contacts = [
 				{ email: 'agent1@test.com', firstName: 'Alice' },
@@ -110,17 +152,18 @@ describe('S62aGovNotifyClient', () => {
 			];
 			const sharedData = { reference: 'REF-999', s62aEmail: 'major@s62a.gov.uk' };
 
-			await client.sendAcknowledgePreNotificationToMany(contacts, sharedData);
+			const result = await client.sendAcknowledgePreNotificationToMany(contacts, sharedData);
 
-			assert.strictEqual(sendToManyMock.mock.callCount(), 1);
+			assert.deepStrictEqual(result, mockAuditRecords);
+			assert.strictEqual(sendToManyWithAuditMock.mock.callCount(), 1);
 
-			const args = sendToManyMock.mock.calls[0].arguments;
+			const args = sendToManyWithAuditMock.mock.calls[0].arguments;
 			assert.deepStrictEqual(args[0], ['agent1@test.com', 'agent2@test.com']);
 			assert.strictEqual(typeof args[1], 'function');
 			assert.strictEqual(args[2], 'Failed to send acknowledge pre-notification to one or more email addresses.');
 		});
 
-		it('should invoke sendAcknowledgePreNotification for each contact in the sendToMany callback', async (ctx) => {
+		it('should invoke sendAcknowledgePreNotification for each contact in the sendToManyWithAudit callback', async (ctx) => {
 			const logger = mockLogger() as any;
 			const templateIds = { acknowledgePreNotification: 'ack-pre-notify-789' };
 			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
@@ -128,14 +171,21 @@ describe('S62aGovNotifyClient', () => {
 			const sendAcknowledgePreNotificationMock = ctx.mock.method(
 				client as any,
 				'sendAcknowledgePreNotification',
-				async () => {}
+				async () => ({ notifyId: 'id', body: 'body' })
 			);
 
-			ctx.mock.method(client as any, 'sendToMany', async (emails: string[], cb: (email: string) => Promise<void>) => {
-				for (const email of emails) {
-					await cb(email);
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (emails: string[], cb: (email: string) => Promise<{ notifyId: string; body: string }>) => {
+					const results = [];
+					for (const email of emails) {
+						const audit = await cb(email);
+						results.push({ email, ...audit });
+					}
+					return results;
 				}
-			});
+			);
 
 			const contacts = [
 				{ email: 'userA@test.com', firstName: 'User', lastName: 'A' },
@@ -143,11 +193,15 @@ describe('S62aGovNotifyClient', () => {
 			];
 			const sharedData = { reference: 'REF-MULTIPLE', s62aEmail: 'major@s62a.gov.uk' };
 
-			await client.sendAcknowledgePreNotificationToMany(contacts, sharedData);
+			const results = await client.sendAcknowledgePreNotificationToMany(contacts, sharedData);
 
 			assert.strictEqual(sendAcknowledgePreNotificationMock.mock.callCount(), 2);
 			assert.deepStrictEqual(sendAcknowledgePreNotificationMock.mock.calls[0].arguments, [contacts[0], sharedData]);
 			assert.deepStrictEqual(sendAcknowledgePreNotificationMock.mock.calls[1].arguments, [contacts[1], sharedData]);
+			assert.deepStrictEqual(results, [
+				{ email: 'userA@test.com', notifyId: 'id', body: 'body' },
+				{ email: 'userB@test.com', notifyId: 'id', body: 'body' }
+			]);
 		});
 	});
 });

@@ -1,4 +1,4 @@
-import { GovNotifyClient, type NotifyConfig } from '../gov-notify-client.ts';
+import { type AuditData, GovNotifyClient, type NotifyConfig } from '../gov-notify-client.ts';
 import type { Logger } from 'pino';
 import type { RetryConfig } from '../../util/retry.ts';
 import { toText } from '../../util/string.ts';
@@ -43,10 +43,10 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 	async sendAcknowledgePreNotification(
 		notificationData: ContactNotificationType,
 		sharedData: { reference: string; s62aEmail: string }
-	): Promise<void> {
+	): Promise<Omit<AuditData, 'email'>> {
 		if (!this.templateIds.acknowledgePreNotification) {
 			this.logger.warn('acknowledge pre notification template not enabled. ignoring request.');
-			return;
+			throw new Error('Acknowledge pre-notification template not enabled.');
 		}
 
 		const fullName = [toText(notificationData.firstName), toText(notificationData.lastName)]
@@ -54,7 +54,7 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			.join(' ')
 			.trim();
 
-		await this.sendEmail(this.templateIds.acknowledgePreNotification, notificationData.email, {
+		return this.sendEmailWithAudit(this.templateIds.acknowledgePreNotification, notificationData.email, {
 			personalisation: {
 				applicantName: fullName,
 				caseReference: sharedData.reference,
@@ -70,8 +70,8 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 	async sendAcknowledgePreNotificationToMany(
 		notificationData: ContactNotificationType[],
 		sharedData: { reference: string; s62aEmail: string }
-	): Promise<void> {
-		return this.sendToMany(
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
 			notificationData.map((d) => d.email),
 			(address) => {
 				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
