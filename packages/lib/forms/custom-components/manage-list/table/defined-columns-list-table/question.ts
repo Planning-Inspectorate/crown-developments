@@ -29,6 +29,10 @@ export interface TableColumn {
 	sortType?: 'date' | 'string' | 'number';
 	/** Hides values from summary list if toggled */
 	hideInSummary?: boolean;
+	/** Leaves the value out of the tab summary when it's empty, rather than showing '-' */
+	hideInSummaryWhenEmpty?: boolean;
+	/** Labels the value in the tab summary, e.g. 'Date assigned: 3 March 2026', where it isn't clear on its own */
+	summaryLabel?: string;
 }
 
 export type DefinedColumnsTableParams = TableManageListQuestionParameters &
@@ -139,7 +143,9 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 		}
 
 		if (linkedQuestion instanceof DateQuestion) {
-			return new Date(cellContent).getTime();
+			// An empty date renders as '-', which would otherwise sort as NaN
+			const timestamp = new Date(cellContent).getTime();
+			return Number.isNaN(timestamp) ? cellContent : timestamp;
 		}
 
 		return cellContent;
@@ -158,12 +164,21 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 			.filter((col) => !col.hideInSummary)
 			.map((col) => {
 				const linkedQuestion = this.getQuestionByFieldName(col.fieldName);
+				const value = this.getFormattedColumnValue(col, answer, linkedQuestion);
+				const isEmpty = !value || value === '-';
+
+				if (isEmpty && col.hideInSummaryWhenEmpty) {
+					return null;
+				}
+
+				const displayed = isEmpty ? '-' : value;
 
 				return {
 					question: col.header,
-					answer: this.getFormattedColumnValue(col, answer, linkedQuestion) || '-'
+					answer: col.summaryLabel ? `${escapeHtml(col.summaryLabel)}: ${displayed}` : displayed
 				};
-			});
+			})
+			.filter((item) => item !== null);
 	}
 
 	/**

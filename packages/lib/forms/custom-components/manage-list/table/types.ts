@@ -50,6 +50,14 @@ export interface TableManageListQuestionParameters {
 	 * the sub-questions' summaries. Returned as HTML, so escape any user input.
 	 */
 	removalSummary?: (item: Record<string, unknown>) => string[];
+	/** Shown in place of the table when it has no rows */
+	emptyListText?: string;
+	/**
+	 * The buttons on an empty list, as for the summary list manage list:
+	 * 'force' shows only Add, 'prominent' shows Add and Save.
+	 * hideButtonsEmpty, if set, takes priority.
+	 */
+	emptyStateAddStyle?: 'force' | 'prominent';
 }
 
 export interface PreppedQuestion {

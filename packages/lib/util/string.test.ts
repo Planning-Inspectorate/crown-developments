@@ -8,6 +8,8 @@ import {
 	getFilenameStem,
 	isSafeRelativeUrl,
 	escapeHtml,
+	escapeHtmlOrEmpty,
+	escapedFullName,
 	insertWbr,
 	formatStatusTag,
 	stringToKebab,
@@ -247,6 +249,43 @@ describe('string util', () => {
 
 		it('should reject a href containing a carriage-return control character', () => {
 			assert.strictEqual(isSafeRelativeUrl('/path\rpayload'), false);
+		});
+	});
+
+	describe('escapeHtmlOrEmpty', () => {
+		it('should trim and escape a string', () => {
+			assert.strictEqual(escapeHtmlOrEmpty('  cats & dogs  '), 'cats &amp; dogs');
+		});
+
+		it('should give a number as text', () => {
+			assert.strictEqual(escapeHtmlOrEmpty(0), '0');
+			assert.strictEqual(escapeHtmlOrEmpty(42), '42');
+		});
+
+		it("should give '' for anything else", () => {
+			for (const value of [undefined, null, NaN, true, {}, ['a']]) {
+				assert.strictEqual(escapeHtmlOrEmpty(value), '', String(value));
+			}
+		});
+	});
+
+	describe('escapedFullName', () => {
+		it('should join first and last name', () => {
+			assert.strictEqual(escapedFullName('Jin', 'Mori'), 'Jin Mori');
+		});
+
+		it('should give whichever part is set', () => {
+			assert.strictEqual(escapedFullName('Jin', undefined), 'Jin');
+			assert.strictEqual(escapedFullName(undefined, 'Mori'), 'Mori');
+		});
+
+		it("should give '' when neither part is set", () => {
+			assert.strictEqual(escapedFullName(undefined, null), '');
+			assert.strictEqual(escapedFullName(1, {}), '');
+		});
+
+		it('should escape the name', () => {
+			assert.strictEqual(escapedFullName('<b>Jin</b>', 'A & B'), '&lt;b&gt;Jin&lt;/b&gt; A &amp; B');
 		});
 	});
 
