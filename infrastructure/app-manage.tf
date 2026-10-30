@@ -113,6 +113,10 @@ module "app_manage" {
     BLOB_STORE_DISABLED  = var.apps_config.blob_store.disabled
     BLOB_STORE_HOST      = azurerm_storage_account.crown_documents.primary_blob_endpoint
     BLOB_STORE_CONTAINER = azurerm_storage_container.documents.name
+
+    # ODW Service Bus
+    ODW_SERVICE_BUS_DISABLED = var.odw_config.disabled
+    ODW_SERVICE_BUS_ENDPOINT = var.odw_config.disabled ? "" : "${var.odw_config.service_bus_name}.servicebus.windows.net"
   }
 
   providers = {

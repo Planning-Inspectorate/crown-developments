@@ -120,6 +120,11 @@ monitoring_config = {
   log_daily_cap                        = 0.2
 }
 
+odw_config = {
+  # ODW does not have a training environment, so this will remain disabled.
+  disabled = true
+}
+
 sql_config = {
   admin = {
     login_username = "pins-crown-sql-training"
