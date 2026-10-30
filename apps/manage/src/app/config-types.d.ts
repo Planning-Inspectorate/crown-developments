@@ -56,4 +56,8 @@ interface Config extends BaseConfig {
 		rootId?: string; // Id Root folder of Crown Dev
 		caseTemplateId?: string; // Id for template folder (new case template folder structure)
 	};
+	s62aDevContactInfo: {
+		majorEmail?: string;
+		nonMajorEmail?: string;
+	};
 }

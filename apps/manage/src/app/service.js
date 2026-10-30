@@ -168,4 +168,12 @@ export class ManageService extends Service {
 	get s62aNotifyCallBackEnabled() {
 		return this.#config.featureFlags.isS62aNotifyCallBackEnabled;
 	}
+
+	get s62aMajorContactEmail() {
+		return this.#config.s62aDevContactInfo?.majorEmail;
+	}
+
+	get s62aNonMajorContactEmail() {
+		return this.#config.s62aDevContactInfo?.nonMajorEmail;
+	}
 }

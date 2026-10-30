@@ -14,7 +14,9 @@ apps_config = {
     group_application_access = "1abf7720-2ea6-479e-822d-218917d3d0ee"
   }
 
-  contact_email = "crownapplications@planninginspectorate.gov.uk"
+  contact_email                = "crownapplications@planninginspectorate.gov.uk"
+  s62a_major_contact_email     = "section62a@planninginspectorate.gov.uk"
+  s62a_non_major_contact_email = "section62anonmajor@planninginspectorate.gov.uk"
 
   entra = {
     group_ids = {
@@ -72,7 +74,8 @@ apps_config = {
   s62a_gov_notify = {
     disabled = true
     templates = {
-      test_template_id = ""
+      test_template_id    = ""
+      pre_ack_template_id = ""
     }
   }
 
