@@ -23,7 +23,8 @@ export async function getApp(service) {
 		],
 		csrfRouteBypass: [
 			// Callback from notify doesn't contain a csrf, as it is a 3rd party api
-			'/notify/callback'
+			'/notify/callback',
+			'/s62a/notify/callback'
 		],
 		middlewares: [
 			// middleware to clean empty query params and trim empty query values
