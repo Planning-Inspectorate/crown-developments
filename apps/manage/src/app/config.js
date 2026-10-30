@@ -73,6 +73,7 @@ export function loadConfig() {
 		S62A_GOV_NOTIFY_DISABLED,
 		S62A_GOV_NOTIFY_API_KEY,
 		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
+		S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
 		FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE,
@@ -157,7 +158,8 @@ export function loadConfig() {
 	const s62aGovNotifyDisabled = S62A_GOV_NOTIFY_DISABLED === 'true';
 	if (!s62aGovNotifyDisabled) {
 		const props = {
-			S62A_GOV_NOTIFY_API_KEY
+			S62A_GOV_NOTIFY_API_KEY,
+			S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -292,7 +294,8 @@ export function loadConfig() {
 			apiKey: S62A_GOV_NOTIFY_API_KEY,
 			webHookToken: GOV_NOTIFY_WEBHOOK_TOKEN, // Note: same as Crown
 			templateIds: {
-				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
+				acknowledgePreNotification: S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID
 			},
 			retryConfig: {
 				enabled: isRetryLive // Note: same as Crown

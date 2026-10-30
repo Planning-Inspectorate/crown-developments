@@ -311,6 +311,9 @@ model S62aCase {
 
   Audit ApplicationHistory[]
   Notes ApplicationNote[]
+
+  /// Email sent flags
+  acknowledgePreNotificationEmailSent Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {
