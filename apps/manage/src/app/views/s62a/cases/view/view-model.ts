@@ -385,6 +385,9 @@ export interface S62aCaseViewModel {
 
 	//Vehicle Parking tab
 	vehicleParking?: VehicleParkingItem[];
+
+	// Email flags
+	acknowledgePreNotificationEmailSent?: string;
 }
 
 /**
@@ -398,7 +401,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'hasAgent',
 	'eiaScreening',
 	'eiaScreeningOutcome',
-	'isWasteManagementDevelopment'
+	'isWasteManagementDevelopment',
+	'acknowledgePreNotificationEmailSent'
 ] as const);
 
 /**
