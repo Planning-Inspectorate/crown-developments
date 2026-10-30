@@ -152,6 +152,7 @@ export function getQuestions(
 		: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 
 	const isPreApp = preAppOrAppPath === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
+	const isApplicationCase = preAppOrAppPath === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 	const statusOptions = isPreApp ? S62A_PRE_APPLICATION_STATUSES : S62A_APPLICATION_STATUSES;
 
 	// S62A only permits Hearing and Written representations
@@ -210,6 +211,10 @@ export function getQuestions(
 	// Show the warning if the email hasn't been sent yet (only for non-migrated cases)
 	const showNotificationReceivedDateWarningMessage =
 		!answers?.publishedToLegacyGovUk && answers?.acknowledgePreNotificationEmailSent !== BOOLEAN_OPTIONS.YES;
+	const showApplicationReceivedDateWarningMessage =
+		isApplicationCase &&
+		!answers?.publishedToLegacyGovUk &&
+		answers?.acknowledgeApplicationReceivedEmailSent !== BOOLEAN_OPTIONS.YES;
 
 	const questions = {
 		reference: {
@@ -673,7 +678,10 @@ export function getQuestions(
 						type: 'submit',
 						formaction: 'application-received/remove'
 					}
-				]
+				],
+				...(showApplicationReceivedDateWarningMessage
+					? { warningMessage: 'Adding a date will send a notification to the applicant/agent' }
+					: {})
 			}
 		},
 		applicationAcknowledgedDate: {
