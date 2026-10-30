@@ -64,6 +64,13 @@
 									html: fileListHtml
 								}) }}
 							{% endif %}
+
+							{% if row.emailBody %}
+								{{ govukDetails({
+									summaryText: "View email",
+									html: row.emailBody | notifyMarkdown | safe
+								}) }}
+							{% endif %}
 						{% endset %}
 
 						{% set tableRows = (tableRows.push([

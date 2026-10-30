@@ -7,6 +7,7 @@ import {
 	buildPageUrl,
 	buildItemsPerPageUrl
 } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
+import { notifyMarkdownToHtml } from '@pins/crowndev-lib/util/notify-markdown.ts';
 
 export function configureNunjucks() {
 	const config = loadBuildConfig();
@@ -75,6 +76,9 @@ export function configureNunjucks() {
 				.replace(/^-+|-+$/g, '')
 		);
 	});
+
+	// Converts markdown to GovUK formatted HTML
+	env.addFilter('notifyMarkdown', notifyMarkdownToHtml);
 
 	return env;
 }

@@ -23,6 +23,13 @@ interface NotifyErrorData {
 	errors?: unknown;
 }
 
+export interface AuditData {
+	notifyId: string;
+	body: string;
+	subject: string;
+	email: string;
+}
+
 export class GovNotifyClient {
 	protected readonly logger: Logger;
 	protected readonly notifyClient: NotifyClient;
@@ -94,5 +101,73 @@ export class GovNotifyClient {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 			throw new Error(`failed to fetch notification: ${errorMessage}`, { cause: error });
 		}
+	}
+
+	/**
+	 * Sends an email and returns the Notify ID and rendered body.
+	 */
+	protected async sendEmailWithAudit(
+		templateId: string,
+		emailAddress: string,
+		options: GovNotifyOptions
+	): Promise<Omit<AuditData, 'email'>> {
+		this.logger.info({ templateId, emailAddress }, 'dispatching email template with audit return');
+
+		try {
+			const response = await withRetry(
+				() => this.notifyClient.sendEmail(templateId, emailAddress, options),
+				this.retryConfig,
+				this.logger
+			);
+
+			return {
+				notifyId: response.data.id,
+				body: response.data.content.body,
+				subject: response.data.content.subject
+			};
+		} catch (error) {
+			this.logger.error({ error, templateId, emailAddress }, 'failed to dispatch email after retries');
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			throw new Error(`email failed to dispatch: ${errorMessage}`, { cause: error });
+		}
+	}
+
+	/**
+	 * Replicates sendToMany, but returns the audit data for successful sends.
+	 */
+	protected async sendToManyWithAudit(
+		emailAddresses: string[],
+		sendFunction: (address: string) => Promise<Omit<AuditData, 'email'>>,
+		errorMessage: string
+	): Promise<AuditData[]> {
+		if (emailAddresses.length === 0) {
+			throw new Error('No email addresses provided to send notification');
+		}
+
+		const results = await Promise.allSettled(emailAddresses.map((address) => sendFunction(address)));
+
+		let atLeastOneFailed = false;
+		const successfulEmails: AuditData[] = [];
+
+		results.forEach((result, index) => {
+			if (result.status === 'rejected') {
+				atLeastOneFailed = true;
+				const address = emailAddresses[index];
+				this.logger.error({ error: result.reason, emailAddress: address }, errorMessage);
+			} else {
+				successfulEmails.push({
+					email: emailAddresses[index],
+					notifyId: result.value.notifyId,
+					body: result.value.body,
+					subject: result.value.subject
+				});
+			}
+		});
+
+		if (atLeastOneFailed) {
+			throw new Error(errorMessage);
+		}
+
+		return successfulEmails;
 	}
 }
