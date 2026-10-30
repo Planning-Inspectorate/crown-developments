@@ -4,6 +4,7 @@ import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-grap
 import { SharePointDrive } from '@pins/crowndev-sharepoint/src/sharepoint/drives/drives.js';
 import { initCrownGovNotify } from '@pins/crowndev-lib/govnotify/crown/index.ts';
 import { Service } from '@pins/crowndev-lib/app/base-service.ts';
+import { publicAssetOptions } from '@pins/crowndev-lib/util/public-asset-options.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -41,6 +42,10 @@ export class PortalService extends Service {
 
 	get appName() {
 		return this.#config.appName;
+	}
+
+	get cacheControl() {
+		return publicAssetOptions(super.cacheControl);
 	}
 
 	get appHostname() {
