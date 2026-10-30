@@ -81,7 +81,8 @@ variable "apps_config" {
     s62a_gov_notify = object({
       disabled = bool
       templates = object({
-        test_template_id = string
+        test_template_id    = string
+        pre_ack_template_id = string
       })
     })
 

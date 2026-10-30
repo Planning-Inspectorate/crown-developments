@@ -94,9 +94,10 @@ module "app_manage" {
     GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID      = var.apps_config.gov_notify.templates.lpa_quest_sent_template_id
 
     # s62a gov notify
-    S62A_GOV_NOTIFY_DISABLED         = var.apps_config.s62a_gov_notify.disabled
-    S62A_GOV_NOTIFY_API_KEY          = local.key_vault_refs["s62a-gov-notify-api-key"]
-    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.test_template_id
+    S62A_GOV_NOTIFY_DISABLED            = var.apps_config.s62a_gov_notify.disabled
+    S62A_GOV_NOTIFY_API_KEY             = local.key_vault_refs["s62a-gov-notify-api-key"]
+    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID    = var.apps_config.s62a_gov_notify.templates.test_template_id
+    S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
 
     #feature flags
     FEATURE_FLAG_S62A_MANAGE_NOT_LIVE           = var.apps_config.feature_flags.s62a_manage_not_live

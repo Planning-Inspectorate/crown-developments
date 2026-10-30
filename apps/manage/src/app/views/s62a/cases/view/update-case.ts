@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import type { SaveDataFn } from '@planning-inspectorate/dynamic-forms';
+import { BOOLEAN_OPTIONS, type SaveDataFn } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '#service';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
@@ -29,12 +29,15 @@ import {
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
+import { S62aNotificationService, sendNotificationAndUpdateFlag } from '../util/notification-service.ts';
+import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 
 /**
  * Save handler for S62A Case updates.
  * Takes the raw form answers, maps them to Prisma format, and updates the database.
  */
 export function buildS62aUpdateCase(service: ManageService, clearAnswer = false): SaveDataFn {
+	const notificationService = new S62aNotificationService(service.s62aNotifyClient, service.logger);
 	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
@@ -157,6 +160,8 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				entries: [resolvePreApplicationAdviceFolderAudit(id, getAuditUserId(userId), folderSyncResult)],
 				logContext: { caseId: id }
 			});
+
+			handleUpdateEmails(answers, previousCase, notificationService, service, id);
 		}
 	};
 }
@@ -231,4 +236,57 @@ async function recordAuditEntries(
 		// The case data has already been saved successfully above.
 		logger.error({ error, caseId }, 'Failed to record audit events');
 	}
+}
+
+/**
+ * Wrapper for all the update case emails.
+ *
+ * Note: we do not send emails for anything that
+ * is a live migrated case (publishedToLegacyGovUk === true)
+ */
+function handleUpdateEmails(
+	answers: UpdateCaseAnswers,
+	previousCase: Record<string, unknown>,
+	notificationService: S62aNotificationService,
+	service: ManageService,
+	id: string
+): void {
+	if (previousCase.publishedToLegacyGovUk) return;
+
+	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id);
+}
+
+/**
+ * Determines whether to begin the process of sending the acknowledgePreNotificationEmail.
+ */
+export function acknowledgePreNotificationEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: Record<string, unknown>,
+	notificationService: S62aNotificationService,
+	service: ManageService,
+	id: string,
+	sendNotificationFn = sendNotificationAndUpdateFlag
+) {
+	const acknowledgePreNotificationEmailSent = previousCase.acknowledgePreNotificationEmailSent === BOOLEAN_OPTIONS.YES;
+
+	if (!answers.notificationReceivedDate || acknowledgePreNotificationEmailSent) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as S62aCreateCaseAnswers;
+
+	const emailPromise = notificationService.processAcknowledgementPreNotification(
+		mergedAnswers,
+		previousCase.reference as string
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service.db,
+		id,
+		'acknowledgePreNotificationEmailSent',
+		service.logger,
+		'Send Acknowledgement Pre-notification (Update)'
+	);
 }

@@ -73,7 +73,8 @@ apps_config = {
   s62a_gov_notify = {
     disabled = false
     templates = {
-      test_template_id = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
+      test_template_id    = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
+      pre_ack_template_id = "37da3f28-9fd7-4801-b6e5-c4950552697e"
     }
   }
 

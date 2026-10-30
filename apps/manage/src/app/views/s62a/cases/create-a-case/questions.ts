@@ -411,7 +411,8 @@ export function getQuestions(
 			hint: 'For example, 27 3 2007',
 			fieldName: 'notificationReceivedDate',
 			url: 'date-notification-of-intent-submitted',
-			validators: [new DateValidator('notification of intent date', { optional: true })]
+			validators: [new DateValidator('notification of intent date', { optional: true })],
+			viewData: { warningMessage: 'Adding a date will send a notification to the applicant/agent' }
 		},
 		expectedSubmissionDate: {
 			type: COMPONENT_TYPES.DATE,
