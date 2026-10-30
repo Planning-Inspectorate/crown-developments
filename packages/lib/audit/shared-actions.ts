@@ -42,7 +42,10 @@ export const SHARED_AUDIT_ACTIONS = {
 	// Folders
 	FOLDER_CREATED: 'FOLDER_CREATED',
 	FOLDER_DELETED: 'FOLDER_DELETED',
-	FOLDER_RENAMED: 'FOLDER_RENAMED'
+	FOLDER_RENAMED: 'FOLDER_RENAMED',
+
+	// Emails
+	EMAIL_SENT: 'EMAIL_SENT'
 } as const;
 
 export type SharedAuditAction = (typeof SHARED_AUDIT_ACTIONS)[keyof typeof SHARED_AUDIT_ACTIONS];
@@ -98,7 +101,10 @@ export const SHARED_AUDIT_TEMPLATES: Record<SharedAuditAction, string> = {
 	// Folders
 	[SHARED_AUDIT_ACTIONS.FOLDER_CREATED]: '{folderName} was created',
 	[SHARED_AUDIT_ACTIONS.FOLDER_DELETED]: '{folderName} was removed',
-	[SHARED_AUDIT_ACTIONS.FOLDER_RENAMED]: '{oldFolderName} was renamed from {oldFolderName} to {folderName}'
+	[SHARED_AUDIT_ACTIONS.FOLDER_RENAMED]: '{oldFolderName} was renamed from {oldFolderName} to {folderName}',
+
+	// Emails
+	[SHARED_AUDIT_ACTIONS.EMAIL_SENT]: '{emailSubject} sent to {email}'
 };
 
 /**
