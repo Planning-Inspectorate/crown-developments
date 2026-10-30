@@ -197,16 +197,19 @@ export function buildGetJourneyMiddleware(service: ManageService, isQuestionView
 		res.locals.journeyResponse = new JourneyResponse(JOURNEY_ID, 'ref', finalAnswers);
 		res.locals.journey = createJourney(questions, res.locals.journeyResponse, req);
 
+		// The tab's page. Not req.baseUrl, which is the case for questions on a tab with one section
+		const tabUrl = `/s62a/cases/${id}/${currentTab}`;
+
 		// set a back link to the case details page when viewing a section/question not within a manage list question
 		if (section && !manageListQuestion) {
-			res.locals.backLinkUrl = req.baseUrl;
+			res.locals.backLinkUrl = tabUrl;
 		}
 
 		// set a back link to the case details page when on an edit page
 		if (!res.locals.backLinkUrl) {
 			const originalUrl = typeof req.originalUrl === 'string' ? req.originalUrl : '';
 			if (/\/edit\/?$/.test(originalUrl)) {
-				res.locals.backLinkUrl = req.baseUrl;
+				res.locals.backLinkUrl = tabUrl;
 			}
 		}
 
@@ -325,8 +328,8 @@ export function applicantContactPromptMessages(
 	}
 
 	const contacts = answers.manageApplicantContactDetails ?? [];
-	// /s62a/cases/:id/:tab/:section/:question - the Contacts tab and its section are both 'contacts'
-	const contactsListUrl = `/s62a/cases/${id}/${VIEW_TAB_ID.CONTACTS}/contacts/check-applicant-contact-details`;
+	// Questions on a tab with one section sit under the case: /s62a/cases/:id/:section/:question
+	const contactsListUrl = `/s62a/cases/${id}/${VIEW_TAB_ID.CONTACTS}/check-applicant-contact-details`;
 
 	return (answers.manageApplicantOrganisations ?? [])
 		.filter(
