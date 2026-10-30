@@ -25,8 +25,8 @@ export interface TableColumn {
 	 * `formatDefault()` to fall back to the standard rendering.
 	 */
 	format?: (value: unknown, rowData: Record<string, unknown>, params: ColumnFormatContext) => string;
-	/** Defaults to sorting on the rendered cell content */
-	sortType?: 'date' | 'string' | 'number';
+	/** Defaults to sorting on the rendered cell content; linked date questions sort chronologically */
+	sortType?: 'string' | 'number';
 	/** Hides values from summary list if toggled */
 	hideInSummary?: boolean;
 }
@@ -102,7 +102,7 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 				html: isFirst && inlineMessage ? `${cellContent || '-'}${this.errorHtml(inlineMessage)}` : cellContent || '-',
 				classes: `govuk-table__cell${isFirst && errorMessage ? ' pins-table__cell--error' : ''}`,
 				attributes: {
-					'data-sort-value': this.handleSorting(cellContent, col, linkedQuestion, item[col.fieldName]),
+					'data-sort-value': this.handleSorting(cellContent, col, linkedQuestion),
 					...(isFirst && itemId ? { id: itemId, tabindex: '-1' } : {})
 				}
 			};
@@ -123,23 +123,14 @@ export default class DefinedColumnsTableQuestion extends TableManageListQuestion
 	 * Sorts on the rendered content, unless the value is a date, in which case
 	 * it needs converting to a timestamp so the order is chronological.
 	 */
-	handleSorting(
-		cellContent: string,
-		col: TableColumn,
-		linkedQuestion: Question | undefined,
-		rawValue: unknown
-	): string | number {
-		if (col.sortType === 'date' && rawValue) {
-			return new Date(rawValue as string | Date).getTime();
-		}
-
+	handleSorting(cellContent: string, col: TableColumn, linkedQuestion: Question | undefined): string {
 		if (col.sortType === 'number') {
 			const numeric = parseFloat(cellContent);
-			return Number.isNaN(numeric) ? cellContent : numeric;
+			return Number.isNaN(numeric) ? cellContent : numeric.toString();
 		}
 
 		if (linkedQuestion instanceof DateQuestion) {
-			return new Date(cellContent).getTime();
+			return new Date(cellContent).getTime().toString();
 		}
 
 		return cellContent;
