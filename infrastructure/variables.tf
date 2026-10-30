@@ -23,7 +23,9 @@ variable "apps_config" {
       group_application_access = string
     })
 
-    contact_email = string
+    contact_email                = string
+    s62a_major_contact_email     = string
+    s62a_non_major_contact_email = string
 
     entra = object({
       group_ids = object({
@@ -81,7 +83,8 @@ variable "apps_config" {
     s62a_gov_notify = object({
       disabled = bool
       templates = object({
-        test_template_id = string
+        test_template_id    = string
+        pre_ack_template_id = string
       })
     })
 

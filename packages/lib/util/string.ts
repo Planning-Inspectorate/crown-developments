@@ -194,3 +194,16 @@ export function getCountString(count: number, config: CountStringConfig): string
 	if (count === 1) return config.oneItem;
 	return count === 0 && config.zeroItems ? config.zeroItems : config.multipleItems(count);
 }
+
+/**
+ * Returns a value as trimmed text, or undefined if it's empty.
+ * For text people enter (names, figures). Only strings and numbers are
+ * expected; anything else is treated as empty.
+ */
+export function toText(value: unknown): string | undefined {
+	if (typeof value === 'number') return Number.isFinite(value) ? String(value) : undefined;
+	if (typeof value !== 'string') return undefined;
+
+	const text = value.trim();
+	return text === '' ? undefined : text;
+}

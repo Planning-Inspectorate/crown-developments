@@ -11,7 +11,8 @@ export interface Config extends BaseConfig {
 		isLive: boolean;
 	};
 	s62aDevContactInfo: {
-		email: string | undefined;
+		majorEmail: string | undefined;
+		nonMajorEmail: string | undefined;
 	};
 	s62aGovNotify: {
 		disabled: boolean;
@@ -52,7 +53,6 @@ export function loadConfig(): Config {
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRETS,
 		SQL_CONNECTION_STRING,
-		S62A_DEV_CONTACT_EMAIL,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
 		FEATURE_FLAG_RETRY_NOT_LIVE,
 		BLOB_STORE_DISABLED,
@@ -61,7 +61,9 @@ export function loadConfig(): Config {
 		BLOB_STORE_CONNECTION_STRING,
 		S62A_GOV_NOTIFY_DISABLED,
 		S62A_GOV_NOTIFY_API_KEY,
-		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
+		S62A_MAJOR_CONTACT_EMAIL,
+		S62A_NON_MAJOR_CONTACT_EMAIL
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -135,7 +137,8 @@ export function loadConfig(): Config {
 			secret: secrets
 		},
 		s62aDevContactInfo: {
-			email: S62A_DEV_CONTACT_EMAIL
+			majorEmail: S62A_MAJOR_CONTACT_EMAIL,
+			nonMajorEmail: S62A_NON_MAJOR_CONTACT_EMAIL
 		},
 		// the static directory to serve assets from (images, css, etc..)
 		staticDir: buildConfig.staticDir,

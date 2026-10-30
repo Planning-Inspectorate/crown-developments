@@ -1,7 +1,7 @@
 {% from "govuk/components/button/macro.njk" import govukButton %}
 {% from "govuk/components/details/macro.njk" import govukDetails %}
 
-{% macro renderHaveYourSayInformation(haveYourSayStatus, s62aFields) %}
+{% macro renderHaveYourSayInformation(haveYourSayStatus, s62aFields, contactEmail) %}
     <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
     
     {% if haveYourSayStatus === 'open' %}
@@ -9,9 +9,6 @@
         <p class="govuk-body">A written representation includes your comment and any attachments. Planning inspectors will consider these before they make a decision on an application.</p>
         <p class="govuk-body">We will publish your name and comments on this website.</p>
         <p class="govuk-body">You must submit your comment by {{ s62aFields.representationsPeriodEndDateTime }}.</p>
-        
-        {# Determine the correct email based on whether it is a major case #}
-        {% set contactEmail = 'section62a@planninginspectorate.gov.uk' if s62aFields.isMajor else 'section62anonmajor@planninginspectorate.gov.uk' %}
         
         {% set detailsHtml %}
             <p class="govuk-body">You can also submit a written representation by email, post or in person.</p>

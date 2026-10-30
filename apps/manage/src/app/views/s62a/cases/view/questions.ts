@@ -207,6 +207,10 @@ export function getQuestions(
 
 	const floorspace = floorspaceQuestions(isQuestionView);
 
+	// Show the warning if the email hasn't been sent yet (only for non-migrated cases)
+	const showNotificationReceivedDateWarningMessage =
+		!answers?.publishedToLegacyGovUk && answers?.acknowledgePreNotificationEmailSent !== BOOLEAN_OPTIONS.YES;
+
 	const questions = {
 		reference: {
 			type: COMPONENT_TYPES.SINGLE_LINE_INPUT,
@@ -648,7 +652,10 @@ export function getQuestions(
 						type: 'submit',
 						formaction: 'notification-received/remove'
 					}
-				]
+				],
+				...(showNotificationReceivedDateWarningMessage
+					? { warningMessage: 'Adding a date will send a notification to the applicant/agent' }
+					: {})
 			}
 		},
 		applicationReceivedDate: {

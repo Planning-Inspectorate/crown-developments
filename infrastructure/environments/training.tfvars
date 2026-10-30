@@ -14,7 +14,9 @@ apps_config = {
     group_application_access = "409896aa-b295-4992-9ead-c580b64d7a6c"
   }
 
-  contact_email = "not.real@fake.example.com"
+  contact_email                = "not.real@fake.example.com"
+  s62a_major_contact_email     = "s62a.major@fake.example.com"
+  s62a_non_major_contact_email = "s62a.non.major@fake.example.com"
 
   entra = {
     group_ids = {
@@ -73,7 +75,8 @@ apps_config = {
   s62a_gov_notify = {
     disabled = false
     templates = {
-      test_template_id = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
+      test_template_id    = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
+      pre_ack_template_id = "37da3f28-9fd7-4801-b6e5-c4950552697e"
     }
   }
 

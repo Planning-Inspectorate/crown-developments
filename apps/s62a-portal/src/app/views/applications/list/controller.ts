@@ -61,7 +61,7 @@ export function buildCaseListPage(service: S62APortalService): AsyncRequestHandl
 		logger.info(`S62A development list page: ${s62aDevelopments.length} case(s) fetched`);
 
 		const s62aDevelopmentsViewModels: S62ADevelopmentExtendedView[] = s62aDevelopments.map((s62aDevelopment) =>
-			mapDevelopmentToViewModel(s62aDevelopment, service.contactEmail, s62aViewFormattingFunction)
+			mapDevelopmentToViewModel(s62aDevelopment, service.majorContactEmail, s62aViewFormattingFunction)
 		);
 
 		const { totalPages, resultsStartNumber, resultsEndNumber } = getPageData(

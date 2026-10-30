@@ -24,8 +24,12 @@ export class S62APortalService extends Service {
 		this.s62aNotifyClient = initS62aGovNotify(config.s62aGovNotify, this.logger);
 	}
 
-	get contactEmail() {
-		return this.#config.s62aDevContactInfo?.email;
+	get majorContactEmail() {
+		return this.#config.s62aDevContactInfo?.majorEmail;
+	}
+
+	get nonMajorContactEmail() {
+		return this.#config.s62aDevContactInfo?.nonMajorEmail;
 	}
 
 	get isLive() {

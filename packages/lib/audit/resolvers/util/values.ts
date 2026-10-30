@@ -1,21 +1,10 @@
+import { toText } from '../../../util/string.ts';
+
 /**
  * Helpers for turning raw answer and view model values into text for the
  * audit trail. Answers from the form are usually strings; the view model
  * often holds the same values as numbers.
  */
-
-/**
- * Returns a value as trimmed text, or undefined if it's empty.
- * For text people enter (names, figures). Only strings and numbers are
- * expected; anything else is treated as empty.
- */
-export function toText(value: unknown): string | undefined {
-	if (typeof value === 'number') return Number.isFinite(value) ? String(value) : undefined;
-	if (typeof value !== 'string') return undefined;
-
-	const text = value.trim();
-	return text === '' ? undefined : text;
-}
 
 /**
  * Like toText, but for numeric fields: numeric text is normalised, so the
@@ -70,3 +59,8 @@ export function lookupDisplayName(displayNames: ReadonlyMap<string, string>, val
 export function lookupDisplayNameOrDash(displayNames: ReadonlyMap<string, string>, value: unknown): string {
 	return lookupDisplayName(displayNames, value) ?? '-';
 }
+
+/**
+ * To maintain compatibility as this function is called in dozens of places across the repo.
+ */
+export { toText };

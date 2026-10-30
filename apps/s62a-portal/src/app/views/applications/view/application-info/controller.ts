@@ -79,6 +79,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 
 		const stagesItems = buildApplicationStages(s62aCase);
 
+		const contactEmail = s62aFields.isMajor ? service.majorContactEmail : service.nonMajorContactEmail;
+
 		return res.render('views/applications/view/application-info/view.njk', {
 			pageCaption: reference,
 			pageTitle: 'Application information',
@@ -93,7 +95,8 @@ export function buildApplicationInformationPage(service: S62APortalService): Asy
 			haveYourSayStatus: getHaveYourSayStatus(haveYourSayPeriod, representationsPublishDate),
 			currentStage: stagesItems.getCurrentStage(),
 			applicationStages: stagesItems.stages,
-			haveYourSayDeadline: getHaveYourSayDeadline(haveYourSayPeriod)
+			haveYourSayDeadline: getHaveYourSayDeadline(haveYourSayPeriod),
+			contactEmail
 		});
 	};
 }

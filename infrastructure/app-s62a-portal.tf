@@ -88,7 +88,9 @@ module "app_s62a_portal" {
     S62A_GOV_NOTIFY_API_KEY          = local.key_vault_refs["s62a-gov-notify-api-key"] # todo check this is correct
     S62A_GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.test_template_id
 
-    CROWN_DEV_CONTACT_EMAIL = var.apps_config.contact_email
+    CROWN_DEV_CONTACT_EMAIL      = var.apps_config.contact_email
+    S62A_MAJOR_CONTACT_EMAIL     = var.apps_config.s62a_major_contact_email
+    S62A_NON_MAJOR_CONTACT_EMAIL = var.apps_config.s62a_non_major_contact_email
 
     #feature flags
     FEATURE_FLAG_S62A_PORTAL_NOT_LIVE      = var.apps_config.feature_flags.s62a_portal_not_live
