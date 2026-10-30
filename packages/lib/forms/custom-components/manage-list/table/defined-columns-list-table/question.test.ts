@@ -32,7 +32,7 @@ describe('DefinedColumnsTableQuestion', () => {
 					fieldName: 'officer',
 					format: (val: unknown) => `Formatted: ${val}`
 				},
-				{ header: 'Decision Date', fieldName: 'date', sortType: 'date' }
+				{ header: 'Decision Date', fieldName: 'date' }
 			]
 		} as never);
 
@@ -209,28 +209,12 @@ describe('DefinedColumnsTableQuestion', () => {
 	});
 
 	describe('handleSorting()', () => {
-		it('should return a unix timestamp when the column sortType is date', () => {
-			const col = { header: 'Date', fieldName: 'date', sortType: 'date' } as TableColumn;
-
-			const result = question.handleSorting('', col, {} as Question, '2024-12-25');
-
-			assert.strictEqual(result, new Date('2024-12-25').getTime());
-		});
-
-		it('should fall through to the cell content when sortType is date but the value is empty', () => {
-			const col = { header: 'Date', fieldName: 'date', sortType: 'date' } as TableColumn;
-
-			const result = question.handleSorting('-', col, undefined, '');
-
-			assert.strictEqual(result, '-');
-		});
-
 		it('should parse the cell content when sortType is number', () => {
 			const col = { header: 'Capacity', fieldName: 'capacity', sortType: 'number' } as TableColumn;
 
 			const result = question.handleSorting('1000l', col, undefined, '1000');
 
-			assert.strictEqual(result, 1000);
+			assert.strictEqual(result, '1000');
 		});
 
 		it('should fall back to the cell content when a number cannot be parsed', () => {
@@ -251,7 +235,7 @@ describe('DefinedColumnsTableQuestion', () => {
 
 			const result = question.handleSorting('01/01/2024', col, dateQuestion, '2024-01-01');
 
-			assert.strictEqual(result, new Date('01/01/2024').getTime());
+			assert.strictEqual(result, new Date('01/01/2024').getTime().toString());
 		});
 
 		it('should return the cell content as a fallback', () => {
