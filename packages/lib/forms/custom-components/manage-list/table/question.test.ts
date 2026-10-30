@@ -125,7 +125,7 @@ describe('TableManageListQuestion', () => {
 			const result = tableQuestion.createCell(dateQuestion, { dob: '1990-01-01' });
 
 			assert.strictEqual(result.html, '1990-01-01');
-			assert.strictEqual(result.attributes?.['data-sort-value'], new Date('1990-01-01').getTime());
+			assert.strictEqual(result.attributes?.['data-sort-value'], new Date('1990-01-01').getTime().toString());
 		});
 	});
 

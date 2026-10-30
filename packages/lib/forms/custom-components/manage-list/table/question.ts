@@ -229,7 +229,7 @@ export default class TableManageListQuestion extends ManageListQuestion {
 			.join(', ');
 
 		// Most things sort by their cell content, but dates need converting to a timestamp
-		const sortValue = question instanceof DateQuestion ? new Date(cellContent).getTime() : cellContent;
+		const sortValue = question instanceof DateQuestion ? new Date(cellContent).getTime().toString() : cellContent;
 
 		return {
 			html: cellContent || '-',
