@@ -8,6 +8,8 @@ import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
+import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 type S62aRepresentationDocument = Prisma.BlobRepresentationDocumentGetPayload<{
 	include: {
@@ -29,11 +31,33 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 	/**
 	 * Grabs the data like name, size etc. from the documents needed
 	 */
-	protected async fetchDocumentsMetadata(documentIds: string[]): Promise<S62aRepresentationDocument[] | undefined> {
+	protected async fetchDocumentsMetadata(
+		documentIds: string[],
+		req?: Request
+	): Promise<S62aRepresentationDocument[] | undefined> {
+		if (!req) return;
+
+		const applicationId = getStringParam(req.params, 'applicationId');
+		const representationReference = getStringParam(req.params, 'representationReference');
+		if (!isValidUuidFormat(applicationId) || !isValidUniqueReference(representationReference)) return;
+
 		try {
 			const documents = await this.db.blobRepresentationDocument.findMany({
 				where: {
-					id: { in: documentIds }
+					id: { in: documentIds },
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					S62aRepresentation: {
+						is: {
+							reference: representationReference,
+							applicationId,
+							statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+							Application: {
+								is: {
+									representationsPublishDate: { lte: new Date() }
+								}
+							}
+						}
+					}
 				},
 				include: {
 					S62aRepresentation: {
@@ -47,7 +71,15 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 			});
 			if (!documents || documents.length === 0) return;
 
-			return documents;
+			return documents.map((document) =>
+				document.redactedBlobName
+					? {
+							...document,
+							blobName: document.redactedBlobName,
+							fileName: document.redactedFileName ?? document.fileName
+						}
+					: document
+			);
 		} catch (error) {
 			wrapPrismaError({
 				error,

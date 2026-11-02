@@ -44,9 +44,6 @@ export function buildWrittenRepresentationsReadMorePage(
 		const applicationStatus = getApplicationStatus(development.withdrawnDate);
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
-		console.log('Document Debug');
-		console.log(documents);
-
 		res.render('read-more/view.njk', {
 			pageCaption: development.reference,
 			links: applicationLinks(
