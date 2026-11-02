@@ -33,7 +33,7 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 	 */
 	protected async fetchDocumentsMetadata(
 		documentIds: string[],
-		req?: Request
+		req: Request
 	): Promise<S62aRepresentationDocument[] | undefined> {
 		if (!req) return;
 
@@ -71,15 +71,7 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 			});
 			if (!documents || documents.length === 0) return;
 
-			return documents.map((document) =>
-				document.redactedBlobName
-					? {
-							...document,
-							blobName: document.redactedBlobName,
-							fileName: document.redactedFileName ?? document.fileName
-						}
-					: document
-			);
+			return documents;
 		} catch (error) {
 			wrapPrismaError({
 				error,
