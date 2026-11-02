@@ -9,6 +9,12 @@ import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.t
 import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { ManageService } from '#service';
 import { fireAndForget } from '@pins/crowndev-lib/util/retry.ts';
+import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
+import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
+import type { Request } from 'express';
+import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
@@ -30,29 +36,36 @@ export class S62aNotificationService {
 	public async processAcknowledgementPreNotification(
 		answers: S62aCreateCaseAnswers,
 		reference: string
-	): Promise<boolean> {
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
 		if (!answers.notificationReceivedDate) {
-			return false;
+			return { wasSent: false };
 		}
 
 		if (!this.notifyClient) {
 			this.logger.warn('S62A Gov Notify is not enabled...');
-			return false;
+			return { wasSent: false };
 		}
 
 		const notificationContacts = this.extractNotificationContacts(answers);
 		if (!notificationContacts.length) {
 			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
-			return false;
+			return { wasSent: false };
 		}
 
 		const s62aEmail = answers.applicationClassification === MAJOR_OR_NON_MAJOR_ID.MAJOR ? MAJOR_EMAIL : NON_MAJOR_EMAIL;
 
 		try {
-			await this.notifyClient.sendAcknowledgePreNotificationToMany(notificationContacts, { reference, s62aEmail });
+			const auditData = await this.notifyClient.sendAcknowledgePreNotificationToMany(notificationContacts, {
+				reference,
+				s62aEmail
+			});
+
 			this.logger.info({ reference }, 'Acknowledgement pre-notification emails dispatched successfully');
 
-			return true;
+			return {
+				wasSent: true,
+				auditData
+			};
 		} catch (error) {
 			this.logger.error({ error, reference }, 'Error dispatching email');
 			throw new Error('Error encountered during email notification dispatch', { cause: error });
@@ -104,23 +117,42 @@ export class S62aNotificationService {
  * Completely non-blocking and event-loop safe.
  */
 export function sendNotificationAndUpdateFlag(
-	notificationPromise: Promise<boolean>,
-	db: ManageService['db'],
+	notificationPromise: Promise<{ wasSent: boolean; auditData?: AuditData[] }>,
+	service: ManageService,
 	caseId: string,
 	flagField: 'acknowledgePreNotificationEmailSent',
-	logger: Logger,
-	operationName: string
+	operationName: string,
+	req: Request
 ): void {
+	const { db, logger } = service;
 	const operation = async () => {
 		try {
-			const wasSent = await notificationPromise;
+			const result = await notificationPromise;
 
-			if (wasSent) {
+			if (result.wasSent) {
 				await db.s62aCase.update({
 					where: { id: caseId },
 					data: { [flagField]: true }
 				});
-				logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and flag updated successfully');
+
+				if (result.auditData && result.auditData.length > 0) {
+					await recordAuditSafely({
+						service,
+						dataModel: CASE_DATA_MODEL.S62A,
+						entries: result.auditData.map((auditData) => ({
+							caseId,
+							userId: getAuditUserId(req.session?.account?.localAccountId),
+							action: SHARED_AUDIT_ACTIONS.EMAIL_SENT,
+							metadata: {
+								emailBody: auditData.body,
+								email: auditData.email
+							}
+						})),
+						logContext: { caseId }
+					});
+				}
+
+				logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and audited successfully');
 			}
 		} catch (error) {
 			logger.error({ error, caseId, operation: operationName }, 'Background notification failed');

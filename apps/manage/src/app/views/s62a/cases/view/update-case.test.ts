@@ -451,12 +451,21 @@ describe('acknowledgePreNotificationEmail', () => {
 			applicationPhaseId: 'APP'
 		};
 
+		const mockReq = {
+			session: {
+				account: {
+					localAccountId: 'user-123'
+				}
+			}
+		} as any;
+
 		acknowledgePreNotificationEmail(
 			answers as any,
 			previousCase,
 			mockNotificationService,
 			mockService,
 			'case-123',
+			mockReq,
 			mockSendFn
 		);
 
@@ -471,10 +480,10 @@ describe('acknowledgePreNotificationEmail', () => {
 		const sendArgs = mockSendFn.mock.calls[0].arguments;
 
 		assert.ok(sendArgs[0] instanceof Promise);
-		assert.strictEqual(sendArgs[1], mockService.db);
+		assert.strictEqual(sendArgs[1], mockService);
 		assert.strictEqual(sendArgs[2], 'case-123');
 		assert.strictEqual(sendArgs[3], 'acknowledgePreNotificationEmailSent');
-		assert.strictEqual(sendArgs[4], mockService.logger);
-		assert.strictEqual(sendArgs[5], 'Send Acknowledgement Pre-notification (Update)');
+		assert.strictEqual(sendArgs[4], 'Send Acknowledgement Pre-notification (Update)');
+		assert.strictEqual(sendArgs[5], mockReq);
 	});
 });

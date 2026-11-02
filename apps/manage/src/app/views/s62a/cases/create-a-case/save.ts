@@ -108,11 +108,11 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 
 		sendNotificationAndUpdateFlag(
 			emailPromise,
-			db,
+			service,
 			id,
 			'acknowledgePreNotificationEmailSent',
-			logger,
-			'Send Acknowledgement Pre-notification'
+			'Send Acknowledgement Pre-notification',
+			req
 		);
 
 		clearDataFromSession({
