@@ -83,8 +83,8 @@
 							{{ searchBar({
 								input: {
 									label: {
-										text: "Search written representations",
-										isSubheading: true
+										text: "Search written representations" if searchRepsLabel else " ",
+										isSubheading: true if searchRepsLabel
 									},
 									hint: {
 										text: "Search by keywords or by name of person or organisation who made the submission."

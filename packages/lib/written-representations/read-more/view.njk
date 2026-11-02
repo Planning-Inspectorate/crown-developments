@@ -64,9 +64,15 @@
 					{% for document in documents %}
 						<li>
 							<a class="govuk-link"
-								 href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}"
-								 target="_blank" rel="noreferrer">
-								({{ document.type }}, {{ document.size }}) (opens in new window)
+								{% if usesBlobStorage == true %}
+									href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}"
+									target="_blank" rel="noreferrer">
+									{{ document.name }} ({{ document.type }}, {{ document.size }}) (opens in new tab)
+								{% else %}
+									href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}"
+									target="_blank" rel="noreferrer">
+									({{ document.type }}, {{ document.size }}) (opens in new window)
+								{% endif %}
 							</a>
 						</li>
 					{% endfor %}
