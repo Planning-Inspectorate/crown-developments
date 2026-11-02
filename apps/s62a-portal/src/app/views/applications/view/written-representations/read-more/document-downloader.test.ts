@@ -30,7 +30,8 @@ describe('DocumentDownloader', () => {
 
 		mockReq = {
 			params: {
-				applicationId: 'case-123'
+				applicationId: '5f3e8b1a-2d4c-4f6a-9b8c-1d2e3f4a5b6c',
+				representationReference: 'AAAAA-BBBBB'
 			}
 		};
 
@@ -42,10 +43,12 @@ describe('DocumentDownloader', () => {
 			const mockDocs = [
 				{
 					id: 'doc-1',
+					redactedBlobName: null,
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				},
 				{
 					id: 'doc-2',
+					redactedBlobName: null,
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				}
 			];
@@ -53,13 +56,29 @@ describe('DocumentDownloader', () => {
 
 			const result = await (downloader as any).fetchDocumentsMetadata(['doc-1', 'doc-2'], mockReq as Request);
 
-			assert.strictEqual(result, mockDocs);
+			assert.deepStrictEqual(result, mockDocs);
 
 			const calls = mockService.db.blobRepresentationDocument.findMany.mock.calls;
 			assert.strictEqual(calls.length, 1);
+			const query = calls[0].arguments[0];
+			const publishDate = query.where.S62aRepresentation.is.Application.is.representationsPublishDate.lte;
+			assert.ok(publishDate instanceof Date);
 			assert.deepStrictEqual(calls[0].arguments[0], {
 				where: {
-					id: { in: ['doc-1', 'doc-2'] }
+					id: { in: ['doc-1', 'doc-2'] },
+					statusId: 'accepted',
+					S62aRepresentation: {
+						is: {
+							reference: 'AAAAA-BBBBB',
+							applicationId: '5f3e8b1a-2d4c-4f6a-9b8c-1d2e3f4a5b6c',
+							statusId: 'accepted',
+							Application: {
+								is: {
+									representationsPublishDate: { lte: publishDate }
+								}
+							}
+						}
+					}
 				},
 				include: {
 					S62aRepresentation: {
@@ -70,6 +89,25 @@ describe('DocumentDownloader', () => {
 						}
 					}
 				}
+			});
+		});
+
+		it('should use the redacted blob and filename when available', async () => {
+			const document = {
+				id: 'doc-1',
+				blobName: 'original-blob',
+				fileName: 'original.pdf',
+				redactedBlobName: 'redacted-blob',
+				redactedFileName: 'public-version.pdf'
+			};
+			mockService.db.blobRepresentationDocument.findMany.mock.mockImplementationOnce(() => Promise.resolve([document]));
+
+			const result = await (downloader as any).fetchDocumentsMetadata(['doc-1'], mockReq as Request);
+
+			assert.deepStrictEqual(result[0], {
+				...document,
+				blobName: 'redacted-blob',
+				fileName: 'public-version.pdf'
 			});
 		});
 

@@ -116,8 +116,6 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 			}
 		}
 
-		const usesBlobStorage: boolean = true;
-
 		return buildWrittenRepresentationsReadMorePage(
 			s62aCase,
 			representation,
@@ -125,7 +123,7 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 			false,
 			documents,
 			tabText,
-			usesBlobStorage
+			true
 		)(req, res);
 	};
 }
