@@ -6,7 +6,11 @@ import { applicationLinks } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { RepresentationWithContacts } from '@pins/crowndev-lib/written-representations/view-model.ts';
-import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.js';
+import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.d.ts';
+
+export type WrittenRepresentationDocumentViewModel = Pick<DocumentViewModel, 'id' | 'name' | 'size' | 'type'> & {
+	isPreview?: boolean;
+};
 
 type WrittenRepresentationsDevelopment = {
 	reference: string;
@@ -25,7 +29,7 @@ export function buildWrittenRepresentationsReadMorePage(
 	representation: RepresentationWithContacts,
 	representationReference: string,
 	displayApplicationUpdates: boolean,
-	documents: DocumentViewModel[] = [],
+	documents: WrittenRepresentationDocumentViewModel[] = [],
 	tabText?: Record<string, string>,
 	usesBlobStorage: boolean = false
 ): AsyncRequestHandler {

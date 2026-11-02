@@ -10,7 +10,7 @@ import { buildWrittenRepresentationsReadMorePage } from '@pins/crowndev-lib/writ
 import { isNowAfterStartDate } from '@planning-inspectorate/dynamic-forms';
 import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
-import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.js';
+import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.d.ts';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { tabText } from '../../view-model.ts';
 
@@ -110,8 +110,17 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 				documents = documentsToFetch.map((document) => ({
 					id: document.id,
 					name: document.redactedBlobName ? (document.redactedFileName ?? document.fileName) : document.fileName,
+					fileName: document.fileName,
+					fileType: document.mimeType,
 					size: bytesToUnit(Number(document.size), 0),
-					type: mapMimeTypeToDisplayName(document.mimeType)
+					type: mapMimeTypeToDisplayName(document.mimeType),
+					date: representation.submittedDate,
+					caseId: id,
+					caseReference: reference,
+					representationId: representation.id,
+					isPreview: ['image/png', 'image/jpeg', 'application/pdf', 'image/gif', 'image/bmp'].includes(
+						document.mimeType
+					)
 				}));
 			}
 		}
