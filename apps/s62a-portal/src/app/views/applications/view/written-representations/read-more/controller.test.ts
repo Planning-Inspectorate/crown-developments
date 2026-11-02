@@ -199,8 +199,32 @@ describe('S62A written representations read-more controller', () => {
 
 		const [, locals] = response.render.mock.calls[0].arguments;
 		assert.deepStrictEqual(locals.documents, [
-			{ id: 'document-1', name: 'public-version.pdf', size: '2 KB', type: 'PDF' },
-			{ id: 'document-2', name: 'notes.txt', size: '1 KB', type: 'text/plain' }
+			{
+				id: 'document-1',
+				name: 'public-version.pdf',
+				fileName: 'original.pdf',
+				fileType: 'application/pdf',
+				size: '2 KB',
+				type: 'PDF',
+				date: new Date('2025-01-15'),
+				caseId: applicationId,
+				caseReference: 'S62A/2025/0001',
+				representationId: 'representation-id',
+				isPreview: true
+			},
+			{
+				id: 'document-2',
+				name: 'notes.txt',
+				fileName: 'notes.txt',
+				fileType: 'text/plain',
+				size: '1 KB',
+				type: 'text/plain',
+				date: new Date('2025-01-15'),
+				caseId: applicationId,
+				caseReference: 'S62A/2025/0001',
+				representationId: 'representation-id',
+				isPreview: false
+			}
 		]);
 	});
 });

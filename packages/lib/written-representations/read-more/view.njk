@@ -65,7 +65,7 @@
 						<li>
 							<a class="govuk-link"
 								{% if usesBlobStorage == true %}
-									href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}"
+									href="{{ currentUrl }}/{{ representationViewModel.representationReference }}/{{ document.id }}{{ '?preview=true' if document.isPreview }}"
 									target="_blank" rel="noreferrer">
 									{{ document.name }} ({{ document.type }}, {{ document.size }}) (opens in new tab)
 								{% else %}
