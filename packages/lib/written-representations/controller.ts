@@ -28,7 +28,8 @@ export function buildWrittenRepresentationsPage(
 	hasSearch: boolean,
 	filterQueries: FilterQueryItem[],
 	errorSummary: ErrorSummaryItem[] | null,
-	dateErrors: ErrorSummaryItem[]
+	dateErrors: ErrorSummaryItem[],
+	searchRepsLabel: boolean = true
 ): AsyncRequestHandler {
 	return (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
@@ -87,7 +88,7 @@ export function buildWrittenRepresentationsPage(
 			queryParams: req.query,
 			clearQueryUrl: req.baseUrl,
 			searchValue: req.query?.searchCriteria || '',
-
+			searchRepsLabel: searchRepsLabel,
 			filters,
 			mobileFilters,
 			isMobileFilterOpen,

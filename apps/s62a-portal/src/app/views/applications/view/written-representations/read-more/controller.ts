@@ -12,6 +12,7 @@ import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.js';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
+import { tabText } from '../../view-model.ts';
 
 const representationSelect = {
 	id: true,
@@ -115,12 +116,16 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 			}
 		}
 
+		const usesBlobStorage: boolean = true;
+
 		return buildWrittenRepresentationsReadMorePage(
 			s62aCase,
 			representation,
 			representationReference,
 			false,
-			documents
+			documents,
+			tabText,
+			usesBlobStorage
 		)(req, res);
 	};
 }

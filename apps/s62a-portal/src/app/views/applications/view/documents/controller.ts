@@ -8,7 +8,7 @@ import {
 import type { S62APortalService } from '#service';
 import type { Request, RequestHandler, Response } from 'express';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
-import { s62aCaseToViewModel, type S62aCaseWithRelations } from '../view-model.ts';
+import { s62aCaseToViewModel, tabText, type S62aCaseWithRelations } from '../view-model.ts';
 import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { getFilterQueryItems, hasQueries } from '@pins/crowndev-lib/filters/filter-utils.ts';
@@ -245,7 +245,8 @@ export function buildApplicationDocumentsPage(service: S62APortalService): Reque
 				haveYourSayPeriod,
 				s62aCase.representationsPublishDate,
 				false,
-				s62aViewModel.applicationStatus
+				s62aViewModel.applicationStatus,
+				tabText
 			),
 			currentUrl: req.originalUrl,
 			queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,

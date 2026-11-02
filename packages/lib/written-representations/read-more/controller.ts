@@ -25,7 +25,9 @@ export function buildWrittenRepresentationsReadMorePage(
 	representation: RepresentationWithContacts,
 	representationReference: string,
 	displayApplicationUpdates: boolean,
-	documents: DocumentViewModel[] = []
+	documents: DocumentViewModel[] = [],
+	tabText?: Record<string, string>,
+	usesBlobStorage: boolean = false
 ): AsyncRequestHandler {
 	return (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
@@ -42,6 +44,9 @@ export function buildWrittenRepresentationsReadMorePage(
 		const applicationStatus = getApplicationStatus(development.withdrawnDate);
 		const writtenRepresentationsUrl = req.originalUrl?.replace(`/${representationReference}`, '');
 
+		console.log('Document Debug');
+		console.log(documents);
+
 		res.render('read-more/view.njk', {
 			pageCaption: development.reference,
 			links: applicationLinks(
@@ -50,13 +55,14 @@ export function buildWrittenRepresentationsReadMorePage(
 				representationsPublishDate,
 				displayApplicationUpdates,
 				applicationStatus,
-				undefined
+				tabText
 			),
 			currentUrl: writtenRepresentationsUrl,
 			backLinkText: 'Back to list',
 			backLinkUrl: writtenRepresentationsUrl,
 			representationViewModel: representationToViewModel(representation),
 			containsDistressingContent: development.containsDistressingContent || false,
+			usesBlobStorage,
 			documents
 		});
 		return Promise.resolve();

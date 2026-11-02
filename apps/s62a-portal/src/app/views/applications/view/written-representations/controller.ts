@@ -190,14 +190,18 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			};
 		});
 
+		const displayApplicationUpdates: boolean = false;
+		const repsTabAlwaysVisible: boolean = true;
+		const searchRepsLabel: boolean = false;
+
 		return buildWrittenRepresentationsPage(
 			representationCaseFields,
 			representations,
 			totalAcceptedRepresentations,
 			totalRepresentations,
 			tabText,
-			true,
-			true,
+			displayApplicationUpdates,
+			repsTabAlwaysVisible,
 			filters,
 			mobileFilters,
 			isMobileFilterOpen,
@@ -205,7 +209,8 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			hasSearch,
 			filterQueryItems,
 			errorSummary,
-			dateErrors
+			dateErrors,
+			searchRepsLabel
 		)(req, res);
 	};
 }
