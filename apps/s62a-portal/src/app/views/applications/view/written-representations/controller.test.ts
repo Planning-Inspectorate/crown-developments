@@ -137,12 +137,18 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.strictEqual(dbMock.s62aCase.findUnique.mock.callCount(), 1);
 		assert.strictEqual(dbMock.s62aRepresentation.count.mock.callCount(), 6);
 		const where = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
+
 		assert.deepStrictEqual(where.AND[0].OR[0], {
+			representedGroupName: { contains: 'Alex' }
+		});
+
+		assert.deepStrictEqual(where.AND[0].OR[1], {
 			AND: [
 				{ RepresentedContacts: { some: { firstName: { contains: 'Alex' } } } },
 				{ OR: [{ withholdName: false }, { withholdName: null }] }
 			]
 		});
+
 		assert.deepStrictEqual(where.categoryId.in, [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES]);
 		assert.strictEqual(where.containsAttachments, true);
 		assert.ok(where.submittedDate.gte instanceof Date);
@@ -229,14 +235,20 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 
 		const [, payload] = res.render.mock.calls[0].arguments;
 
-		assert.strictEqual(searchMatches.length, 7);
-		for (const match of searchMatches.slice(0, 5)) {
+		assert.strictEqual(searchMatches.length, 8);
+
+		assert.deepStrictEqual(searchMatches[0], { representedGroupName: { contains: 'Alex' } });
+
+		for (const match of searchMatches.slice(1, 6)) {
 			assert.deepStrictEqual(match.AND[1], notWithheld);
 		}
-		assert.deepStrictEqual(searchMatches[5], { commentRedacted: { contains: 'Alex' } });
-		assert.deepStrictEqual(searchMatches[6], {
+
+		assert.deepStrictEqual(searchMatches[6], { commentRedacted: { contains: 'Alex' } });
+
+		assert.deepStrictEqual(searchMatches[7], {
 			AND: [{ comment: { contains: 'Alex' } }, { commentRedacted: { equals: null } }]
 		});
+
 		assert.deepStrictEqual(countWhere.AND, findManyWhere.AND);
 		assert.strictEqual(payload.representations.length, 1);
 		assert.strictEqual(payload.representations[0].representationTitle, 'Interested Party');
