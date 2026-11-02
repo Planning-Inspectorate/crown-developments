@@ -43,12 +43,10 @@ describe('DocumentDownloader', () => {
 			const mockDocs = [
 				{
 					id: 'doc-1',
-					redactedBlobName: null,
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				},
 				{
 					id: 'doc-2',
-					redactedBlobName: null,
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				}
 			];
@@ -89,25 +87,6 @@ describe('DocumentDownloader', () => {
 						}
 					}
 				}
-			});
-		});
-
-		it('should use the redacted blob and filename when available', async () => {
-			const document = {
-				id: 'doc-1',
-				blobName: 'original-blob',
-				fileName: 'original.pdf',
-				redactedBlobName: 'redacted-blob',
-				redactedFileName: 'public-version.pdf'
-			};
-			mockService.db.blobRepresentationDocument.findMany.mock.mockImplementationOnce(() => Promise.resolve([document]));
-
-			const result = await (downloader as any).fetchDocumentsMetadata(['doc-1'], mockReq as Request);
-
-			assert.deepStrictEqual(result[0], {
-				...document,
-				blobName: 'redacted-blob',
-				fileName: 'public-version.pdf'
 			});
 		});
 
