@@ -13,7 +13,7 @@ import {
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 import { dateIsBeforeToday, dateIsAfterToday } from '@planning-inspectorate/dynamic-forms';
-import { formatDateTime } from '@pins/crowndev-lib/util/date-util.ts';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { ApplicationPublishStatus } from '@pins/crowndev-lib/util/applications.ts';
 
 export type WrittenRepresentationsCaseFields = {
@@ -100,8 +100,8 @@ export function getRepresentationMessages(
 			);
 		} else if (startDate && endDate) {
 			// B. Representation period not yet open & Representation period dates set in the future
-			const formattedStart = formatDateTime(startDate);
-			const formattedEnd = formatDateTime(endDate);
+			const formattedStart = formatInTimeZone(startDate, 'Europe/London', 'dd MMMM yyyy h:mmaaa');
+			const formattedEnd = formatInTimeZone(endDate, 'Europe/London', 'dd MMMM yyyy h:mmaaa');
 			messages.push(
 				`You can submit a written representation (also known as ‘Have your say’) from: ${formattedStart} - ${formattedEnd}`
 			);

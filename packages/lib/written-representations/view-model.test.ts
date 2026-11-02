@@ -17,11 +17,11 @@ describe('getRepresentationMessages', () => {
 		]);
 	});
 
-	it('should return message with formatted dates when representation period is in the future', (context) => {
+	it('should include the 12-hour time when representation period is in the future', (context) => {
 		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-01-01T10:00:00.000Z') });
 
-		const startDate = new Date('2026-02-01T09:00:00.000Z');
-		const endDate = new Date('2026-03-01T17:00:00.000Z');
+		const startDate = new Date('2026-02-01T00:00:00.000Z');
+		const endDate = new Date('2026-03-01T00:00:00.000Z');
 
 		const result = getRepresentationMessages({
 			representationsPeriodStartDate: startDate,
@@ -30,7 +30,10 @@ describe('getRepresentationMessages', () => {
 
 		assert.strictEqual(result.length, 2);
 		assert.strictEqual(result[0], 'No written representations have been published yet.');
-		assert.ok(result[1].includes('You can submit a written representation'));
+		assert.strictEqual(
+			result[1],
+			'You can submit a written representation (also known as ‘Have your say’) from: 01 February 2026 12:00am - 01 March 2026 12:00am'
+		);
 	});
 
 	it('should return message when period is open but no representations submitted', (context) => {
