@@ -78,6 +78,7 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 
 		const notWithheld = { OR: [{ withholdName: false }, { withholdName: null }] };
 		const searchCriteria = createWhereClause(splitStringQueries(searchValue), [
+			{ fields: ['representedGroupName'] },
 			{
 				parent: 'RepresentedContacts',
 				parentIsList: true,
