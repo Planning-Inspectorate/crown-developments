@@ -75,6 +75,7 @@ apps_config = {
     templates = {
       test_template_id    = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
       pre_ack_template_id = "37da3f28-9fd7-4801-b6e5-c4950552697e"
+      ack_rep_template_id = "aa5257cb-0076-4ad6-9692-abadce6b54ce"
     }
   }
 

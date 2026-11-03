@@ -6,6 +6,7 @@ import { toText } from '../../audit/resolvers/index.ts';
 export interface TemplateIds {
 	test?: string; // Once we start adding proper templates we can remove this
 	acknowledgePreNotification?: string;
+	acknowledgeRepresentationReceived?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -18,10 +19,31 @@ export type ContactNotificationType = {
 	lastName?: string;
 };
 
+export type RepresentorNotificationType = ContactNotificationType & {
+	representorName?: string;
+};
+
+export type RepresentationDetails = {
+	caseReference: string;
+	representationReference: string;
+	representationReceivedDate: string;
+	siteAddress: string;
+	applicationDescription: string;
+};
+
 export type AcknowledgePreNotificationPersonalisation = {
 	name: string;
 	applicantName: string;
 	section62aEmail: string;
+};
+
+export type RepresentationReceivedPersonalisation = {
+	representorName: string;
+	representationReceivedDate: string;
+	representationReference: string;
+	caseReference: string;
+	siteAddress: string;
+	applicationDescription: string;
 };
 
 /**
@@ -35,6 +57,55 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 		super(logger, govNotifyApiKey, retryConfig);
 
 		this.templateIds = templateIds;
+	}
+
+	/**
+	 * Sends an email acknowledging that a representation has been received
+	 */
+	async sendRepresentationReceived(
+		notificationData: RepresentorNotificationType,
+		representationData: RepresentationDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.acknowledgeRepresentationReceived;
+
+		if (!templateId) {
+			this.logger.warn('representation received template not enabled. ignoring request.');
+			throw new Error('Representation received template not enabled.');
+		}
+
+		const representorName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				representorName,
+				representationReceivedDate: representationData.representationReceivedDate,
+				representationReference: representationData.representationReference,
+				caseReference: representationData.caseReference,
+				siteAddress: representationData.siteAddress,
+				applicationDescription: representationData.applicationDescription
+			},
+			reference: representationData.representationReference
+		});
+	}
+
+	/**
+	 * Sends an email to multiple recipients acknowledging that a representation has been received
+	 */
+	async sendRepresentationReceivedToMany(
+		notificationData: RepresentorNotificationType[],
+		representationData: RepresentationDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as RepresentorNotificationType;
+				return this.sendRepresentationReceived(contact, representationData);
+			},
+			'Failed to send representation received notification to one or more email addresses.'
+		);
 	}
 
 	/**

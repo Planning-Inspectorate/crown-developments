@@ -204,4 +204,191 @@ describe('S62aGovNotifyClient', () => {
 			]);
 		});
 	});
+
+	describe('sendRepresentationReceived', () => {
+		const representationData = {
+			caseReference: 'S62A/2026/0001',
+			representationReference: 'REP-123',
+			representationReceivedDate: '3 November 2026',
+			siteAddress: '1 High Street, Reading',
+			applicationDescription: 'Solar farm development'
+		};
+
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() => client.sendRepresentationReceived({ email: 'representor@test.com' }, representationData),
+				{
+					name: 'Error',
+					message: 'Representation received template not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'representation received template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call super.sendEmailWithAudit with correct arguments and return the audit result', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { acknowledgeRepresentationReceived: 'ack-rep-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = { notifyId: 'mock-notify-id-999', body: 'Representation email body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'representor@test.com',
+				firstName: 'Sam',
+				lastName: 'Taylor'
+			};
+
+			const result = await client.sendRepresentationReceived(notificationData, representationData);
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'ack-rep-template-123',
+				'representor@test.com',
+				{
+					personalisation: {
+						representorName: 'Sam Taylor',
+						representationReceivedDate: '3 November 2026',
+						representationReference: 'REP-123',
+						caseReference: 'S62A/2026/0001',
+						siteAddress: '1 High Street, Reading',
+						applicationDescription: 'Solar farm development'
+					},
+					reference: 'REP-123'
+				}
+			]);
+		});
+
+		it('should correctly format the representor name when only the first name is provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { acknowledgeRepresentationReceived: 'ack-rep-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await client.sendRepresentationReceived({ email: 'representor@test.com', firstName: 'Sam' }, representationData);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.representorName, 'Sam');
+		});
+
+		it('should correctly format the representor name as empty string when no names are provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { acknowledgeRepresentationReceived: 'ack-rep-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await client.sendRepresentationReceived({ email: 'representor@test.com' }, representationData);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.representorName, '');
+		});
+	});
+
+	describe('sendRepresentationReceivedToMany', () => {
+		const representationData = {
+			caseReference: 'S62A/2026/0001',
+			representationReference: 'REP-123',
+			representationReceivedDate: '3 November 2026',
+			siteAddress: '1 High Street, Reading',
+			applicationDescription: 'Solar farm development'
+		};
+
+		it('should call super.sendToManyWithAudit with the mapped emails and correct error message', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { acknowledgeRepresentationReceived: 'ack-rep-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditRecords = [
+				{ email: 'rep1@test.com', notifyId: 'notify-1', body: 'body-1' },
+				{ email: 'rep2@test.com', notifyId: 'notify-2', body: 'body-2' }
+			];
+			const sendToManyWithAuditMock = ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async () => mockAuditRecords
+			);
+
+			const contacts = [
+				{ email: 'rep1@test.com', firstName: 'Alice' },
+				{ email: 'rep2@test.com', firstName: 'Bob' }
+			];
+
+			const result = await client.sendRepresentationReceivedToMany(contacts, representationData);
+
+			assert.deepStrictEqual(result, mockAuditRecords);
+			assert.strictEqual(sendToManyWithAuditMock.mock.callCount(), 1);
+
+			const args = sendToManyWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args[0], ['rep1@test.com', 'rep2@test.com']);
+			assert.strictEqual(typeof args[1], 'function');
+			assert.strictEqual(
+				args[2],
+				'Failed to send representation received notification to one or more email addresses.'
+			);
+		});
+
+		it('should invoke sendRepresentationReceived for each contact in the sendToManyWithAudit callback', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { acknowledgeRepresentationReceived: 'ack-rep-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendRepresentationReceivedMock = ctx.mock.method(client as any, 'sendRepresentationReceived', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (emails: string[], cb: (email: string) => Promise<{ notifyId: string; body: string }>) => {
+					const results = [];
+					for (const email of emails) {
+						const audit = await cb(email);
+						results.push({ email, ...audit });
+					}
+					return results;
+				}
+			);
+
+			const contacts = [
+				{ email: 'repA@test.com', firstName: 'Alex', lastName: 'Taylor' },
+				{ email: 'repB@test.com', firstName: 'Chris', lastName: 'Morgan' }
+			];
+
+			const results = await client.sendRepresentationReceivedToMany(contacts, representationData);
+
+			assert.strictEqual(sendRepresentationReceivedMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendRepresentationReceivedMock.mock.calls[0].arguments, [contacts[0], representationData]);
+			assert.deepStrictEqual(sendRepresentationReceivedMock.mock.calls[1].arguments, [contacts[1], representationData]);
+			assert.deepStrictEqual(results, [
+				{ email: 'repA@test.com', notifyId: 'id', body: 'body' },
+				{ email: 'repB@test.com', notifyId: 'id', body: 'body' }
+			]);
+		});
+	});
 });

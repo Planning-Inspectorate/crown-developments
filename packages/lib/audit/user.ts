@@ -5,6 +5,11 @@
 export const UNKNOWN_AUDIT_USER_ID = 'Unknown-user';
 
 /**
+ * Sometimes we want to audit as the system user
+ */
+export const SYSTEM_USER_ID = 'system';
+
+/**
  * The user to record against an audit entry: the signed-in user's ID, or
  * UNKNOWN_AUDIT_USER_ID if there isn't one.
  */

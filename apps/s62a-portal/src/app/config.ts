@@ -18,6 +18,7 @@ export interface Config extends BaseConfig {
 		apiKey?: string;
 		templateIds: {
 			test?: string;
+			acknowledgeRepresentationReceived: string;
 		};
 		retryConfig: {
 			enabled: boolean;
@@ -61,7 +62,8 @@ export function loadConfig(): Config {
 		BLOB_STORE_CONNECTION_STRING,
 		S62A_GOV_NOTIFY_DISABLED,
 		S62A_GOV_NOTIFY_API_KEY,
-		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
+		S62A_GOV_NOTIFY_ACK_REP_TEMPLATE_ID
 	} = process.env;
 
 	const buildConfig = loadBuildConfig();
@@ -90,7 +92,8 @@ export function loadConfig(): Config {
 	const isRetryLive = FEATURE_FLAG_RETRY_NOT_LIVE !== 'true';
 	if (!govNotifyDisabled) {
 		const props = {
-			S62A_GOV_NOTIFY_API_KEY
+			S62A_GOV_NOTIFY_API_KEY,
+			S62A_GOV_NOTIFY_ACK_REP_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -147,7 +150,8 @@ export function loadConfig(): Config {
 			disabled: govNotifyDisabled,
 			apiKey: S62A_GOV_NOTIFY_API_KEY,
 			templateIds: {
-				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID
+				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
+				acknowledgeRepresentationReceived: S62A_GOV_NOTIFY_ACK_REP_TEMPLATE_ID || ''
 			},
 			retryConfig: {
 				enabled: isRetryLive

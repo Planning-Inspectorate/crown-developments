@@ -9,7 +9,7 @@ import {
 	PRE_APPLICATION_OR_APPLICATION_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { FOLDER_SYNC_RESULT } from '../util/folders.ts';
-import { S62aNotificationService } from '../util/notification-service.ts';
+import { S62aManageNotificationService } from '../util/notification-service.ts';
 
 type FolderUpdateArgs = { where: { id: string }; data: { deletedAt: Date | null } };
 
@@ -163,7 +163,7 @@ describe('buildS62aUpdateCase', () => {
 	describe('update emails', () => {
 		it('does not send any update emails if the case was publishedToLegacyGovUk (migrated)', async () => {
 			const processMock = mock.method(
-				S62aNotificationService.prototype,
+				S62aManageNotificationService.prototype,
 				'processAcknowledgementPreNotification',
 				async () => true
 			);
@@ -183,7 +183,7 @@ describe('buildS62aUpdateCase', () => {
 
 		it('delegates to acknowledgePreNotificationEmail when the case is not migrated', async () => {
 			const processMock = mock.method(
-				S62aNotificationService.prototype,
+				S62aManageNotificationService.prototype,
 				'processAcknowledgementPreNotification',
 				async () => true
 			);
@@ -393,12 +393,12 @@ describe('buildS62aUpdateCase', () => {
 });
 
 describe('acknowledgePreNotificationEmail', () => {
-	let mockNotificationService: S62aNotificationService;
+	let mockNotificationService: S62aManageNotificationService;
 	let mockService: ManageService;
 	let mockSendFn: any;
 
 	beforeEach(() => {
-		mockNotificationService = new S62aNotificationService(null, null as any);
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
 		mock.method(mockNotificationService, 'processAcknowledgementPreNotification', async () => Promise.resolve(true));
 
 		mockService = {
@@ -484,6 +484,7 @@ describe('acknowledgePreNotificationEmail', () => {
 		assert.strictEqual(sendArgs[2], 'case-123');
 		assert.strictEqual(sendArgs[3], 'acknowledgePreNotificationEmailSent');
 		assert.strictEqual(sendArgs[4], 'Send Acknowledgement Pre-notification (Update)');
-		assert.strictEqual(sendArgs[5], mockReq);
+		assert.strictEqual(sendArgs[5], 's62a');
+		assert.strictEqual(sendArgs[6], mockReq);
 	});
 });

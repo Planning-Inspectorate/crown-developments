@@ -226,6 +226,10 @@ describe('saveS62aRepresentation', () => {
 			assert.strictEqual(onSaved.mock.callCount(), 1);
 			assert.strictEqual(onSaved.mock.calls[0].arguments[0], req);
 			assert.deepStrictEqual(onSaved.mock.calls[0].arguments[1], {
+				answers: {
+					myselfContainsAttachments: 'no',
+					representationSubmittedFor: 'myself'
+				},
 				caseId: VALID_ID,
 				representationReference: 'MOCK-REF-123'
 			});

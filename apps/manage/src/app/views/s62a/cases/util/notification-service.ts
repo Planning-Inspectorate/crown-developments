@@ -7,20 +7,13 @@ import type { Logger } from 'pino';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
 import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
-import type { ManageService } from '#service';
-import { fireAndForget } from '@pins/crowndev-lib/util/retry.ts';
-import { recordAuditSafely } from '@pins/crowndev-lib/audit/record.ts';
-import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
-import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
-import { SHARED_AUDIT_ACTIONS } from '@pins/crowndev-lib/audit/shared-actions.ts';
-import type { Request } from 'express';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
  * for the main S62aGovNotifyClient class to send the emails off
  */
-export class S62aNotificationService {
+export class S62aManageNotificationService {
 	private readonly notifyClient: S62aGovNotifyClient | null;
 	private readonly logger: Logger;
 	constructor(notifyClient: S62aGovNotifyClient | null, logger: Logger) {
@@ -110,54 +103,4 @@ export class S62aNotificationService {
 
 		return notificationContacts;
 	}
-}
-
-/**
- * Executes a notification in the background and updates a case flag ONLY if the notification was sent.
- * Completely non-blocking and event-loop safe.
- */
-export function sendNotificationAndUpdateFlag(
-	notificationPromise: Promise<{ wasSent: boolean; auditData?: AuditData[] }>,
-	service: ManageService,
-	caseId: string,
-	flagField: 'acknowledgePreNotificationEmailSent',
-	operationName: string,
-	req: Request
-): void {
-	const { db, logger } = service;
-	const operation = async () => {
-		try {
-			const result = await notificationPromise;
-
-			if (result.wasSent) {
-				await db.s62aCase.update({
-					where: { id: caseId },
-					data: { [flagField]: true }
-				});
-
-				if (result.auditData && result.auditData.length > 0) {
-					await recordAuditSafely({
-						service,
-						dataModel: CASE_DATA_MODEL.S62A,
-						entries: result.auditData.map((auditData) => ({
-							caseId,
-							userId: getAuditUserId(req.session?.account?.localAccountId),
-							action: SHARED_AUDIT_ACTIONS.EMAIL_SENT,
-							metadata: {
-								emailBody: auditData.body,
-								email: auditData.email
-							}
-						})),
-						logContext: { caseId }
-					});
-				}
-
-				logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and audited successfully');
-			}
-		} catch (error) {
-			logger.error({ error, caseId, operation: operationName }, 'Background notification failed');
-		}
-	};
-
-	fireAndForget(operation(), logger, { operation: operationName, caseId });
 }

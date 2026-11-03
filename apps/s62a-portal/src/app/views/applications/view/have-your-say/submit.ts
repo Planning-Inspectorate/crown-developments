@@ -9,6 +9,9 @@ import { list } from '@planning-inspectorate/dynamic-forms';
 import type { Request, Response } from 'express';
 import { clearHaveYourSayStarted } from './controller.ts';
 import { JOURNEY_ID } from './journey.ts';
+import { S62aPortalNotificationService } from '../../util/notification-service.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
+import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 
 export const DECLARATION_ERROR = 'You must agree to all statements to submit your comment';
 
@@ -77,6 +80,8 @@ export function buildSubmitRepresentation(
 	service: S62APortalService,
 	uniqueReferenceFn = uniqueReference
 ): AsyncRequestHandler {
+	const { s62aNotifyClient, logger } = service;
+	const notificationService = new S62aPortalNotificationService(s62aNotifyClient, logger);
 	return async (req, res) => {
 		const agreed = submittedStatements(req);
 		if (DECLARATION_STATEMENTS.some(({ value }) => !agreed.includes(value))) {
@@ -90,7 +95,25 @@ export function buildSubmitRepresentation(
 				journeyId: JOURNEY_ID,
 				checkYourAnswersUrl: `${req.baseUrl}/check-your-answers`,
 				successUrl: `${req.baseUrl}/success`,
-				uniqueReferenceFn
+				uniqueReferenceFn,
+				onSaved: (savedReq, { caseId, representationReference, answers }) => {
+					const emailPromise = notificationService.processAcknowledgementRepresentationReceived(
+						answers,
+						representationReference,
+						caseId,
+						service.db
+					);
+
+					sendS62aNotificationAndUpdateFlag(
+						emailPromise,
+						service,
+						caseId,
+						null,
+						'Send Acknowledgement Representation Received',
+						CASE_DATA_MODEL.S62A,
+						savedReq
+					);
+				}
 			},
 			req,
 			res

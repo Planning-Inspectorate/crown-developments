@@ -74,6 +74,7 @@ apps_config = {
     templates = {
       test_template_id    = ""
       pre_ack_template_id = ""
+      ack_rep_template_id = ""
     }
   }
 
