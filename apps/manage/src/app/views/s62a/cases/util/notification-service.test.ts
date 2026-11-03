@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
 import type { Request } from 'express';
-import { S62aNotificationService, sendNotificationAndUpdateFlag } from './notification-service.ts';
+import { S62aManageNotificationService } from './notification-service.ts';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
@@ -25,10 +25,10 @@ const emailObject = { major: 'major.email', nonMajor: 'non.major' };
  */
 const flushMicrotasks = () => new Promise(process.nextTick);
 
-describe('S62aNotificationService', () => {
+describe('S62aManageNotificationService', () => {
 	let mockLogger: Logger;
 	let mockNotifyClient: S62aGovNotifyClient;
-	let service: S62aNotificationService;
+	let service: S62aManageNotificationService;
 
 	beforeEach(() => {
 		mockLogger = {
@@ -41,7 +41,7 @@ describe('S62aNotificationService', () => {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
-		service = new S62aNotificationService(mockNotifyClient, mockLogger);
+		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
 	});
 
 	describe('processAcknowledgementPreNotification', () => {
@@ -57,7 +57,7 @@ describe('S62aNotificationService', () => {
 		});
 
 		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
-			const nullClientService = new S62aNotificationService(null, mockLogger);
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
 			const result = await nullClientService.processAcknowledgementPreNotification(answers(), 'REF-123', emailObject);
 
 			assert.strictEqual(result.wasSent, false);
@@ -172,98 +172,6 @@ describe('S62aNotificationService', () => {
 			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
-		});
-	});
-});
-
-describe('sendNotificationAndUpdateFlag', () => {
-	let mockService: ManageService;
-	let mockReq: Request;
-
-	beforeEach(() => {
-		mockService = {
-			logger: {
-				info: mock.fn(),
-				error: mock.fn()
-			},
-			db: {
-				s62aCase: {
-					update: mock.fn(async () => ({}))
-				}
-			}
-		} as unknown as ManageService;
-
-		mockReq = {
-			session: {
-				account: {
-					localAccountId: 'test-user-id'
-				}
-			}
-		} as unknown as Request;
-	});
-
-	it('updates the database flag and logs success if the notification was sent', async () => {
-		sendNotificationAndUpdateFlag(
-			Promise.resolve({ wasSent: true }),
-			mockService,
-			'case-1',
-			'acknowledgePreNotificationEmailSent',
-			'AcknowledgePreNotification',
-			mockReq
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockService.db.s62aCase.update as any).mock.calls[0].arguments[0], {
-			where: { id: 'case-1' },
-			data: { acknowledgePreNotificationEmailSent: true }
-		});
-
-		assert.strictEqual((mockService.logger.info as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockService.logger.info as any).mock.calls[0].arguments[0], {
-			caseId: 'case-1',
-			flagField: 'acknowledgePreNotificationEmailSent',
-			operation: 'AcknowledgePreNotification'
-		});
-	});
-
-	it('does not update the database flag if the notification was not sent', async () => {
-		sendNotificationAndUpdateFlag(
-			Promise.resolve({ wasSent: false }),
-			mockService,
-			'case-2',
-			'acknowledgePreNotificationEmailSent',
-			'AcknowledgePreNotification',
-			mockReq
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockService.logger.info as any).mock.calls.length, 0);
-	});
-
-	it('catches and logs an error if the notification promise rejects', async () => {
-		const networkError = new Error('Service Unavailable');
-
-		sendNotificationAndUpdateFlag(
-			Promise.reject(networkError),
-			mockService,
-			'case-3',
-			'acknowledgePreNotificationEmailSent',
-			'AcknowledgePreNotification',
-			mockReq
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockService.db.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockService.logger.error as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockService.logger.error as any).mock.calls[0].arguments[0], {
-			error: networkError,
-			caseId: 'case-3',
-			operation: 'AcknowledgePreNotification'
 		});
 	});
 });

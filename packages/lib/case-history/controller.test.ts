@@ -205,7 +205,44 @@ describe('buildViewCaseHistory', () => {
 			assert.deepStrictEqual(viewData.queryParams, {});
 		});
 
-		it('should fall back to "Unknown User" when userId is not in entra group', async () => {
+		it('should return "System" when userId is set to system', async () => {
+			const req = mockReq();
+			const res = mockRes();
+
+			const service = buildService();
+
+			mock.method(service.db.crownDevelopment, 'findUnique', async () => {
+				return { reference: 'REF-001' };
+			});
+			mock.method(service.db.s62aCase, 'findUnique', async () => {
+				return null;
+			});
+
+			mockAudit.getAllForCase.mock.mockImplementation(() =>
+				Promise.resolve([
+					{
+						id: 'evt-1',
+						action: 'CASE_CREATED',
+						userId: 'system',
+						createdAt: new Date('2026-02-11T14:31:00Z'),
+						metadata: { reference: 'REF-001' }
+					}
+				])
+			);
+			mockAudit.countForCase.mock.mockImplementation(() => Promise.resolve(1));
+
+			await buildViewCaseHistory(service, CASE_DATA_MODEL.CROWN, SHARED_AUDIT_TEMPLATES)(
+				req,
+				runService(res),
+				() => {}
+			);
+
+			const [, viewData] = renderArgs(res.render.mock.calls[0]);
+			const rows = viewData.rows as Array<{ user: string }>;
+			assert.strictEqual(rows[0].user, 'System');
+		});
+
+		it('should fall back to "Unknown User" when userId is not in entra group and id is not the system one', async () => {
 			const req = mockReq();
 			const res = mockRes();
 

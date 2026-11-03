@@ -20,14 +20,15 @@ import { getAuditUserId } from '@pins/crowndev-lib/audit/user.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
 import { getAnswers } from '@pins/crowndev-lib/util/answers.ts';
 import type { S62aCreateCaseLocals } from './locals.ts';
-import { S62aNotificationService, sendNotificationAndUpdateFlag } from '../util/notification-service.ts';
+import { S62aManageNotificationService } from '../util/notification-service.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
 
 type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends'>;
 
 export function buildSaveController(service: ManageService): AsyncRequestHandlerWithLocals<S62aCreateCaseLocals> {
 	const { db, logger, s62aNotifyClient } = service;
 	// At some point we may want to have this on the actual ManageService
-	const notificationService = new S62aNotificationService(s62aNotifyClient, logger);
+	const notificationService = new S62aManageNotificationService(s62aNotifyClient, logger);
 	return async (req, res) => {
 		const answers = getAnswers<S62aCreateCaseAnswers>(res);
 
@@ -109,7 +110,7 @@ export function buildSaveController(service: ManageService): AsyncRequestHandler
 			nonMajor: service.s62aNonMajorContactEmail
 		});
 
-		sendNotificationAndUpdateFlag(
+		sendS62aNotificationAndUpdateFlag(
 			emailPromise,
 			service,
 			id,
