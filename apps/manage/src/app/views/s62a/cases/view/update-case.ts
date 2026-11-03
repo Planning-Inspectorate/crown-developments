@@ -29,15 +29,16 @@ import {
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
-import { S62aNotificationService, sendNotificationAndUpdateFlag } from '../util/notification-service.ts';
+import { S62aManageNotificationService } from '../util/notification-service.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
 
 /**
  * Save handler for S62A Case updates.
  * Takes the raw form answers, maps them to Prisma format, and updates the database.
  */
 export function buildS62aUpdateCase(service: ManageService, clearAnswer = false): SaveDataFn {
-	const notificationService = new S62aNotificationService(service.s62aNotifyClient, service.logger);
+	const notificationService = new S62aManageNotificationService(service.s62aNotifyClient, service.logger);
 	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
@@ -247,7 +248,7 @@ async function recordAuditEntries(
 function handleUpdateEmails(
 	answers: UpdateCaseAnswers,
 	previousCase: S62aCaseViewModel,
-	notificationService: S62aNotificationService,
+	notificationService: S62aManageNotificationService,
 	service: ManageService,
 	id: string,
 	req: Request
@@ -263,11 +264,11 @@ function handleUpdateEmails(
 export function acknowledgePreNotificationEmail(
 	answers: UpdateCaseAnswers,
 	previousCase: S62aCaseViewModel,
-	notificationService: S62aNotificationService,
+	notificationService: S62aManageNotificationService,
 	service: ManageService,
 	id: string,
 	req: Request,
-	sendNotificationFn = sendNotificationAndUpdateFlag
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
 ) {
 	const acknowledgePreNotificationEmailSent = previousCase.acknowledgePreNotificationEmailSent === BOOLEAN_OPTIONS.YES;
 

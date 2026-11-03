@@ -20,6 +20,7 @@ export interface SavedS62aRepresentation {
 	/** The S62A case the representation is for */
 	caseId: string;
 	representationReference: string;
+	answers: HaveYourSayManageModel;
 }
 
 export interface SaveRepresentationOptions {
@@ -32,7 +33,7 @@ export interface SaveRepresentationOptions {
 	 * Optional step after the representation has been saved, e.g. recording it
 	 * in the case history. A failing step is logged and doesn't affect the user.
 	 */
-	onSaved?: (req: Request, saved: SavedS62aRepresentation) => Promise<void>;
+	onSaved?: (req: Request, saved: SavedS62aRepresentation) => Promise<void> | void;
 }
 
 /**
@@ -148,7 +149,7 @@ export async function saveS62aRepresentation(
 
 	if (onSaved) {
 		try {
-			await onSaved(req, { caseId: id, representationReference });
+			await onSaved(req, { caseId: id, representationReference, answers });
 		} catch (error) {
 			logger.error(
 				{ err: error, id, representationReference },

@@ -84,9 +84,10 @@ module "app_s62a_portal" {
     WEBSITE_AUTH_AAD_ALLOWED_TENANTS         = data.azurerm_client_config.current.tenant_id
 
     # gov notify
-    S62A_GOV_NOTIFY_DISABLED         = var.apps_config.s62a_gov_notify.disabled
-    S62A_GOV_NOTIFY_API_KEY          = local.key_vault_refs["s62a-gov-notify-api-key"] # todo check this is correct
-    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.test_template_id
+    S62A_GOV_NOTIFY_DISABLED            = var.apps_config.s62a_gov_notify.disabled
+    S62A_GOV_NOTIFY_API_KEY             = local.key_vault_refs["s62a-gov-notify-api-key"] # todo check this is correct
+    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID    = var.apps_config.s62a_gov_notify.templates.test_template_id
+    S62A_GOV_NOTIFY_ACK_REP_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.ack_rep_template_id
 
     CROWN_DEV_CONTACT_EMAIL      = var.apps_config.contact_email
     S62A_MAJOR_CONTACT_EMAIL     = var.apps_config.s62a_major_contact_email
