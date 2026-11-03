@@ -45,7 +45,7 @@ export class PortalService extends Service {
 	}
 
 	get cacheControl() {
-		return publicAssetOptions(super.cacheControl);
+		return publicAssetOptions(this.staticCacheControl);
 	}
 
 	get appHostname() {
