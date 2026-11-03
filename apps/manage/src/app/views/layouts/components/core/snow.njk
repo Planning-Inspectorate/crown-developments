@@ -1,0 +1,126 @@
+{# Winter snow overlay. Purely decorative — hidden from AT and print. #}
+{# Toggle via config.featureFlags.snowMode #}
+<div class="pins-snow" aria-hidden="true">
+	<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+		{# Variant A — classic: two pairs of side branches #}
+		<symbol id="pins-snowflake-a" viewBox="-50 -50 100 100">
+			<g stroke="currentColor" stroke-linecap="round" fill="none"
+				 stroke-width="3">
+				{% for r in [0, 60, 120, 180, 240, 300] %}
+					<g transform="rotate({{ r }})">
+						<line x1="0" y1="0" x2="0" y2="-42"/>
+						<line x1="0" y1="-14" x2="8"  y2="-22"/>
+						<line x1="0" y1="-14" x2="-8" y2="-22"/>
+						<line x1="0" y1="-28" x2="6"  y2="-34"/>
+						<line x1="0" y1="-28" x2="-6" y2="-34"/>
+					</g>
+				{% endfor %}
+			</g>
+		</symbol>
+
+		{# Variant B — minimalist: just the six arms with a tip fork #}
+		<symbol id="pins-snowflake-b" viewBox="-50 -50 100 100">
+			<g stroke="currentColor" stroke-linecap="round" fill="none"
+				 stroke-width="3">
+				{% for r in [0, 60, 120, 180, 240, 300] %}
+					<g transform="rotate({{ r }})">
+						<line x1="0" y1="0" x2="0" y2="-42"/>
+						<line x1="0" y1="-38" x2="6"  y2="-44"/>
+						<line x1="0" y1="-38" x2="-6" y2="-44"/>
+					</g>
+				{% endfor %}
+			</g>
+		</symbol>
+
+		{# Variant C — dendrite: three pairs of branches, denser #}
+		<symbol id="pins-snowflake-c" viewBox="-50 -50 100 100">
+			<g stroke="currentColor" stroke-linecap="round" fill="none"
+				 stroke-width="3">
+				{% for r in [0, 60, 120, 180, 240, 300] %}
+					<g transform="rotate({{ r }})">
+						<line x1="0" y1="0" x2="0" y2="-42"/>
+						<line x1="0" y1="-10" x2="5"  y2="-16"/>
+						<line x1="0" y1="-10" x2="-5" y2="-16"/>
+						<line x1="0" y1="-22" x2="7"  y2="-30"/>
+						<line x1="0" y1="-22" x2="-7" y2="-30"/>
+						<line x1="0" y1="-34" x2="4"  y2="-40"/>
+						<line x1="0" y1="-34" x2="-4" y2="-40"/>
+					</g>
+				{% endfor %}
+			</g>
+		</symbol>
+
+		{# Variant D — stellar: diamond tips instead of side branches #}
+		<symbol id="pins-snowflake-d" viewBox="-50 -50 100 100">
+			<g stroke="currentColor" stroke-linecap="round" fill="none"
+				 stroke-width="3">
+				{% for r in [0, 60, 120, 180, 240, 300] %}
+					<g transform="rotate({{ r }})">
+						<line x1="0" y1="0" x2="0" y2="-42"/>
+						<polygon points="0,-30 6,-36 0,-42 -6,-36"
+										 stroke-linejoin="round"/>
+					</g>
+				{% endfor %}
+			</g>
+		</symbol>
+
+		{# Variant E — simple asterisk #}
+		<symbol id="pins-snowflake-e" viewBox="-50 -50 100 100">
+			<g stroke="currentColor" stroke-linecap="round" fill="none"
+				 stroke-width="4">
+				{% for r in [0, 60, 120, 180, 240, 300] %}
+					<g transform="rotate({{ r }})">
+						<line x1="0" y1="-6" x2="0" y2="-42"/>
+					</g>
+				{% endfor %}
+			</g>
+		</symbol>
+	</svg>
+
+	{% set variants = ['a', 'b', 'c', 'd', 'e'] %}
+	{% for i in range(0, 40) -%}
+		<svg class="pins-snow__flake pins-snow__flake--{{ i }}"
+				 viewBox="-50 -50 100 100" aria-hidden="true">
+			<use href="#pins-snowflake-{{ variants[i % 5] }}"/>
+		</svg>
+	{%- endfor %}
+</div>
+
+<script {% if cspNonce %}nonce="{{ cspNonce }}"{% endif %}>
+	(function () {
+		if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			return;
+		}
+		var IDLE_MS = 3000; // 3s
+		var body = document.body;
+		var timer = null;
+
+		function goActive() {
+			if (body.classList.contains('pins-snow--idle')) {
+				body.classList.remove('pins-snow--idle');
+			}
+			if (timer) clearTimeout(timer);
+			if (document.visibilityState === 'visible') {
+				timer = setTimeout(goIdle, IDLE_MS);
+			}
+		}
+		function goIdle() {
+			body.classList.add('pins-snow--idle');
+		}
+
+		var events = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart', 'scroll'];
+		events.forEach(function (e) {
+			window.addEventListener(e, goActive, { passive: true });
+		});
+		document.addEventListener('visibilitychange', function () {
+			if (document.visibilityState === 'visible') {
+				goActive();
+			} else {
+				if (timer) clearTimeout(timer);
+				body.classList.remove('pins-snow--idle');
+			}
+		});
+
+		goActive(); // start the timer
+	})();
+</script>

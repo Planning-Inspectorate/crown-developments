@@ -176,4 +176,8 @@ export class ManageService extends Service {
 	get s62aNonMajorContactEmail() {
 		return this.#config.s62aDevContactInfo?.nonMajorEmail;
 	}
+
+	get isSnowModeLive() {
+		return this.#config.featureFlags?.isSnowModeLive;
+	}
 }
