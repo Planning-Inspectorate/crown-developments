@@ -26,10 +26,23 @@ export async function buildS62AFilters(
 				where: { categoryId: consultees, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
 			}),
 			db.s62aRepresentation.count({
-				where: { containsAttachments: true, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: {
+					containsAttachments: true,
+					Attachments: { some: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED } },
+					applicationId: id,
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				}
 			}),
 			db.s62aRepresentation.count({
-				where: { containsAttachments: false, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: {
+					OR: [
+						{ containsAttachments: false },
+						{ containsAttachments: null },
+						{ Attachments: { none: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED } } }
+					],
+					applicationId: id,
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				}
 			})
 		]);
 	} catch (error) {

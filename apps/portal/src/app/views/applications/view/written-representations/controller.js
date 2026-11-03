@@ -209,7 +209,9 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			hasSearch,
 			filterQueryItems,
 			errorSummary,
-			dateErrors
+			dateErrors,
+			true,
+			true
 		)(req, res);
 	};
 }

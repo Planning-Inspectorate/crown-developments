@@ -18,21 +18,13 @@
 			{{ applicationLinks(links, currentUrl) }}
 				<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible pins-application-links__section-break">
 				<div class="pins-visible-from-tablet">
+					{% if representationsArePublished %}
 					<form id="search-filter-form" method="GET">
 						<input type="hidden" name="searchCriteria" value="{{ searchValue }}">
 						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
-						{# Remove hidden date inputs, only keep filterAccordion #}
-						{% for filter in filters %}
-							{% if filter.type != 'date-input' %}
-								{% for option in filter.options.items %}
-									{% if option.checked %}
-										<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
-									{% endif %}
-								{% endfor %}
-							{% endif %}
-						{% endfor %}
 						{{ filterAccordion(filters, 'Filters', id, cspNonce, 'desktop', false) }}
 					</form>
+					{% endif %}
 				</div>
 		</div>
 
@@ -59,7 +51,9 @@
 			</div>
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
-					<form id="search-bar-form" method="GET" action="{{ buildUrlWithParams(baseUrl, queryParams, { page: 1 }) }}">
+					{% if representationsArePublished %}
+					<form id="search-bar-form" method="GET" action="{{ baseUrl }}">
+						<input type="hidden" name="page" value="1">
 						<input type="hidden" name="itemsPerPage" value="{{ paginationParams.selectedItemsPerPage }}">
 							{% for filter in filters %}
 								{% if filter.type == 'date-input' and filter.dateInputs %}
@@ -74,7 +68,7 @@
 								{% else %}
 									{% for option in filter.options.items %}
 										{% if option.checked %}
-											<input type="hidden" name="{{ filter.name }}[]" value="{{ option.value }}">
+											<input type="hidden" name="{{ filter.name }}" value="{{ option.value }}">
 										{% endif %}
 									{% endfor %}
 								{% endif %}
@@ -97,11 +91,6 @@
 								}
 							}, searchValue) }}
 						{% endif %}
-						{% if representations|length == 0 and (hasSearch or hasQueries) %}
-							<p class="govuk-body govuk-!-margin-bottom-0">
-								<a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search</a>
-							</p>
-						{% endif %}
 					</form>
 					{# only show on mobile #}
 					<div class="pins-visible-until-tablet">
@@ -121,14 +110,18 @@
 								{% if query.queryKeys %}data-query-keys="{{ query.queryKeys | join(',') }}"{% endif %}>×
 								{{ query.label }}: {{ query.displayName }}</button>
 						{% endfor %}
-						<p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear
-								search and filters</a></p>
+						{% if representations|length > 0 %}
+							<p class="govuk-body"><a href="{{ clearQueryUrl }}" class="govuk-link govuk-link--no-visited-state">Clear
+									search and filters</a></p>
+						{% endif %}
 						<hr class="govuk-section-break govuk-section-break--m govuk-section-break--visible">
+					{% endif %}
 					{% endif %}
 				</div>
 			</div>
 			<div class="govuk-grid-row">
 				<div class="govuk-grid-column-full">
+					{% if representationsArePublished %}
 					{% if representations|length == 0 and (hasSearch or hasQueries) %}
 						<p class="govuk-body">No results were found.</p>
 						<p class="govuk-body"><a href="{{ baseUrl }}" class="govuk-link govuk-link--no-visited-state">Clear search and
@@ -151,6 +144,7 @@
 						</div>
 						{# if pageNumber and totalPages values are both 1 then pagination options not shown #}
 						{{ pagination.renderPagination(paginationParams.pageNumber, paginationParams.totalPages, baseUrl, queryParams) }}
+					{% endif %}
 					{% endif %}
 				</div>
 			</div>

@@ -29,7 +29,8 @@ export function buildWrittenRepresentationsPage(
 	filterQueries: FilterQueryItem[],
 	errorSummary: ErrorSummaryItem[] | null,
 	dateErrors: ErrorSummaryItem[],
-	searchRepsLabel: boolean = true
+	searchRepsLabel: boolean,
+	representationsArePublished: boolean
 ): AsyncRequestHandler {
 	return (req, res) => {
 		const id = getStringParam(req.params, 'applicationId');
@@ -66,9 +67,14 @@ export function buildWrittenRepresentationsPage(
 		const reps = !!totalRepresentations;
 
 		const representationMessages =
-			hasSearch || representations.length > 0 ? [] : getRepresentationMessages(caseFields, acceptedReps, reps);
+			representationsArePublished && (hasSearch || representations.length > 0)
+				? []
+				: getRepresentationMessages(caseFields, acceptedReps, reps);
 
-		const paginationParams = createPaginationParams(req, totalAcceptedRepresentations);
+		const paginationParams = createPaginationParams(
+			req,
+			representationsArePublished ? totalAcceptedRepresentations : 0
+		);
 
 		res.render('./view.njk', {
 			pageCaption: reference,
@@ -94,6 +100,7 @@ export function buildWrittenRepresentationsPage(
 			isMobileFilterOpen,
 			hasQueries,
 			hasSearch,
+			representationsArePublished,
 			filterQueries,
 			errorSummary,
 			dateErrors,

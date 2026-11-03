@@ -17,8 +17,11 @@ function createMockDb(counts) {
 				if (args?.where?.categoryId === REPRESENTATION_CATEGORY_ID.CONSULTEES) {
 					return counts.consulteeCount;
 				}
-				if (typeof args?.where?.containsAttachments === 'boolean') {
-					return args.where.containsAttachments ? counts.withAttachmentsCount : counts.withoutAttachmentsCount;
+				if (args?.where?.Attachments?.some) {
+					return counts.withAttachmentsCount;
+				}
+				if (args?.where?.OR) {
+					return counts.withoutAttachmentsCount;
 				}
 				return 0;
 			})

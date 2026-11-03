@@ -114,9 +114,10 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			'withAttachments',
 			'withoutAttachments'
 		);
+		const attachmentFilter = createAttachmentWhereFilter(mappedFilterByAttachments);
 		const whereFilters = {
 			...(filterSubmittedBy.length && { categoryId: { in: filterSubmittedBy } }),
-			...(mappedFilterByAttachments.length === 1 && { containsAttachments: mappedFilterByAttachments[0] }),
+			...attachmentFilter,
 			...(filterBySubmissionFromDate || filterBySubmissionToDateEndOfDay
 				? {
 						submittedDate: {
@@ -211,7 +212,27 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 			filterQueryItems,
 			errorSummary,
 			dateErrors,
-			searchRepsLabel
+			searchRepsLabel,
+			representationsArePublished
 		)(req, res);
+	};
+}
+
+function createAttachmentWhereFilter(mappedFilterByAttachments: boolean[]): Prisma.S62aRepresentationWhereInput {
+	if (mappedFilterByAttachments.length !== 1) {
+		return {};
+	} else if (mappedFilterByAttachments[0]) {
+		return {
+			containsAttachments: true,
+			Attachments: { some: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED } }
+		};
+	}
+
+	return {
+		OR: [
+			{ containsAttachments: false },
+			{ containsAttachments: null },
+			{ Attachments: { none: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED } } }
+		]
 	};
 }
