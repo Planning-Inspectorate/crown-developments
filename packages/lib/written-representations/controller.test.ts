@@ -39,6 +39,7 @@ type PageOptions = {
 	displayApplicationUpdates: boolean;
 	hasQueries: boolean;
 	hasSearch: boolean;
+	representationsArePublished: boolean;
 };
 
 function createPageHandler(overrides: Partial<PageOptions> = {}) {
@@ -50,6 +51,7 @@ function createPageHandler(overrides: Partial<PageOptions> = {}) {
 		displayApplicationUpdates: false,
 		hasQueries: false,
 		hasSearch: false,
+		representationsArePublished: true,
 		...overrides
 	};
 
@@ -68,7 +70,9 @@ function createPageHandler(overrides: Partial<PageOptions> = {}) {
 		options.hasSearch,
 		[],
 		null,
-		[]
+		[],
+		true,
+		options.representationsArePublished
 	);
 }
 
@@ -178,7 +182,9 @@ describe('buildWrittenRepresentationsPage', () => {
 			false,
 			filterQueries,
 			errorSummary,
-			dateErrors
+			dateErrors,
+			true,
+			true
 		);
 		const req = createRequest({ itemsPerPage: '50', page: '2' });
 		const res = { render: mock.fn() };
@@ -199,5 +205,40 @@ describe('buildWrittenRepresentationsPage', () => {
 		assert.strictEqual(locals.filterQueries, filterQueries);
 		assert.strictEqual(locals.errorSummary, errorSummary);
 		assert.strictEqual(locals.dateErrors, dateErrors);
+	});
+
+	it('does not expose accepted representation counts before publication', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-03-20T10:00:00.000Z') });
+		const handler = buildWrittenRepresentationsPage(
+			{
+				...caseFields,
+				representationsPublishDate: new Date('2026-04-01T00:00:00.000Z')
+			},
+			[],
+			60,
+			60,
+			{},
+			false,
+			false,
+			[],
+			[],
+			false,
+			false,
+			true,
+			[],
+			null,
+			[],
+			true,
+			false
+		);
+		const req = createRequest({ searchCriteria: 'example' });
+		const res = { render: mock.fn() };
+
+		await handler(req, res);
+
+		const [, locals] = res.render.mock.calls[0].arguments;
+		assert.strictEqual(locals.representationsArePublished, false);
+		assert.strictEqual(locals.paginationParams.totalItems, 0);
+		assert.ok(locals.representationMessages.length > 0);
 	});
 });

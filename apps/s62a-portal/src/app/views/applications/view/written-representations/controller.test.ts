@@ -2,6 +2,7 @@ import assert from 'assert';
 import { describe, it } from 'node:test';
 import {
 	REPRESENTATION_CATEGORY_ID,
+	REPRESENTATION_STATUS_ID,
 	REPRESENTATION_SUBMITTED_FOR_ID,
 	REPRESENTED_TYPE_ID
 } from '@pins/crowndev-database/src/seed/data-static.ts';
@@ -151,6 +152,9 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 
 		assert.deepStrictEqual(where.categoryId.in, [REPRESENTATION_CATEGORY_ID.INTERESTED_PARTIES]);
 		assert.strictEqual(where.containsAttachments, true);
+		assert.deepStrictEqual(where.Attachments, {
+			some: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+		});
 		assert.ok(where.submittedDate.gte instanceof Date);
 		assert.ok(where.submittedDate.lte instanceof Date);
 
@@ -171,6 +175,123 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.deepStrictEqual(payload.representationMessages, []);
 		assert.strictEqual(payload.representations.length, 1);
 		assert.ok(payload.links.some((link: { href: string }) => link.href.endsWith('/written-representations')));
+	});
+
+	it('should exclude representations without accepted attachments from the with-attachments filter', async (context) => {
+		const mockDbCase = {
+			id: validUuid,
+			reference: 'S62A/2026/0001',
+			representationsPublishDate: new Date('2026-01-01'),
+			S62aDates: { withdrawnDate: null }
+		};
+		const dbMock = {
+			s62aCase: {
+				findUnique: context.mock.fn(async () => mockDbCase)
+			},
+			s62aRepresentation: {
+				findMany: context.mock.fn(async () => []),
+				count: context.mock.fn(async () => 0)
+			}
+		};
+		const service = { db: dbMock, logger: { error: context.mock.fn() } } as unknown as S62APortalService;
+		const req = {
+			params: { applicationId: validUuid },
+			query: { filterByAttachments: ['withAttachments'] },
+			originalUrl: `/applications/${validUuid}/written-representations`
+		} as any;
+		const res = {
+			status: context.mock.fn(() => res),
+			render: context.mock.fn(),
+			send: context.mock.fn()
+		} as any;
+
+		await buildS62AWrittenRepresentationsPage(service)(req, res, context.mock.fn() as any);
+
+		const where = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
+		assert.deepStrictEqual(where.Attachments, {
+			some: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+		});
+	});
+
+	it('should include representations without accepted attachments in the without-attachments filter', async (context) => {
+		const mockDbCase = {
+			id: validUuid,
+			reference: 'S62A/2026/0001',
+			representationsPublishDate: new Date('2026-01-01'),
+			S62aDates: { withdrawnDate: null }
+		};
+		const dbMock = {
+			s62aCase: {
+				findUnique: context.mock.fn(async () => mockDbCase)
+			},
+			s62aRepresentation: {
+				findMany: context.mock.fn(async () => []),
+				count: context.mock.fn(async () => 0)
+			}
+		};
+		const service = { db: dbMock, logger: { error: context.mock.fn() } } as unknown as S62APortalService;
+		const req = {
+			params: { applicationId: validUuid },
+			query: { filterByAttachments: ['withoutAttachments'] },
+			originalUrl: `/applications/${validUuid}/written-representations`
+		} as any;
+		const res = {
+			status: context.mock.fn(() => res),
+			render: context.mock.fn(),
+			send: context.mock.fn()
+		} as any;
+
+		await buildS62AWrittenRepresentationsPage(service)(req, res, context.mock.fn() as any);
+
+		const where = dbMock.s62aRepresentation.findMany.mock.calls[0].arguments[0].where;
+		assert.deepStrictEqual(where.OR, [
+			{ containsAttachments: false },
+			{ containsAttachments: null },
+			{ Attachments: { none: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED } } }
+		]);
+	});
+
+	it('should hide representation results and pagination until the publish date', async (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-03-20T10:00:00.000Z') });
+		const mockDbCase = {
+			id: validUuid,
+			reference: 'S62A/2026/0001',
+			representationsPeriodStartDate: new Date('2026-02-01T00:00:00.000Z'),
+			representationsPeriodEndDate: new Date('2026-03-01T00:00:00.000Z'),
+			representationsPublishDate: new Date('2026-04-01T00:00:00.000Z'),
+			S62aDates: { withdrawnDate: null }
+		};
+		const dbMock = {
+			s62aCase: {
+				findUnique: context.mock.fn(async () => mockDbCase)
+			},
+			s62aRepresentation: {
+				findMany: context.mock.fn(),
+				count: context.mock.fn(async () => 60)
+			}
+		};
+		const service = { db: dbMock, logger: { error: context.mock.fn() } } as unknown as S62APortalService;
+		const req = {
+			params: { applicationId: validUuid },
+			query: { searchCriteria: 'example' },
+			originalUrl: `/applications/${validUuid}/written-representations`
+		} as any;
+		const res = {
+			status: context.mock.fn(() => res),
+			render: context.mock.fn(),
+			send: context.mock.fn()
+		} as any;
+
+		await buildS62AWrittenRepresentationsPage(service)(req, res, context.mock.fn() as any);
+
+		const [, payload] = res.render.mock.calls[0].arguments;
+		assert.strictEqual(dbMock.s62aRepresentation.findMany.mock.callCount(), 0);
+		assert.strictEqual(payload.representationsArePublished, false);
+		assert.strictEqual(payload.paginationParams.totalItems, 0);
+		assert.deepStrictEqual(payload.representationMessages, [
+			'No written representations have been published yet.',
+			'You’ll be able to view the published representations from 01 April 2026'
+		]);
 	});
 
 	it('should exclude withheld names from search matches and show withheld representations as Interested Party', async (context) => {

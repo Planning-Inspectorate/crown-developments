@@ -140,6 +140,25 @@ describe('getRepresentationMessages', () => {
 
 		assert.deepStrictEqual(result, []);
 	});
+
+	it('should show the future publish date when the period is closed', (context) => {
+		context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-03-20T10:00:00.000Z') });
+
+		const result = getRepresentationMessages(
+			{
+				representationsPeriodStartDate: new Date('2026-02-01T00:00:00.000Z'),
+				representationsPeriodEndDate: new Date('2026-03-01T00:00:00.000Z'),
+				representationsPublishDate: new Date('2026-03-30T00:00:00.000Z')
+			},
+			true,
+			true
+		);
+
+		assert.deepStrictEqual(result, [
+			'No written representations have been published yet.',
+			'You’ll be able to view the published representations from 30 March 2026'
+		]);
+	});
 });
 
 describe('representationTitle', () => {

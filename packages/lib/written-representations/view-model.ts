@@ -131,11 +131,7 @@ export function getRepresentationMessages(
 			messages.push('We’ll update this page once the date to publish representations has been set.');
 		} else if (dateIsAfterToday(publishDate)) {
 			//H. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date in future
-			const formattedPublishDate = publishDate.toLocaleDateString('en-GB', {
-				day: '2-digit',
-				month: 'long',
-				year: 'numeric'
-			});
+			const formattedPublishDate = formatInTimeZone(publishDate, 'Europe/London', 'dd MMMM yyyy');
 			messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
 		}
 		return messages;
@@ -154,6 +150,13 @@ export function getRepresentationMessages(
 		if (hasAcceptedRepresentations && publishDate && !dateIsAfterToday(publishDate)) {
 			//K. Representation period closed & Representations have been submitted and there is at least 1 accepted & Representations publish date is in the past
 			return [];
+		}
+
+		if (hasAcceptedRepresentations && publishDate && dateIsAfterToday(publishDate)) {
+			const formattedPublishDate = formatInTimeZone(publishDate, 'Europe/London', 'dd MMMM yyyy');
+			messages.push('No written representations have been published yet.');
+			messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
+			return messages;
 		}
 	}
 
