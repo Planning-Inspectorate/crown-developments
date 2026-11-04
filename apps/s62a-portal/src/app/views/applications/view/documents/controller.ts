@@ -246,7 +246,8 @@ export function buildApplicationDocumentsPage(service: S62APortalService): Reque
 				s62aCase.representationsPublishDate,
 				false,
 				s62aViewModel.applicationStatus,
-				tabText
+				tabText,
+				true
 			),
 			currentUrl: req.originalUrl,
 			queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
