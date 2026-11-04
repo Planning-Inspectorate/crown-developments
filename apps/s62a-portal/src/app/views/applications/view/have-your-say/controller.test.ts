@@ -226,7 +226,8 @@ describe('buildHaveYourSayPage', () => {
 			[
 				`/applications/${validUuid}/application-information`,
 				`/applications/${validUuid}/documents`,
-				`/applications/${validUuid}/have-your-say`
+				`/applications/${validUuid}/have-your-say`,
+				`/applications/${validUuid}/written-representations`
 			]
 		);
 	});

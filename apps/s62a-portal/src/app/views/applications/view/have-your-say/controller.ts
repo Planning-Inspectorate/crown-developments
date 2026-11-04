@@ -199,7 +199,8 @@ export function buildHaveYourSayPage(): Handler {
 			s62aCase.representationsPublishDate,
 			false,
 			s62aCase.applicationStatus,
-			tabText
+			tabText,
+			true
 		);
 
 		return res.render('views/applications/view/have-your-say/view.njk', {
