@@ -314,6 +314,7 @@ model S62aCase {
 
   /// Email sent flags
   acknowledgePreNotificationEmailSent Boolean? @default(false)
+  acknowledgePreApplicationEmailSent  Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {

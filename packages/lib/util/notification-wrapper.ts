@@ -17,7 +17,7 @@ export function sendS62aNotificationAndUpdateFlag(
 	notificationPromise: Promise<{ wasSent: boolean; auditData?: AuditData[] }>,
 	service: { db: PrismaClient; audit?: AuditService; logger: Logger; isAuditLive?: boolean },
 	caseId: string,
-	flagField: 'acknowledgePreNotificationEmailSent' | null,
+	flagField: 'acknowledgePreNotificationEmailSent' | 'acknowledgePreApplicationEmailSent' | null,
 	operationName: string,
 	req?: Request
 ): void {

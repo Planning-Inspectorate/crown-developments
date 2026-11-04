@@ -11,13 +11,17 @@ export const CASE_DETAILS_QUESTION_TEXT = {
 		expectedSubmissionDateQuestion: 'What is the expected submission date for the pre-application?',
 		expectedSubmissionDateTitle: 'Expected pre-application submission date',
 		applicationReceivedDateTitle: 'Pre-application received date',
-		applicationReceivedDateQuestion: 'When was the pre-application received?'
+		applicationReceivedDateQuestion: 'When was the pre-application received?',
+		applicationReceivedDateWarning: 'Adding a date will send a notification to the applicant / agent',
+		applicationReceivedDateHint: 'You must first add the site address or site coordinates.'
 	},
 	[PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION]: {
 		expectedSubmissionDateQuestion: 'What is the expected submission date for the application?',
 		expectedSubmissionDateTitle: 'Expected application submission date',
 		applicationReceivedDateTitle: 'Application received date',
-		applicationReceivedDateQuestion: 'When was the application received?'
+		applicationReceivedDateQuestion: 'When was the application received?',
+		applicationReceivedDateWarning: '',
+		applicationReceivedDateHint: 'You must first add the application fee and the site address or site coordinates.'
 	}
 };
 
