@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildS62aUpdateCase, acknowledgePreNotificationEmail } from './update-case.ts';
+import { buildS62aUpdateCase, acknowledgePreNotificationEmail, acknowledgePreApplicationEmail } from './update-case.ts';
 import type { Request, Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveParams } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '../../../../service.js';
@@ -162,23 +162,40 @@ describe('buildS62aUpdateCase', () => {
 
 	describe('update emails', () => {
 		it('does not send any update emails if the case was publishedToLegacyGovUk (migrated)', async () => {
-			const processMock = mock.method(
+			const preNotificationMock = mock.method(
 				S62aManageNotificationService.prototype,
 				'processAcknowledgementPreNotification',
 				async () => true
 			);
+			const preApplicationMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processAcknowledgementPreApplication',
+				async () => true
+			);
 
-			caseRecord = { id: 'case-123', publishedToLegacyGovUk: true, reference: 'REF-MIGRATED' };
+			caseRecord = {
+				id: 'case-123',
+				publishedToLegacyGovUk: true,
+				reference: 'REF-MIGRATED',
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+			};
 			const handler = buildS62aUpdateCase(mockService);
 
 			await handler({
 				req: mockReq,
 				res: mockRes,
-				data: { answers: { notificationReceivedDate: '2026-10-30' } }
+				data: {
+					answers: {
+						notificationReceivedDate: '2026-10-30',
+						applicationReceivedDate: new Date('2026-10-30')
+					}
+				}
 			} as unknown as SaveParams);
 
-			assert.strictEqual(processMock.mock.calls.length, 0);
-			processMock.mock.restore();
+			assert.strictEqual(preNotificationMock.mock.calls.length, 0);
+			assert.strictEqual(preApplicationMock.mock.calls.length, 0);
+			preNotificationMock.mock.restore();
+			preApplicationMock.mock.restore();
 		});
 
 		it('delegates to acknowledgePreNotificationEmail when the case is not migrated', async () => {
@@ -195,6 +212,31 @@ describe('buildS62aUpdateCase', () => {
 				req: mockReq,
 				res: mockRes,
 				data: { answers: { notificationReceivedDate: '2026-10-30' } }
+			} as unknown as SaveParams);
+
+			assert.strictEqual(processMock.mock.calls.length, 1);
+			processMock.mock.restore();
+		});
+
+		it('delegates to acknowledgePreApplicationEmail when the case is not migrated and is a pre-application', async () => {
+			const processMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processAcknowledgementPreApplication',
+				async () => true
+			);
+
+			caseRecord = {
+				id: 'case-123',
+				publishedToLegacyGovUk: false,
+				reference: 'REF-PRE-APP',
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+			};
+			const handler = buildS62aUpdateCase(mockService);
+
+			await handler({
+				req: mockReq,
+				res: mockRes,
+				data: { answers: { applicationReceivedDate: new Date('2026-10-30') } }
 			} as unknown as SaveParams);
 
 			assert.strictEqual(processMock.mock.calls.length, 1);
@@ -483,6 +525,135 @@ describe('acknowledgePreNotificationEmail', () => {
 		assert.strictEqual(sendArgs[1], mockService);
 		assert.strictEqual(sendArgs[2], 'case-123');
 		assert.strictEqual(sendArgs[3], 'acknowledgePreNotificationEmailSent');
+		assert.strictEqual(sendArgs[4], 'Send Acknowledgement Pre-notification (Update)');
+		assert.strictEqual(sendArgs[5], mockReq);
+	});
+});
+
+describe('acknowledgePreApplicationEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processAcknowledgementPreApplication', async () => Promise.resolve(true));
+
+		mockService = {
+			db: {},
+			logger: {}
+		} as unknown as ManageService;
+
+		mockSendFn = mock.fn();
+		mockReq = {
+			session: {
+				account: {
+					localAccountId: 'user-123'
+				}
+			}
+		};
+	});
+
+	it('returns early without doing anything if applicationReceivedDate is not in the answers payload', () => {
+		const answers = { developmentDescription: 'New Description' };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+		};
+
+		acknowledgePreApplicationEmail(
+			answers as any,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processAcknowledgementPreApplication as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('returns early without doing anything if the case is not a pre-application phase', () => {
+		const answers = { applicationReceivedDate: new Date('2026-10-30') };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
+		};
+
+		acknowledgePreApplicationEmail(
+			answers as any,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processAcknowledgementPreApplication as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('returns early without doing anything if the acknowledge pre-application email has already been sent', () => {
+		const answers = { applicationReceivedDate: new Date('2026-10-30') };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+			acknowledgePreApplicationEmailSent: BOOLEAN_OPTIONS.YES
+		};
+
+		acknowledgePreApplicationEmail(
+			answers as any,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processAcknowledgementPreApplication as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('processes the email and delegates to sendNotificationFn when conditions are met', () => {
+		const receivedDate = new Date('2026-10-30T12:00:00.000Z');
+		const answers = { applicationReceivedDate: receivedDate };
+		const previousCase = {
+			reference: 'REF-PRE-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION,
+			acknowledgePreApplicationEmailSent: undefined
+		};
+
+		acknowledgePreApplicationEmail(
+			answers as any,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processAcknowledgementPreApplication as any).mock.calls.length, 1);
+
+		const [mergedAnswers, referenceArg] = (mockNotificationService.processAcknowledgementPreApplication as any).mock
+			.calls[0].arguments;
+
+		assert.strictEqual(mergedAnswers.applicationReceivedDate, receivedDate);
+		assert.strictEqual(mergedAnswers.reference, 'REF-PRE-123');
+		assert.strictEqual(referenceArg, 'REF-PRE-123');
+
+		assert.strictEqual(mockSendFn.mock.calls.length, 1);
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+
+		assert.ok(sendArgs[0] instanceof Promise);
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], 'acknowledgePreApplicationEmailSent');
 		assert.strictEqual(sendArgs[4], 'Send Acknowledgement Pre-notification (Update)');
 		assert.strictEqual(sendArgs[5], mockReq);
 	});

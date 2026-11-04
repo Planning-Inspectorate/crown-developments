@@ -231,6 +231,7 @@ export interface S62aCaseViewModel {
 	};
 	representationsPublishDate?: Date;
 	applicantType?: string | null;
+	hasSiteLocation?: boolean;
 
 	notificationReceivedDate?: Date;
 	applicationReceivedDate?: Date;
@@ -388,6 +389,7 @@ export interface S62aCaseViewModel {
 
 	// Email flags
 	acknowledgePreNotificationEmailSent?: YesNo;
+	acknowledgePreApplicationEmailSent?: YesNo;
 }
 
 /**
@@ -827,6 +829,11 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			? { [`maxAnnualThroughputUnitId_${wt.maxAnnualThroughputUnitId}`]: String(wt.maxAnnualThroughput.toNumber()) }
 			: {})
 	}));
+
+	// Generic flag used to determine whether we have "something" that constitutes an address
+	if (dbCase.SiteAddress || (dbCase.siteEasting && dbCase.siteNorthing)) {
+		viewModel.hasSiteLocation = true;
+	}
 
 	return viewModel;
 }

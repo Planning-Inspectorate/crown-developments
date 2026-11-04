@@ -256,6 +256,7 @@ function handleUpdateEmails(
 	if (previousCase.publishedToLegacyGovUk) return;
 
 	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
+	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -290,6 +291,49 @@ export function acknowledgePreNotificationEmail(
 		service,
 		id,
 		'acknowledgePreNotificationEmailSent',
+		'Send Acknowledgement Pre-notification (Update)',
+		req
+	);
+}
+
+/**
+ * Determines whether to begin the process of sending the acknowledgePreApplicationEmail.
+ *
+ * Note: This email is specifically for "pre-application" cases updating their
+ * applicationReceivedDate value for the first time. Importantly, it is not about
+ * the preApplicationReceivedDate that is only shown on "applications", hence the
+ * guard clauses
+ */
+export function acknowledgePreApplicationEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const acknowledgePreApplicationEmailSentAlready =
+		previousCase.acknowledgePreApplicationEmailSent === BOOLEAN_OPTIONS.YES;
+	const isPreApplication = previousCase.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION;
+	const hasApplicationReceivedDate = answers.applicationReceivedDate;
+
+	if (acknowledgePreApplicationEmailSentAlready) return;
+
+	if (!(isPreApplication && hasApplicationReceivedDate)) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const emailPromise = notificationService.processAcknowledgementPreApplication(mergedAnswers, previousCase.reference);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'acknowledgePreApplicationEmailSent',
 		'Send Acknowledgement Pre-notification (Update)',
 		req
 	);
