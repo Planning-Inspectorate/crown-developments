@@ -8,6 +8,8 @@ import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/dat
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
 import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
+import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
@@ -62,6 +64,56 @@ export class S62aManageNotificationService {
 		} catch (error) {
 			this.logger.error({ error, reference }, 'Error dispatching email');
 			throw new Error('Error encountered during email notification dispatch', { cause: error });
+		}
+	}
+
+	/**
+	 * Orchestrates the acknowledgement pre-application email process.
+	 * Triggered when a pre-application case adds or updates its applicationReceivedDate.
+	 */
+	public async processAcknowledgementPreApplication(
+		answers: S62aCreateCaseAnswers & { applicationReceivedDate?: Date },
+		reference: string
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (!answers.applicationReceivedDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		if (!notificationContacts.length) {
+			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
+			return { wasSent: false };
+		}
+
+		const formattedAddress = answers.siteAddress
+			? formatAddress(answers.siteAddress)
+			: 'Easting: ' + answers.siteEasting + ', Northing: ' + answers.siteNorthing;
+
+		const applicationDescription = answers.developmentDescription || '';
+		const receivedDate = formatDateForDisplay(answers.applicationReceivedDate);
+
+		try {
+			const auditData = await this.notifyClient.sendAcknowledgePreApplicationToMany(notificationContacts, {
+				reference,
+				siteAddress: formattedAddress,
+				applicationDescription,
+				receivedDate
+			});
+
+			this.logger.info({ reference }, 'Acknowledgement pre-application emails dispatched successfully');
+
+			return {
+				wasSent: true,
+				auditData
+			};
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching pre-application acknowledgement email');
+			throw new Error('Error encountered during pre-application email notification dispatch', { cause: error });
 		}
 	}
 

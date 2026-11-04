@@ -658,17 +658,20 @@ export function getQuestions(
 			question: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateQuestion,
 			fieldName: 'applicationReceivedDate',
 			url: 'application-received',
-			validators: [new DateValidator('application received date')],
-			hint: 'You must first add the application fee and the site address or site coordinates.',
-			viewData: {
-				extraActionButtons: [
-					{
-						text: 'Remove and save',
-						type: 'submit',
-						formaction: 'application-received/remove'
+			validators: [
+				new DateValidator('application received date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'hasSiteLocation',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, hasSiteLocation) => {
+						if (!hasSiteLocation) throw new Error('You must first add the site address or site coordinates');
+
+						return true;
 					}
-				]
-			}
+				})
+			],
+			hint: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning,
+			viewData: { warningMessage: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning }
 		},
 		applicationAcknowledgedDate: {
 			type: COMPONENT_TYPES.DATE,

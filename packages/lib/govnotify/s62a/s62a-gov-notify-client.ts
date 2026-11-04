@@ -7,6 +7,7 @@ export interface TemplateIds {
 	test?: string; // Once we start adding proper templates we can remove this
 	acknowledgePreNotification?: string;
 	acknowledgeRepresentationReceived?: string;
+	acknowledgePreApplication?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -44,6 +45,13 @@ export type RepresentationReceivedPersonalisation = {
 	caseReference: string;
 	siteAddress: string;
 	applicationDescription: string;
+};
+
+export type PreApplicationDetails = {
+	reference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	receivedDate: string;
 };
 
 /**
@@ -149,6 +157,54 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendAcknowledgePreNotification(contact, sharedData);
 			},
 			'Failed to send acknowledge pre-notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email acknowledging that a pre-application advice request has been received
+	 */
+	async sendAcknowledgePreApplication(
+		notificationData: ContactNotificationType,
+		details: PreApplicationDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.acknowledgePreApplication;
+
+		if (!templateId) {
+			this.logger.warn('acknowledge pre application template not enabled. ignoring request.');
+			throw new Error('Acknowledge pre-application template not enabled.');
+		}
+
+		const fullName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				applicantName: fullName,
+				caseReference: details.reference,
+				siteAddress: details.siteAddress,
+				applicationDescription: details.applicationDescription,
+				receivedDate: details.receivedDate
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends an email to multiple applicants/agents acknowledging that a pre-application advice request has been received
+	 */
+	async sendAcknowledgePreApplicationToMany(
+		notificationData: ContactNotificationType[],
+		details: PreApplicationDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
+				return this.sendAcknowledgePreApplication(contact, details);
+			},
+			'Failed to send acknowledge pre-application notification to one or more email addresses.'
 		);
 	}
 

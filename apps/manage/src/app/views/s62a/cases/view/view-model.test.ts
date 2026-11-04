@@ -77,6 +77,9 @@ describe('s62aCaseToViewModel', () => {
 		assert.strictEqual(result.likelyIssues, 'Traffic and noise');
 		assert.strictEqual(result.siteNorthing, 123456);
 		assert.strictEqual(result.siteEasting, 654321);
+
+		// Boolean flag for covering address & easting/northing
+		assert.strictEqual(result.hasSiteLocation, true);
 	});
 
 	it('maps vehicle parking rows', () => {
@@ -157,6 +160,9 @@ describe('s62aCaseToViewModel', () => {
 
 		// fields absent from the record are simply absent
 		assert.strictEqual(result.siteEasting, undefined);
+
+		// Boolean flag for covering address & easting/northing
+		assert.strictEqual(result.hasSiteLocation, undefined);
 	});
 
 	it('combines representations period start and end into a single object', () => {
