@@ -388,6 +388,13 @@ export interface S62aCaseViewModel {
 }
 
 /**
+ * The dynamic-forms journey response holds answers as a flat `Record<string, unknown>`,
+ * and manage-list questions read dynamically-named fields. This widens the view model at
+ * that boundary only — prefer `S62aCaseViewModel` everywhere else so field names stay checked.
+ */
+export type S62aCaseAnswers = S62aCaseViewModel & Record<string, unknown>;
+
+/**
  * Optional boolean fields that need converting to YesNo | undefined
  */
 const BOOLEAN_FIELDS = Object.freeze([
