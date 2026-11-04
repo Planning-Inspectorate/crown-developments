@@ -28,6 +28,27 @@ describe('cookies', () => {
 		});
 	});
 	describe('buildCookiesSaveController', () => {
+		it('should clear parent-domain Clarity cookies when analytics are rejected', () => {
+			const req = {
+				body: { acceptCookies: 'no' },
+				headers: { cookie: '_clck=test; _clsk=test; _ga=test; connect.sid=test' },
+				session: {}
+			};
+			const res = { cookie: mock.fn(), clearCookie: mock.fn(), redirect: mock.fn() };
+			buildCookiesSaveController({
+				secureSession: true,
+				appHostname: 'crown-test.planninginspectorate.gov.uk'
+			})(req, res);
+			assert.deepStrictEqual(
+				res.clearCookie.mock.calls
+					.map((call) => call.arguments)
+					.filter(([, options]) => options.domain === '.planninginspectorate.gov.uk'),
+				['_clck', '_clsk'].map((name) => [name, { domain: '.planninginspectorate.gov.uk', path: '/' }])
+			);
+			assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'false');
+			assert.strictEqual(req.session.cookies.settings.preferenceSet, true);
+			assert.deepStrictEqual(res.redirect.mock.calls[0].arguments, ['/cookies']);
+		});
 		it('should redirect to the cookies page if acceptCookies is not a string', () => {
 			const mockReq = { body: { acceptCookies: null }, session: {} };
 			const mockRes = {
