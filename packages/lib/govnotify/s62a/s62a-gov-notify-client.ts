@@ -8,6 +8,7 @@ export interface TemplateIds {
 	acknowledgePreNotification?: string;
 	acknowledgeRepresentationReceived?: string;
 	acknowledgePreApplication?: string;
+	applicationValid?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -52,6 +53,16 @@ export type PreApplicationDetails = {
 	siteAddress: string;
 	applicationDescription: string;
 	receivedDate: string;
+};
+
+export type ApplicationValidDetails = {
+	reference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	applicationValidDate: string;
+	consultationEndDate: string;
+	targetDecisionDate: string;
+	appInfoUrl: string;
 };
 
 /**
@@ -205,6 +216,57 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendAcknowledgePreApplication(contact, details);
 			},
 			'Failed to send acknowledge pre-application notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email acknowledging that an application is valid and being processed
+	 */
+	async sendApplicationValid(
+		notificationData: ContactNotificationType,
+		details: ApplicationValidDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.applicationValid;
+
+		if (!templateId) {
+			this.logger.warn('application valid template not enabled. ignoring request.');
+			throw new Error('Application valid template not enabled.');
+		}
+
+		const applicantName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				applicantName: applicantName,
+				caseReference: details.reference,
+				siteAddress: details.siteAddress,
+				applicationDescription: details.applicationDescription,
+				validDate: details.applicationValidDate,
+				consultationEndDate: details.consultationEndDate,
+				targetDecisionDate: details.targetDecisionDate,
+				appInfoUrl: details.appInfoUrl
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends the valid application notification to all designated recipients (agent or applicant)
+	 */
+	async sendApplicationValidToMany(
+		notificationData: ContactNotificationType[],
+		details: ApplicationValidDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
+				return this.sendApplicationValid(contact, details);
+			},
+			'Failed to send application valid notification to one or more email addresses.'
 		);
 	}
 

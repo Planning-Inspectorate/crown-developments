@@ -232,6 +232,7 @@ export interface S62aCaseViewModel {
 	representationsPublishDate?: Date;
 	applicantType?: string | null;
 	hasSiteLocation?: boolean;
+	isEiaComplete?: boolean;
 
 	notificationReceivedDate?: Date;
 	applicationReceivedDate?: Date;
@@ -389,6 +390,7 @@ export interface S62aCaseViewModel {
 
 	// Email flags
 	acknowledgePreNotificationEmailSent?: string;
+	validApplicationApplicantEmailSent?: YesNo;
 }
 
 /**
@@ -832,6 +834,17 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 	// Generic flag used to determine whether we have "something" that constitutes an address
 	if (dbCase.SiteAddress || (dbCase.siteEasting && dbCase.siteNorthing)) {
 		viewModel.hasSiteLocation = true;
+	}
+
+	// Flag used to determine whether EIA is completed. Complete means two things"
+	// (1) eiaScreening is not needed (false)
+	// (2) eiaScreen is needed (true) and user has answered the outcome
+	// Otherwise it is deemed incomplete
+	if (
+		dbCase.eiaScreening === false ||
+		(dbCase.eiaScreening === true && typeof dbCase.eiaScreeningOutcome === 'boolean')
+	) {
+		viewModel.isEiaComplete = true;
 	}
 
 	return viewModel;

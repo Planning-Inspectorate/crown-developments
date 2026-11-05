@@ -774,7 +774,48 @@ export function getQuestions(
 			question: 'When was the application confirmed as valid?',
 			fieldName: 'applicationValidDate',
 			url: 'application-valid',
-			validators: [new DateValidator('application valid date')]
+			validators: [
+				new DateValidator('application valid date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'hasSiteLocation',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, hasSiteLocation) => {
+						if (!hasSiteLocation)
+							throw new Error('Add the site address or site coordinates before you add the application valid date');
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'isEiaComplete',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, isEiaComplete) => {
+						if (!isEiaComplete) throw new Error('Add the EIA details before you add the application valid date');
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'representationsPeriod',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, representationsPeriod) => {
+						const period = representationsPeriod as { end?: unknown };
+						if (!period?.end)
+							throw new Error('Add the representation period end date before you add the application valid date');
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'publishDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, publishDate) => {
+						if (!publishDate) throw new Error('Publish the case before you add the application valid date');
+
+						return true;
+					}
+				})
+			]
 		},
 		validLettersSentDate: {
 			type: COMPONENT_TYPES.DATE,

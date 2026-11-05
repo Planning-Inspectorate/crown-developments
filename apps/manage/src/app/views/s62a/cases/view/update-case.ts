@@ -5,7 +5,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { s62aCaseToViewModel } from './view-model.ts';
+import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
@@ -325,7 +325,7 @@ export function acknowledgePreApplicationEmail(
 	const mergedAnswers = {
 		...previousCase,
 		...answers
-	} as unknown as S62aCreateCaseAnswers;
+	} as unknown as S62aCaseViewModel;
 
 	const emailPromise = notificationService.processAcknowledgementPreApplication(
 		mergedAnswers,
@@ -338,6 +338,43 @@ export function acknowledgePreApplicationEmail(
 		id,
 		'acknowledgePreApplicationEmailSent',
 		'Send Acknowledgement Pre-notification (Update)',
+		CASE_DATA_MODEL.S62A,
+		req
+	);
+}
+
+/**
+ * Handles when to
+ */
+export function applicationValidEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const emailSentAlready = previousCase.validApplicationApplicantEmailSent === BOOLEAN_OPTIONS.YES;
+
+	const isApplication = previousCase.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+	const hasValidDate = answers.applicationValidDate;
+
+	if (emailSentAlready || !isApplication || !hasValidDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as S62aCaseViewModel;
+
+	const emailPromise = notificationService.processApplicationValid(mergedAnswers, previousCase.reference);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'validApplicationApplicantEmailSent',
+		'Send Valid Application Notification (Applicant/Agent)',
 		CASE_DATA_MODEL.S62A,
 		req
 	);

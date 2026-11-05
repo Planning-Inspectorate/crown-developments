@@ -10,6 +10,7 @@ import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
 import { formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import type { S62aCaseViewModel } from '../view/view-model.ts';
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
@@ -72,7 +73,7 @@ export class S62aManageNotificationService {
 	 * Triggered when a pre-application case adds or updates its applicationReceivedDate.
 	 */
 	public async processAcknowledgementPreApplication(
-		answers: S62aCreateCaseAnswers & { applicationReceivedDate?: Date },
+		answers: S62aCaseViewModel,
 		reference: string
 	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
 		if (!answers.applicationReceivedDate) {
@@ -118,10 +119,70 @@ export class S62aManageNotificationService {
 	}
 
 	/**
+	 * Orchestrates the valid application notification email dispatch.
+	 * Triggered when an application phase case saves its applicationValidDate for the first time.
+	 */
+	public async processApplicationValid(
+		answers: S62aCaseViewModel,
+		reference: string
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (!answers.applicationValidDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		if (!notificationContacts.length) {
+			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
+			return { wasSent: false };
+		}
+
+		const siteAddress = answers.siteAddress
+			? formatAddress(answers.siteAddress)
+			: `Easting: ${answers.siteEasting ?? ''}, Northing: ${answers.siteNorthing ?? ''}`;
+
+		const applicationDescription = answers.developmentDescription || '';
+		const applicationValidDate = formatDateForDisplay(answers.applicationValidDate);
+
+		const consultationEndDate = answers.representationsPeriod?.end
+			? formatDateForDisplay(answers.representationsPeriod.end)
+			: '';
+
+		const targetDecisionDateValue = answers.extendedTargetDecisionDate ?? answers.targetDecisionDate;
+		const targetDecisionDate = targetDecisionDateValue ? formatDateForDisplay(targetDecisionDateValue) : '';
+
+		try {
+			const auditData = await this.notifyClient.sendApplicationValidToMany(notificationContacts, {
+				reference,
+				siteAddress,
+				applicationDescription,
+				applicationValidDate,
+				consultationEndDate,
+				targetDecisionDate,
+				appInfoUrl: '' // TODO
+			});
+
+			this.logger.info({ reference }, 'Application valid notification emails dispatched successfully');
+
+			return {
+				wasSent: true,
+				auditData
+			};
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching application valid notification email');
+			throw new Error('Error encountered during application valid notification dispatch', { cause: error });
+		}
+	}
+
+	/**
 	 * Takes the email, first name and last name from the answered questions.
 	 * Prioritises the agent, if there is an agent, we do not send to the applicant.
 	 */
-	private extractNotificationContacts(answers: S62aCreateCaseAnswers): ContactNotificationType[] {
+	private extractNotificationContacts(answers: S62aCreateCaseAnswers | S62aCaseViewModel): ContactNotificationType[] {
 		const notificationContacts: ContactNotificationType[] = [];
 
 		if (answers.manageAgentContactDetails && answers.manageAgentContactDetails.length > 0) {

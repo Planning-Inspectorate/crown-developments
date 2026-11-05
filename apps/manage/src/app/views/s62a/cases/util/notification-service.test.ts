@@ -6,8 +6,9 @@ import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { Logger } from 'pino';
+import type { S62aCaseViewModel } from '../view/view-model.ts';
 
-type PreAppAnswers = S62aCreateCaseAnswers & { applicationReceivedDate?: Date };
+type PreAppAnswers = S62aCaseViewModel;
 
 /**
  * Helper to generate a baseline of pre-notification case answers
@@ -250,8 +251,8 @@ describe('S62aManageNotificationService', () => {
 		it('falls back to easting and northing when siteAddress is not provided', async () => {
 			const caseAnswers = preAppAnswers({
 				siteAddress: undefined,
-				siteEasting: '350000',
-				siteNorthing: '170000'
+				siteEasting: 350000,
+				siteNorthing: 170000
 			});
 
 			const result = await service.processAcknowledgementPreApplication(caseAnswers, 'REF-123');
