@@ -44,6 +44,7 @@ interface Config extends BaseConfig {
 		isS62APortalLive: boolean;
 		isCaseNotesLive: boolean;
 		isAuditLive: boolean;
+		isSnowModeLive: boolean;
 		isRetryLive: boolean;
 		isS62aNotifyCallBackEnabled: boolean;
 	};

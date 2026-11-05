@@ -80,6 +80,7 @@ export function loadConfig() {
 		FEATURE_FLAG_CASE_NOTES_NOT_LIVE,
 		FEATURE_FLAG_AUDIT_NOT_LIVE,
 		FEATURE_FLAG_RETRY_NOT_LIVE,
+		FEATURE_FLAG_SNOW_MODE,
 		BLOB_STORE_DISABLED,
 		BLOB_STORE_HOST,
 		BLOB_STORE_CONTAINER,
@@ -250,7 +251,8 @@ export function loadConfig() {
 			isCaseNotesLive: FEATURE_FLAG_CASE_NOTES_NOT_LIVE !== 'true',
 			isAuditLive: FEATURE_FLAG_AUDIT_NOT_LIVE !== 'true',
 			isRetryLive,
-			isS62aNotifyCallBackEnabled: FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE !== 'true'
+			isS62aNotifyCallBackEnabled: FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE !== 'true',
+			isSnowModeLive: FEATURE_FLAG_SNOW_MODE === 'true'
 		},
 		gitSha: GIT_SHA,
 		// the log level to use

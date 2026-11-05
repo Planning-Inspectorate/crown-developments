@@ -109,7 +109,7 @@ module "app_manage" {
     FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE = var.apps_config.feature_flags.s62a_notify_call_back_not_live
     FEATURE_FLAG_AUDIT_NOT_LIVE                 = var.apps_config.feature_flags.audit_not_live
     FEATURE_FLAG_RETRY_NOT_LIVE                 = var.apps_config.feature_flags.retry_not_live
-
+    FEATURE_FLAG_SNOW_MODE                      = var.apps_config.feature_flags.snow_mode
     # Azure Language Service
     AZURE_AI_LANGUAGE_ENDPOINT = local.text_analytics_endpoint
 
