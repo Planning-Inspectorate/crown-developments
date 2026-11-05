@@ -28,7 +28,7 @@ export function getAboutThisApplicationSectionItems(s62aFields: S62aCaseView): S
 	return [
 		{
 			key: {
-				text: 'Application type'
+				text: 'Type'
 			},
 			value: {
 				text: s62aFields.applicationType ?? ''
@@ -81,7 +81,7 @@ export function getAboutThisApplicationSectionItems(s62aFields: S62aCaseView): S
 			: []),
 		{
 			key: {
-				text: 'Description of the proposed development'
+				text: 'Proposed development'
 			},
 			value: {
 				text: s62aFields.description ?? ''

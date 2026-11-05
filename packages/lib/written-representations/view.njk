@@ -81,7 +81,7 @@
 										isSubheading: true if searchRepsLabel
 									},
 									hint: {
-										text: "Search by keywords or by name of person or organisation who made the submission."
+										text: "Search by keywords or by name of person or organisation who made the written representation (comment)"
 									},
 									classes: "govuk-input govuk-input--width-30"
 								},
@@ -131,7 +131,7 @@
 							<p class="govuk-body">
 								Showing <strong>{{ paginationParams.resultsStartNumber }}</strong> to
 								<strong>{{ paginationParams.resultsEndNumber if paginationParams.totalItems > paginationParams.resultsEndNumber else paginationParams.totalItems }}</strong>
-								of <strong>{{ paginationParams.totalItems }}</strong> representations, newest first.
+								of <strong>{{ paginationParams.totalItems }}</strong>, newest first.
 							</p>
 
 							{{ paginationOptions.renderPagination(paginationParams.selectedItemsPerPage, paginationParams.totalItems, baseUrl, queryParams) }}

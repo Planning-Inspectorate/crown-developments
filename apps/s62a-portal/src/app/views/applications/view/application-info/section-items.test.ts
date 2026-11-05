@@ -6,7 +6,7 @@ import {
 	getHearingSectionItems,
 	getDecisionSectionItems
 } from './section-items.ts';
-import type { S62aCaseView } from './view-model.ts';
+import type { S62aCaseView } from '../view-model.ts';
 
 describe('getAboutThisApplicationSectionItems', () => {
 	it('should return the mandatory items with default fallbacks when conditional fields are missing', () => {
@@ -19,7 +19,7 @@ describe('getAboutThisApplicationSectionItems', () => {
 		assert.strictEqual(result.length, 5);
 
 		assert.deepStrictEqual(result[0], {
-			key: { text: 'Application type' },
+			key: { text: 'Type' },
 			value: { text: '' }
 		});
 
@@ -34,7 +34,7 @@ describe('getAboutThisApplicationSectionItems', () => {
 		});
 
 		assert.deepStrictEqual(result[3], {
-			key: { text: 'Description of the proposed development' },
+			key: { text: 'Proposed development' },
 			value: { text: '' }
 		});
 

@@ -165,7 +165,7 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.strictEqual(template, './view.njk');
 
 		assert.strictEqual(payload.pageCaption, 'S62A/2026/0001');
-		assert.strictEqual(payload.pageTitle, 'Written representations');
+		assert.strictEqual(payload.pageTitle, 'Written representations (comments)');
 		assert.strictEqual(payload.applicationReference, 'S62A/2026/0001');
 		assert.strictEqual(payload.currentUrl, `/applications/${validUuid}/written-representations`);
 
@@ -289,8 +289,8 @@ describe('buildS62AWrittenRepresentationsPage', () => {
 		assert.strictEqual(payload.representationsArePublished, false);
 		assert.strictEqual(payload.paginationParams.totalItems, 0);
 		assert.deepStrictEqual(payload.representationMessages, [
-			'No written representations have been published yet.',
-			'You’ll be able to view the published representations from 01 April 2026'
+			'No written representations (comments) have been published yet.',
+			'You’ll be able to view the published written representations from 01 April 2026'
 		]);
 	});
 

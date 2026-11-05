@@ -5,8 +5,8 @@
     <h2 id="procedure" class="govuk-heading-m">Have your say</h2>
     
     {% if haveYourSayStatus === 'open' %}
-        <p class="govuk-body">Send us your written representations about this application.</p>
-        <p class="govuk-body">A written representation includes your comment and any attachments. Planning inspectors will consider these before they make a decision on an application.</p>
+        <p class="govuk-body">Send us your written representations (comments) about this application.</p>
+        <p class="govuk-body">Planning Inspectors will consider these before they make a decision on an application.</p>
         <p class="govuk-body">We will publish your name and comments on this website.</p>
         <p class="govuk-body">You must submit your comment by {{ s62aFields.representationsPeriodEndDateTime }}.</p>
         
@@ -43,25 +43,25 @@
         }) }}
         
     {% elif haveYourSayStatus === 'notOpenDatesSet' %}
-        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens from: {{ s62aFields.representationsPeriodStartDateTime }} - {{ s62aFields.representationsPeriodEndDateTime }}.</p>
+        <p class="govuk-body">You can use this service to have your say on this application when the consultation period opens from: {{ s62aFields.representationsPeriodStartDateTime }} - {{ s62aFields.representationsPeriodEndDateTime }}.</p>
         <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
         
     {% elif haveYourSayStatus === 'notOpenDatesNotSet' %}
-        <p class="govuk-body">You can use this service to have your say on this application when the representation period opens.</p>
+        <p class="govuk-body">You can use this service to have your say on this application when the consultation period opens.</p>
         <p class="govuk-body">We'll ask for your personal details and your comments about this application.</p>
-        <p class="govuk-body">Check back later to see when the representation period will be held.</p>
+        <p class="govuk-body">Check back later to see when the consultation period will be held.</p>
         
     {% elif haveYourSayStatus === 'closedRepsPublished' %}
-        <p class="govuk-body">The written representations period has ended.</p>
-        <p class="govuk-body">You can <a class="govuk-link" href="/applications/{{ s62aFields.id }}/written-representations">view the written representations</a> for this application.</p>
+        <p class="govuk-body">The consultation period has ended.</p>
+        <p class="govuk-body">You can <a class="govuk-link" href="/applications/{{ s62aFields.id }}/written-representations">view the written representations (comments)</a> for this application.</p>
         
     {% elif haveYourSayStatus === 'closedPublishedDateInFuture' %}
-        <p class="govuk-body">The representation period for this application has closed.</p>
-        <p class="govuk-body">You can view the published representations from: {{ s62aFields.representationsPublishDate }}</p>
+        <p class="govuk-body">The consultation period has ended.</p>
+        <p class="govuk-body">You'll be able to view the published written representations (comments) from: {{ s62aFields.representationsPublishDate }}</p>
         
     {% elif haveYourSayStatus === 'closedRepsPublishedDateNotSet' %}
-        <p class="govuk-body">The representation period for this application has closed.</p>
-        <p class="govuk-body">Check back later to see the published representations.</p>
+        <p class="govuk-body">The consultation period has ended.</p>
+        <p class="govuk-body">Check back later to see the published written representations (comments).</p>
         
     {% endif %}
 {% endmacro %}

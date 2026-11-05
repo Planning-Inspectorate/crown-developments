@@ -100,7 +100,7 @@ describe('buildWrittenRepresentationsPage', () => {
 		const [template, locals] = res.render.mock.calls[0].arguments;
 		assert.strictEqual(template, './view.njk');
 		assert.strictEqual(locals.pageCaption, caseFields.reference);
-		assert.strictEqual(locals.pageTitle, 'Written representations');
+		assert.strictEqual(locals.pageTitle, 'Written representations (comments)');
 		assert.strictEqual(locals.applicationReference, caseFields.reference);
 		assert.strictEqual(locals.baseUrl, req.baseUrl);
 		assert.strictEqual(locals.currentUrl, req.originalUrl);

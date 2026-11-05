@@ -118,7 +118,7 @@ export function buildFilters(
 	};
 
 	const attachmentsSection: CheckboxFilter = {
-		title: 'Contains attachments',
+		title: 'Attachments',
 		name: 'filterByAttachments',
 		type: 'checkboxes',
 		options: {

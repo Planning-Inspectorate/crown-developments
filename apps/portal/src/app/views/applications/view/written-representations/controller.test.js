@@ -67,7 +67,7 @@ describe('written representations', () => {
 
 			const viewData = mockRes.render.mock.calls[0].arguments[1];
 			assert.strictEqual(viewData.pageCaption, 'CROWN/2025/0000001');
-			assert.strictEqual(viewData.pageTitle, 'Written representations');
+			assert.strictEqual(viewData.pageTitle, 'Written representations (comments)');
 			assert.strictEqual(viewData.representations.length, 1);
 			assert.deepStrictEqual(viewData.representations[0], {
 				dateRepresentationSubmitted: '15 January 2025',

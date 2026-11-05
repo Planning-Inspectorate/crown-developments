@@ -54,7 +54,7 @@ describe('Crown FO Filters', () => {
 			assert.strictEqual(submittedBy.options.items[1].checked, false);
 
 			const attachments = sections[1];
-			assert.strictEqual(attachments.title, 'Contains attachments');
+			assert.strictEqual(attachments.title, 'Attachments');
 			assert.strictEqual(attachments.type, 'checkboxes');
 			assert.strictEqual(attachments.options.items.length, 2);
 			assert.match(attachments.options.items[0].text, /Yes \(7\)/);
