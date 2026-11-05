@@ -91,20 +91,16 @@ export function getRepresentationMessages(
 	const isPeriodClosed = endDate ? dateIsBeforeToday(endDate) : false;
 
 	if (isPeriodNotYetOpen || (!startDate && !endDate)) {
-		messages.push('No written representations have been published yet.');
+		messages.push('No written representations (comments) have been published yet.');
 
 		if (!startDate && !endDate) {
 			// A. Representation period not yet open & No representation period dates set
-			messages.push(
-				'You can submit a written representation (also known as ‘Have your say’) when the representation period is announced and open.'
-			);
+			messages.push('You can submit a written representation (comment) when the consultation period is open.');
 		} else if (startDate && endDate) {
 			// B. Representation period not yet open & Representation period dates set in the future
 			const formattedStart = formatInTimeZone(startDate, 'Europe/London', 'dd MMMM yyyy h:mmaaa');
 			const formattedEnd = formatInTimeZone(endDate, 'Europe/London', 'dd MMMM yyyy h:mmaaa');
-			messages.push(
-				`You can submit a written representation (also known as ‘Have your say’) from: ${formattedStart} - ${formattedEnd}`
-			);
+			messages.push(`You can submit a written representation (comment) from: ${formattedStart} - ${formattedEnd}`);
 		}
 		return messages;
 	}
@@ -112,27 +108,24 @@ export function getRepresentationMessages(
 	if (isPeriodOpen) {
 		if (!representationsSubmitted) {
 			//C. Representation period open & No representations have been submitted
-			messages.push('No written representations have been submitted yet.');
+			messages.push('No written representations (comments) have been submitted yet.');
 			return messages;
 		}
 
 		if (!hasAcceptedRepresentations) {
 			//D. Representation period open & Representations have been submitted but they are still in ‘Awaiting review' || F. &  Representation period open & Representations have been submitted but all are rejected
-			messages.push('No written representations have been published yet.');
+			messages.push('No written representations (comments) have been published yet.');
 			messages.push(
-				'We’re currently reviewing all submissions and will publish them on this page once the review is complete.'
+				'We’re currently reviewing all the written representations and will publish them on this page once the review is complete.'
 			);
 			return messages;
 		}
 
-		messages.push('No written representations have been published yet.');
-		if (!publishDate) {
-			//G. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date not yet set
-			messages.push('We’ll update this page once the date to publish representations has been set.');
-		} else if (dateIsAfterToday(publishDate)) {
+		messages.push('No written representations (comments) have been published yet.');
+		if (publishDate && dateIsAfterToday(publishDate)) {
 			//H. Representation period open  & Representations have been submitted and there is at least 1 accepted & Representations publish date in future
 			const formattedPublishDate = formatInTimeZone(publishDate, 'Europe/London', 'dd MMMM yyyy');
-			messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
+			messages.push(`You’ll be able to view the published written representations from ${formattedPublishDate}`);
 		}
 		return messages;
 	}
@@ -140,9 +133,9 @@ export function getRepresentationMessages(
 	if (isPeriodClosed) {
 		if (!hasAcceptedRepresentations) {
 			//J. Representation period closed & Representations submitted all rejected or in awaiting review & Representations publish date is in the past
-			messages.push('No written representations have been published yet.');
+			messages.push('No written representations (comments) have been published yet.');
 			messages.push(
-				'We’re currently reviewing all submissions and will publish them on this page once the review is complete.'
+				'We’re currently reviewing all the written representations and will publish them on this page once the review is complete.'
 			);
 			return messages;
 		}
@@ -154,8 +147,8 @@ export function getRepresentationMessages(
 
 		if (hasAcceptedRepresentations && publishDate && dateIsAfterToday(publishDate)) {
 			const formattedPublishDate = formatInTimeZone(publishDate, 'Europe/London', 'dd MMMM yyyy');
-			messages.push('No written representations have been published yet.');
-			messages.push(`You’ll be able to view the published representations from ${formattedPublishDate}`);
+			messages.push('No written representations (comments) have been published yet.');
+			messages.push(`You’ll be able to view the published written representations from ${formattedPublishDate}`);
 			return messages;
 		}
 	}

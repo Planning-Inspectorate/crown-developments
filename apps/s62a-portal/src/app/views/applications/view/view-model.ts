@@ -242,7 +242,7 @@ export function s62aCaseToViewModel(s62aCase: S62aCaseWithRelations): S62aCaseVi
 }
 
 export const tabText = {
-	writtenRepresentations: 'Written representations (Comments and feedback)'
+	writtenRepresentations: 'Written representations (comments)'
 };
 
 /**

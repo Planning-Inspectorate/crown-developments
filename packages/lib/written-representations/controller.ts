@@ -78,7 +78,7 @@ export function buildWrittenRepresentationsPage(
 
 		res.render('./view.njk', {
 			pageCaption: reference,
-			pageTitle: 'Written representations',
+			pageTitle: 'Written representations (comments)',
 			applicationReference: reference,
 			representations: representations.map((representation) =>
 				representationToViewModel(representation, true, {

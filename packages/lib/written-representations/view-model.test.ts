@@ -12,8 +12,8 @@ describe('getRepresentationMessages', () => {
 		const result = getRepresentationMessages({});
 
 		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'You can submit a written representation (also known as ‘Have your say’) when the representation period is announced and open.'
+			'No written representations (comments) have been published yet.',
+			'You can submit a written representation (comment) when the consultation period is open.'
 		]);
 	});
 
@@ -29,10 +29,10 @@ describe('getRepresentationMessages', () => {
 		});
 
 		assert.strictEqual(result.length, 2);
-		assert.strictEqual(result[0], 'No written representations have been published yet.');
+		assert.strictEqual(result[0], 'No written representations (comments) have been published yet.');
 		assert.strictEqual(
 			result[1],
-			'You can submit a written representation (also known as ‘Have your say’) from: 01 February 2026 12:00am - 01 March 2026 12:00am'
+			'You can submit a written representation (comment) from: 01 February 2026 12:00am - 01 March 2026 12:00am'
 		);
 	});
 
@@ -48,7 +48,7 @@ describe('getRepresentationMessages', () => {
 			false
 		);
 
-		assert.deepStrictEqual(result, ['No written representations have been submitted yet.']);
+		assert.deepStrictEqual(result, ['No written representations (comments) have been submitted yet.']);
 	});
 
 	it('should return under review message when period is open and submitted representations are not accepted', (context) => {
@@ -64,8 +64,8 @@ describe('getRepresentationMessages', () => {
 		);
 
 		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'We’re currently reviewing all submissions and will publish them on this page once the review is complete.'
+			'No written representations (comments) have been published yet.',
+			'We’re currently reviewing all the written representations and will publish them on this page once the review is complete.'
 		]);
 	});
 
@@ -82,10 +82,7 @@ describe('getRepresentationMessages', () => {
 			true
 		);
 
-		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'We’ll update this page once the date to publish representations has been set.'
-		]);
+		assert.deepStrictEqual(result, ['No written representations (comments) have been published yet.']);
 	});
 
 	it('should inform future publish date when period is open and publish date is in the future', (context) => {
@@ -102,8 +99,8 @@ describe('getRepresentationMessages', () => {
 		);
 
 		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'You’ll be able to view the published representations from 01 April 2026'
+			'No written representations (comments) have been published yet.',
+			'You’ll be able to view the published written representations from 01 April 2026'
 		]);
 	});
 
@@ -120,8 +117,8 @@ describe('getRepresentationMessages', () => {
 		);
 
 		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'We’re currently reviewing all submissions and will publish them on this page once the review is complete.'
+			'No written representations (comments) have been published yet.',
+			'We’re currently reviewing all the written representations and will publish them on this page once the review is complete.'
 		]);
 	});
 
@@ -155,8 +152,8 @@ describe('getRepresentationMessages', () => {
 		);
 
 		assert.deepStrictEqual(result, [
-			'No written representations have been published yet.',
-			'You’ll be able to view the published representations from 30 March 2026'
+			'No written representations (comments) have been published yet.',
+			'You’ll be able to view the published written representations from 30 March 2026'
 		]);
 	});
 });
