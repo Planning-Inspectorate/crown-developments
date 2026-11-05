@@ -40,3 +40,11 @@ provider "azurerm" {
   subscription_id = var.tooling_config.subscription_id
   features {}
 }
+
+provider "azurerm" {
+  alias                           = "odw"
+  subscription_id                 = var.odw_config.disabled ? null : var.odw_config.subscription_id
+  resource_provider_registrations = "none"
+
+  features {}
+}
