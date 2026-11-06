@@ -65,6 +65,28 @@ describe('cookies', () => {
 			assert.strictEqual(next.mock.callCount(), 1);
 		});
 		describe('handle cookie banner POST', () => {
+			it('should clear parent-domain Clarity cookies when rejected via the banner', () => {
+				const req = {
+					method: 'POST',
+					body: { cookiePreference: 'reject' },
+					headers: { cookie: '_clck=test; _clsk=test; _ga=test; connect.sid=test' },
+					session: {},
+					url: '/test'
+				};
+				const res = { cookie: mock.fn(), clearCookie: mock.fn(), redirect: mock.fn() };
+				const next = mock.fn();
+				buildAnalyticsCookiesMiddleware({ appHostname: 'crown-test.planninginspectorate.gov.uk' })(req, res, next);
+				assert.deepStrictEqual(
+					res.clearCookie.mock.calls
+						.map((call) => call.arguments)
+						.filter(([, options]) => options.domain === '.planninginspectorate.gov.uk'),
+					['_clck', '_clsk'].map((name) => [name, { domain: '.planninginspectorate.gov.uk', path: '/' }])
+				);
+				assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'false');
+				assert.strictEqual(req.session.cookies.settings.preferenceSetViaBanner, true);
+				assert.deepStrictEqual(res.redirect.mock.calls[0].arguments, ['/test']);
+				assert.strictEqual(next.mock.callCount(), 0);
+			});
 			it('should clear analytics cookies at both scopes when cookies are rejected via the banner', () => {
 				const req = {
 					method: 'POST',
@@ -143,7 +165,7 @@ describe('cookies', () => {
 		it('should not clear analytics cookies if the user opts in', () => {
 			const req = { headers: { cookie: '_ga=test; _clck=test; _clsk=test' } };
 			const res = { cookie: mock.fn(), clearCookie: mock.fn() };
-			setAnalyticsCookiesPreference(req, res, true, false, 'example.com');
+			setAnalyticsCookiesPreference(req, res, true, false, 'crown-test.planninginspectorate.gov.uk');
 			assert.strictEqual(res.clearCookie.mock.callCount(), 0);
 			assert.strictEqual(res.cookie.mock.calls[0].arguments[1], 'true');
 		});
@@ -173,6 +195,72 @@ describe('cookies', () => {
 	});
 
 	describe('removeAnalyticsCookies', () => {
+		for (const domain of [
+			'crown-test.planninginspectorate.gov.uk',
+			'find-crown-development.planninginspectorate.gov.uk',
+			'.crown-test.planninginspectorate.gov.uk'
+		]) {
+			it(`should additionally clear only exact Clarity names on the parent domain for ${domain}`, () => {
+				const req = {
+					headers: {
+						cookie:
+							'_clck=test; _clsk=test; _ga=test; _ga_example=test; CLID=test; ' +
+							'_Clck=test; _clck_extra=test; _clsk_extra=test; connect.sid=test; CrownDevAnalyticsEnabled=false'
+					}
+				};
+				const res = { clearCookie: mock.fn() };
+				removeAnalyticsCookies(req, res, domain);
+				const cookieDomain = domain.startsWith('.') ? domain : '.' + domain;
+				assert.deepStrictEqual(
+					res.clearCookie.mock.calls.map((call) => call.arguments),
+					['_clck', '_clsk', '_ga', '_ga_example', 'CLID'].flatMap((name) => [
+						[name, { path: '/' }],
+						[name, { domain: cookieDomain, path: '/' }],
+						...(['_clck', '_clsk', 'CLID'].includes(name)
+							? [[name, { domain: '.planninginspectorate.gov.uk', path: '/' }]]
+							: [])
+					])
+				);
+			});
+		}
+
+		for (const domain of [
+			'planninginspectorate.gov.uk',
+			'.planninginspectorate.gov.uk',
+			'localhost',
+			'localhost:3000',
+			'example.com',
+			'notplanninginspectorate.gov.uk',
+			'planninginspectorate.gov.uk.example.com'
+		]) {
+			it(`should retain only the existing deletion scopes for ${domain}`, () => {
+				const req = { headers: { cookie: '_clck=test; _clsk=test' } };
+				const res = { clearCookie: mock.fn() };
+				removeAnalyticsCookies(req, res, domain);
+				assert.deepStrictEqual(
+					res.clearCookie.mock.calls.map((call) => call.arguments),
+					['_clck', '_clsk'].flatMap((name) => [
+						[name, { path: '/' }],
+						[name, { domain: domain.startsWith('.') ? domain : '.' + domain, path: '/' }]
+					])
+				);
+			});
+		}
+
+		it('should only expire Clarity cookie names present in the request', () => {
+			const req = { headers: { cookie: '_clck=test' } };
+			const res = { clearCookie: mock.fn() };
+			removeAnalyticsCookies(req, res, 'crown-test.planninginspectorate.gov.uk');
+			assert.deepStrictEqual(
+				res.clearCookie.mock.calls.map((call) => call.arguments),
+				[
+					['_clck', { path: '/' }],
+					['_clck', { domain: '.crown-test.planninginspectorate.gov.uk', path: '/' }],
+					['_clck', { domain: '.planninginspectorate.gov.uk', path: '/' }]
+				]
+			);
+		});
+
 		it('should clear only GA4, Clarity and Microsoft advertising cookies at both scopes', () => {
 			const req = {
 				headers: {
@@ -184,12 +272,12 @@ describe('cookies', () => {
 				}
 			};
 			const res = { clearCookie: mock.fn() };
-			removeAnalyticsCookies(req, res, 'example.com');
+			removeAnalyticsCookies(req, res, 'planninginspectorate.gov.uk');
 			assert.deepStrictEqual(
 				res.clearCookie.mock.calls.map((call) => call.arguments),
 				['_ga', '_ga_first', '_ga_second', '_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'].flatMap((name) => [
 					[name, { path: '/' }],
-					[name, { domain: '.example.com', path: '/' }]
+					[name, { domain: '.planninginspectorate.gov.uk', path: '/' }]
 				])
 			);
 		});

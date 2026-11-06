@@ -3,9 +3,11 @@ import { parseCookie } from 'cookie';
 
 export const COOKIE_NAME_ANALYTICS_ENABLED = 'CrownDevAnalyticsEnabled';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+const CLARITY_COOKIE_NAMES = ['_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'];
+const CLARITY_COOKIE_DOMAIN = '.planninginspectorate.gov.uk';
 
 /** Exact-match cookie names belonging to GA4 and Clarity */
-const ANALYTICS_COOKIE_NAMES = ['_ga', '_clck', '_clsk', 'ANONCHK', 'CLID', 'MR', 'MUID', 'SM'];
+const ANALYTICS_COOKIE_NAMES = ['_ga', ...CLARITY_COOKIE_NAMES];
 /** Cookie name prefixes belonging to GA4 and Clarity */
 const ANALYTICS_COOKIE_PREFIXES = ['_ga_'];
 
@@ -70,9 +72,17 @@ export function removeAnalyticsCookies(req, res, domain) {
 			ANALYTICS_COOKIE_PREFIXES.some((prefix) => cookieName.startsWith(prefix))
 	);
 	for (const cookieName of analyticsCookieNames) {
+		const cookieDomain = domain.startsWith('.') ? domain : '.' + domain;
 		res.clearCookie(cookieName, { path: '/' });
 		// GA cookies are set on ".domain"
-		res.clearCookie(cookieName, { domain: domain.startsWith('.') ? domain : '.' + domain, path: '/' });
+		res.clearCookie(cookieName, { domain: cookieDomain, path: '/' });
+		if (
+			CLARITY_COOKIE_NAMES.includes(cookieName) &&
+			cookieDomain !== CLARITY_COOKIE_DOMAIN &&
+			cookieDomain.endsWith(CLARITY_COOKIE_DOMAIN)
+		) {
+			res.clearCookie(cookieName, { domain: CLARITY_COOKIE_DOMAIN, path: '/' });
+		}
 	}
 }
 
