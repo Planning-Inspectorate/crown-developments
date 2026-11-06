@@ -63,6 +63,7 @@ export type ApplicationValidDetails = {
 	consultationEndDate: string;
 	targetDecisionDate: string;
 	appInfoUrl: string;
+	s62aEmail: string;
 };
 
 /**
@@ -238,16 +239,28 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			.join(' ')
 			.trim();
 
+		console.log('minkus', {
+			applicantName,
+			caseReference: details.reference,
+			siteAddress: details.siteAddress,
+			applicationDescription: details.applicationDescription,
+			validDate: details.applicationValidDate,
+			consultationEndDate: details.consultationEndDate,
+			targetDecisionDate: details.targetDecisionDate,
+			appInfoUrl: details.appInfoUrl
+		});
+
 		return this.sendEmailWithAudit(templateId, notificationData.email, {
 			personalisation: {
-				applicantName: applicantName,
+				applicantName,
 				caseReference: details.reference,
 				siteAddress: details.siteAddress,
 				applicationDescription: details.applicationDescription,
 				validDate: details.applicationValidDate,
 				consultationEndDate: details.consultationEndDate,
 				targetDecisionDate: details.targetDecisionDate,
-				appInfoUrl: details.appInfoUrl
+				appInfoUrl: details.appInfoUrl,
+				section62aEmail: details.s62aEmail
 			},
 			reference: details.reference
 		});

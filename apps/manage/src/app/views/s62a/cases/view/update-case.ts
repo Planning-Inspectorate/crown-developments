@@ -257,6 +257,7 @@ function handleUpdateEmails(
 
 	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
+	applicationValidEmail(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
 }
 
 /**
@@ -344,7 +345,8 @@ export function acknowledgePreApplicationEmail(
 }
 
 /**
- * Handles when to
+ * Determines whether to send an email to the relevant people
+ * when an application is confirmed as valid
  */
 export function applicationValidEmail(
 	answers: UpdateCaseAnswers,
@@ -356,7 +358,6 @@ export function applicationValidEmail(
 	sendNotificationFn = sendS62aNotificationAndUpdateFlag
 ) {
 	const emailSentAlready = previousCase.validApplicationApplicantEmailSent === BOOLEAN_OPTIONS.YES;
-
 	const isApplication = previousCase.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
 	const hasValidDate = answers.applicationValidDate;
 
@@ -367,7 +368,11 @@ export function applicationValidEmail(
 		...answers
 	} as unknown as S62aCaseViewModel;
 
-	const emailPromise = notificationService.processApplicationValid(mergedAnswers, previousCase.reference);
+	const emailPromise = notificationService.processApplicationValid(
+		mergedAnswers,
+		previousCase.reference,
+		service.s62aPortalBaseUrl
+	);
 
 	sendNotificationFn(
 		emailPromise,

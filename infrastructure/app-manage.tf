@@ -50,6 +50,7 @@ module "app_manage" {
 
     APP_HOSTNAME                          = var.web_domains.manage
     PORTAL_HOSTNAME                       = "https://${var.web_domains.portal}"
+    S62A_PORTAL_HOSTNAME                  = "https://${var.web_domains.s62a_portal}"
     AZURE_CLIENT_ID                       = var.apps_config.auth.client_id
     AZURE_CLIENT_SECRET                   = local.key_vault_refs["crown-client-secret"]
     AUTH_GROUP_APPLICATION_ACCESS         = var.apps_config.auth.group_application_access
@@ -99,6 +100,7 @@ module "app_manage" {
     S62A_GOV_NOTIFY_TEST_TEMPLATE_ID        = var.apps_config.s62a_gov_notify.templates.test_template_id
     S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID     = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
     S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
+    S62A_GOV_NOTIFY_APP_VALID_TEMPLATE_ID   = var.apps_config.s62a_gov_notify.templates.app_valid_template_id
 
     #feature flags
     FEATURE_FLAG_S62A_MANAGE_NOT_LIVE           = var.apps_config.feature_flags.s62a_manage_not_live

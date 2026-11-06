@@ -76,6 +76,7 @@ apps_config = {
       pre_ack_template_id     = ""
       ack_rep_template_id     = ""
       ack_pre_app_template_id = ""
+      app_valid_template_id   = ""
     }
   }
 

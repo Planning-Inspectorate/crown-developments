@@ -77,6 +77,7 @@ apps_config = {
       pre_ack_template_id     = "37da3f28-9fd7-4801-b6e5-c4950552697e"
       ack_rep_template_id     = "aa5257cb-0076-4ad6-9692-abadce6b54ce"
       ack_pre_app_template_id = "b064475b-49f3-4c91-b93d-b9ef93b81d4a"
+      app_valid_template_id   = "a0e2cd82-1000-45c7-ac65-302ecc234d8b"
     }
   }
 

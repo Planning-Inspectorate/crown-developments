@@ -85,6 +85,7 @@ variable "apps_config" {
         pre_ack_template_id     = string
         ack_rep_template_id     = string
         ack_pre_app_template_id = string
+        app_valid_template_id   = string
       })
     })
 

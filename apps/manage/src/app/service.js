@@ -161,6 +161,10 @@ export class ManageService extends Service {
 		return this.#config.portalBaseUrl;
 	}
 
+	get s62aPortalBaseUrl() {
+		return this.#config.s62aPortalBaseUrl;
+	}
+
 	get webHookToken() {
 		return this.#config.govNotify.webHookToken;
 	}

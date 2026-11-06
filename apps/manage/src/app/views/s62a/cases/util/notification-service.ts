@@ -124,7 +124,8 @@ export class S62aManageNotificationService {
 	 */
 	public async processApplicationValid(
 		answers: S62aCaseViewModel,
-		reference: string
+		reference: string,
+		s62aPortalBaseUrl: string
 	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
 		if (!answers.applicationValidDate) {
 			return { wasSent: false };
@@ -155,7 +156,11 @@ export class S62aManageNotificationService {
 		const targetDecisionDateValue = answers.extendedTargetDecisionDate ?? answers.targetDecisionDate;
 		const targetDecisionDate = targetDecisionDateValue ? formatDateForDisplay(targetDecisionDateValue) : '';
 
+		// The portal url for the application that has just been validated.
+		const appInfoUrl = `${s62aPortalBaseUrl}/applications/${answers.id}/application-information`;
+
 		try {
+			const s62aEmail = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? MAJOR_EMAIL : NON_MAJOR_EMAIL;
 			const auditData = await this.notifyClient.sendApplicationValidToMany(notificationContacts, {
 				reference,
 				siteAddress,
@@ -163,7 +168,8 @@ export class S62aManageNotificationService {
 				applicationValidDate,
 				consultationEndDate,
 				targetDecisionDate,
-				appInfoUrl: '' // TODO
+				appInfoUrl,
+				s62aEmail
 			});
 
 			this.logger.info({ reference }, 'Application valid notification emails dispatched successfully');

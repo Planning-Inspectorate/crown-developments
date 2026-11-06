@@ -390,6 +390,7 @@ export interface S62aCaseViewModel {
 
 	// Email flags
 	acknowledgePreNotificationEmailSent?: string;
+	acknowledgePreApplicationEmailSent?: YesNo;
 	validApplicationApplicantEmailSent?: YesNo;
 }
 
@@ -405,7 +406,9 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'eiaScreening',
 	'eiaScreeningOutcome',
 	'isWasteManagementDevelopment',
-	'acknowledgePreNotificationEmailSent'
+	'acknowledgePreNotificationEmailSent',
+	'acknowledgePreApplicationEmailSent',
+	'validApplicationApplicantEmailSent'
 ] as const);
 
 /**

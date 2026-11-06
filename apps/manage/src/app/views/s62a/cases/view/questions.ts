@@ -815,7 +815,11 @@ export function getQuestions(
 						return true;
 					}
 				})
-			]
+			],
+			hint: 'You must first add the site address or site coordinates, the representation period end date, the EIA details and the statutory consultees with email addresses, and publish the case.',
+			viewData: {
+				warningMessage: 'Adding a date will send a notification to the applicant/agent and statutory consultees'
+			}
 		},
 		validLettersSentDate: {
 			type: COMPONENT_TYPES.DATE,
@@ -823,16 +827,7 @@ export function getQuestions(
 			question: 'When were the valid letters sent to the local planning authority?',
 			fieldName: 'validLettersSentDate',
 			url: 'valid-letters-sent',
-			validators: [new DateValidator('valid letters sent date')],
-			viewData: {
-				extraActionButtons: [
-					{
-						text: 'Remove and save',
-						type: 'submit',
-						formaction: 'valid-letters-sent/remove'
-					}
-				]
-			}
+			validators: [new DateValidator('valid letters sent date')]
 		},
 		lpaQuestionnaireSentDate: {
 			type: COMPONENT_TYPES.DATE,
