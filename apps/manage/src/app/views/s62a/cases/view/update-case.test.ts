@@ -1,6 +1,11 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildS62aUpdateCase, acknowledgePreNotificationEmail, acknowledgePreApplicationEmail } from './update-case.ts';
+import {
+	buildS62aUpdateCase,
+	acknowledgePreNotificationEmail,
+	acknowledgePreApplicationEmail,
+	applicationValidEmail
+} from './update-case.ts';
 import type { Request, Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveParams } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '../../../../service.js';
@@ -57,6 +62,7 @@ describe('buildS62aUpdateCase', () => {
 		};
 
 		mockService = {
+			s62aPortalBaseUrl: 'https://portal.test',
 			db: {
 				s62aCase: {
 					findUnique: async (args: unknown) => {
@@ -172,12 +178,17 @@ describe('buildS62aUpdateCase', () => {
 				'processAcknowledgementPreApplication',
 				async () => true
 			);
+			const applicationValidMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processApplicationValid',
+				async () => ({ wasSent: true })
+			);
 
 			caseRecord = {
 				id: 'case-123',
 				publishedToLegacyGovUk: true,
 				reference: 'REF-MIGRATED',
-				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
 			};
 			const handler = buildS62aUpdateCase(mockService);
 
@@ -187,15 +198,19 @@ describe('buildS62aUpdateCase', () => {
 				data: {
 					answers: {
 						notificationReceivedDate: '2026-10-30',
-						applicationReceivedDate: new Date('2026-10-30')
+						applicationReceivedDate: new Date('2026-10-30'),
+						applicationValidDate: new Date('2026-10-30')
 					}
 				}
 			} as unknown as SaveParams);
 
 			assert.strictEqual(preNotificationMock.mock.calls.length, 0);
 			assert.strictEqual(preApplicationMock.mock.calls.length, 0);
+			assert.strictEqual(applicationValidMock.mock.calls.length, 0);
+
 			preNotificationMock.mock.restore();
 			preApplicationMock.mock.restore();
+			applicationValidMock.mock.restore();
 		});
 
 		it('delegates to acknowledgePreNotificationEmail when the case is not migrated', async () => {
@@ -240,6 +255,35 @@ describe('buildS62aUpdateCase', () => {
 			} as unknown as SaveParams);
 
 			assert.strictEqual(processMock.mock.calls.length, 1);
+			processMock.mock.restore();
+		});
+
+		it('delegates to applicationValidEmail when the case is not migrated and is an application', async () => {
+			const processMock = mock.method(S62aManageNotificationService.prototype, 'processApplicationValid', async () => ({
+				wasSent: true
+			}));
+
+			const validDate = new Date('2026-10-30T12:00:00.000Z');
+			caseRecord = {
+				id: 'case-123',
+				publishedToLegacyGovUk: false,
+				reference: 'REF-APP-VALID',
+				applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
+			};
+			const handler = buildS62aUpdateCase(mockService);
+
+			await handler({
+				req: mockReq,
+				res: mockRes,
+				data: { answers: { applicationValidDate: validDate } }
+			} as unknown as SaveParams);
+
+			assert.strictEqual(processMock.mock.calls.length, 1);
+			const [mergedAnswers, reference, baseUrl] = processMock.mock.calls[0].arguments;
+			assert.strictEqual(mergedAnswers?.applicationValidDate, validDate);
+			assert.strictEqual(reference, 'REF-APP-VALID');
+			assert.strictEqual(baseUrl, 'https://portal.test');
+
 			processMock.mock.restore();
 		});
 	});
@@ -656,6 +700,140 @@ describe('acknowledgePreApplicationEmail', () => {
 		assert.strictEqual(sendArgs[2], 'case-123');
 		assert.strictEqual(sendArgs[3], 'acknowledgePreApplicationEmailSent');
 		assert.strictEqual(sendArgs[4], 'Send Acknowledgement Pre-notification (Update)');
+		assert.strictEqual(sendArgs[5], 's62a');
+		assert.strictEqual(sendArgs[6], mockReq);
+	});
+});
+
+describe('applicationValidEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processApplicationValid', async () =>
+			Promise.resolve({ wasSent: true, auditData: [] })
+		);
+
+		mockService = {
+			db: {},
+			logger: {},
+			s62aPortalBaseUrl: 'https://portal.test'
+		} as unknown as ManageService;
+
+		mockSendFn = mock.fn();
+		mockReq = {
+			session: {
+				account: {
+					localAccountId: 'user-123'
+				}
+			}
+		};
+	});
+
+	it('returns early without doing anything if applicationValidDate is not in the answers payload', () => {
+		const answers = { developmentDescription: 'New Description' };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION
+		};
+
+		applicationValidEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processApplicationValid as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('returns early without doing anything if the case is not an application phase', () => {
+		const answers = { applicationValidDate: new Date('2026-10-30') };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+		};
+
+		applicationValidEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processApplicationValid as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('returns early without doing anything if the application valid email has already been sent', () => {
+		const answers = { applicationValidDate: new Date('2026-10-30') };
+		const previousCase = {
+			reference: 'REF-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+			validApplicationApplicantEmailSent: BOOLEAN_OPTIONS.YES
+		};
+
+		applicationValidEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processApplicationValid as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('processes the email and delegates to sendNotificationFn when conditions are met', () => {
+		const validDate = new Date('2026-10-30T12:00:00.000Z');
+		const answers = { applicationValidDate: validDate };
+		const previousCase = {
+			reference: 'REF-APP-123',
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+			validApplicationApplicantEmailSent: undefined
+		};
+
+		applicationValidEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processApplicationValid as any).mock.calls.length, 1);
+
+		const [mergedAnswers, referenceArg, portalUrlArg] = (mockNotificationService.processApplicationValid as any).mock
+			.calls[0].arguments;
+
+		assert.strictEqual(mergedAnswers.applicationValidDate, validDate);
+		assert.strictEqual(mergedAnswers.reference, 'REF-APP-123');
+		assert.strictEqual(referenceArg, 'REF-APP-123');
+		assert.strictEqual(portalUrlArg, 'https://portal.test');
+
+		assert.strictEqual(mockSendFn.mock.calls.length, 1);
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+
+		assert.ok(sendArgs[0] instanceof Promise);
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], 'validApplicationApplicantEmailSent');
+		assert.strictEqual(sendArgs[4], 'Send Valid Application Notification (Applicant/Agent)');
 		assert.strictEqual(sendArgs[5], 's62a');
 		assert.strictEqual(sendArgs[6], mockReq);
 	});

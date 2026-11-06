@@ -832,6 +832,8 @@ describe('s62aCaseToViewModel', () => {
 
 			assert.strictEqual(result.eiaScreening, 'yes');
 			assert.strictEqual(result.eiaScreeningOutcome, 'no');
+
+			assert.strictEqual(result.isEiaComplete, true);
 		});
 
 		it('maps EIA boolean "No" (false) distinctly from unanswered (null)', () => {
@@ -868,6 +870,8 @@ describe('s62aCaseToViewModel', () => {
 
 			assert.strictEqual(result.eiaScreening, undefined);
 			assert.strictEqual(result.eiaScreeningOutcome, undefined);
+
+			assert.strictEqual(result.isEiaComplete, undefined);
 		});
 
 		it('maps environmentalStatementReceivedDate from S62aDates to the root of the view model', () => {

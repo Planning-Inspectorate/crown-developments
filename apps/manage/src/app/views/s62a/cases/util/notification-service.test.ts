@@ -10,6 +10,8 @@ import type { S62aCaseViewModel } from '../view/view-model.ts';
 
 type PreAppAnswers = S62aCaseViewModel;
 
+const TEST_PORTAL_BASE_URL = 'TEST';
+
 /**
  * Helper to generate a baseline of pre-notification case answers
  */
@@ -36,6 +38,29 @@ const preAppAnswers = (overrides: Partial<PreAppAnswers> = {}): PreAppAnswers =>
 		...overrides
 	}) as PreAppAnswers;
 
+/**
+ * Helper to generate a baseline of valid application case answers
+ */
+const validAnswers = (overrides: Partial<S62aCaseViewModel> = {}): S62aCaseViewModel =>
+	({
+		id: 'case-uuid-456',
+		applicationValidDate: new Date('2026-10-30T12:00:00.000Z'),
+		classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+		developmentDescription: 'Test proposal description',
+		siteAddress: {
+			line1: '123 High Street',
+			town: 'Bristol',
+			postcode: 'BS1 1AA'
+		},
+		representationsPeriod: {
+			end: new Date('2026-11-20T23:59:59.000Z')
+		},
+		targetDecisionDate: new Date('2026-12-25T00:00:00.000Z'),
+		extendedTargetDecisionDate: undefined,
+		manageAgentContactDetails: [{ agentContactEmail: 'agent@test.com', agentFirstName: 'Bob', agentLastName: 'Smith' }],
+		...overrides
+	}) as S62aCaseViewModel;
+
 describe('S62aManageNotificationService', () => {
 	let mockLogger: Logger;
 	let mockNotifyClient: S62aGovNotifyClient;
@@ -50,7 +75,8 @@ describe('S62aManageNotificationService', () => {
 
 		mockNotifyClient = {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
-			sendAcknowledgePreApplicationToMany: mock.fn(async () => [])
+			sendAcknowledgePreApplicationToMany: mock.fn(async () => []),
+			sendApplicationValidToMany: mock.fn(async () => [{ auditId: 'audit-item-1' }])
 		} as unknown as S62aGovNotifyClient;
 
 		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
@@ -299,6 +325,179 @@ describe('S62aManageNotificationService', () => {
 				() => service.processAcknowledgementPreApplication(caseAnswers, 'REF-123'),
 				(err: Error) => {
 					assert.strictEqual(err.message, 'Error encountered during pre-application email notification dispatch');
+					assert.strictEqual(err.cause, error);
+					return true;
+				}
+			);
+
+			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
+		});
+	});
+
+	describe('processApplicationValid', () => {
+		it('returns wasSent: false when applicationValidDate is absent', async () => {
+			const result = await service.processApplicationValid(
+				validAnswers({ applicationValidDate: undefined }),
+				'REF-123',
+				TEST_PORTAL_BASE_URL
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendApplicationValidToMany as any).mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
+			const result = await nullClientService.processApplicationValid(validAnswers(), 'REF-123', TEST_PORTAL_BASE_URL);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+		});
+
+		it('returns wasSent: false and logs a warning when there are no valid notification contacts', async () => {
+			const result = await service.processApplicationValid(
+				validAnswers({ manageAgentContactDetails: [], manageApplicantContactDetails: [] }),
+				'REF-123',
+				TEST_PORTAL_BASE_URL
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments[0], { reference: 'REF-123' });
+			assert.strictEqual(
+				(mockLogger.warn as any).mock.calls[0].arguments[1],
+				'No emails to send for reference REF-123'
+			);
+		});
+
+		it('successfully dispatches valid application notification emails and returns auditData', async () => {
+			const expectedAuditData = [{ auditId: 'audit-item-1' }];
+			const caseAnswers = validAnswers({
+				id: 'case-999',
+				developmentDescription: 'Solar farm installation',
+				siteAddress: {
+					line1: '1 High Street',
+					town: 'Bristol',
+					postcode: 'BS1 1AA'
+				} as any,
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'agent@test.com', agentFirstName: 'Alice', agentLastName: 'Smith' }
+				]
+			});
+
+			const result = await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, expectedAuditData);
+			assert.strictEqual((mockNotifyClient.sendApplicationValidToMany as any).mock.calls.length, 1);
+
+			const [contacts, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'agent@test.com', firstName: 'Alice', lastName: 'Smith' }]);
+			assert.strictEqual(details.reference, 'REF-123');
+			assert.strictEqual(details.applicationDescription, 'Solar farm installation');
+			assert.strictEqual(details.appInfoUrl, `${TEST_PORTAL_BASE_URL}/applications/case-999/application-information`);
+			assert.strictEqual(details.s62aEmail, MAJOR_EMAIL);
+			assert.ok(details.siteAddress);
+			assert.ok(details.applicationValidDate);
+			assert.ok(details.consultationEndDate);
+			assert.ok(details.targetDecisionDate);
+
+			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'Application valid notification emails dispatched successfully'
+			]);
+		});
+
+		it('assigns the non-major email when classificationId is NON_MAJOR', async () => {
+			const caseAnswers = validAnswers({
+				classificationId: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.s62aEmail, NON_MAJOR_EMAIL);
+		});
+
+		it('prefers extendedTargetDecisionDate over targetDecisionDate when present', async () => {
+			const caseAnswers = validAnswers({
+				targetDecisionDate: new Date('2026-11-01T00:00:00.000Z'),
+				extendedTargetDecisionDate: new Date('2026-12-01T00:00:00.000Z')
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.ok(details.targetDecisionDate);
+		});
+
+		it('falls back to empty strings when representationsPeriod and targetDecisionDate are missing', async () => {
+			const caseAnswers = validAnswers({
+				representationsPeriod: undefined,
+				targetDecisionDate: undefined,
+				extendedTargetDecisionDate: undefined
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.consultationEndDate, '');
+			assert.strictEqual(details.targetDecisionDate, '');
+		});
+
+		it('falls back to easting and northing when siteAddress is not provided', async () => {
+			const caseAnswers = validAnswers({
+				siteAddress: undefined,
+				siteEasting: 320000,
+				siteNorthing: 180000
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.siteAddress, 'Easting: 320000, Northing: 180000');
+		});
+
+		it('falls back to empty string when developmentDescription is absent', async () => {
+			const caseAnswers = validAnswers({
+				developmentDescription: undefined as any
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [, details] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.applicationDescription, '');
+		});
+
+		it('falls back to applicant contacts when no agent contacts are present', async () => {
+			const caseAnswers = validAnswers({
+				manageAgentContactDetails: undefined,
+				manageApplicantContactDetails: [
+					{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'John', applicantLastName: 'Doe' }
+				]
+			});
+
+			await service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL);
+
+			const [contacts] = (mockNotifyClient.sendApplicationValidToMany as any).mock.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'John', lastName: 'Doe' }]);
+		});
+
+		it('throws an error and logs it if the notify client fails to send', async () => {
+			const error = new Error('Service down');
+			mockNotifyClient.sendApplicationValidToMany = mock.fn(() => Promise.reject(error));
+
+			const caseAnswers = validAnswers();
+
+			await assert.rejects(
+				() => service.processApplicationValid(caseAnswers, 'REF-123', TEST_PORTAL_BASE_URL),
+				(err: Error) => {
+					assert.strictEqual(err.message, 'Error encountered during application valid notification dispatch');
 					assert.strictEqual(err.cause, error);
 					return true;
 				}
