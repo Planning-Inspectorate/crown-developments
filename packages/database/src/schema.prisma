@@ -313,7 +313,8 @@ model S62aCase {
   Notes ApplicationNote[]
 
   /// Email sent flags
-  acknowledgePreNotificationEmailSent Boolean? @default(false)
+  acknowledgePreNotificationEmailSent     Boolean? @default(false)
+  acknowledgeApplicationReceivedEmailSent Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {

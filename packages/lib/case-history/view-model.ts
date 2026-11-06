@@ -25,6 +25,8 @@ export interface CaseHistoryRow {
 	}>;
 	/** File names for bulk file actions, shown as a "Show files" list */
 	fileList?: string[];
+	/** Email body string, for displaying under a "View email" dropdown */
+	emailBody?: string;
 }
 
 /**
@@ -38,6 +40,15 @@ function getFileList(metadata: Record<string, unknown> | null): string[] | undef
 
 	const fileNames = (files as unknown[]).filter((file): file is string => typeof file === 'string');
 	return fileNames.length > 0 ? fileNames : undefined;
+}
+
+/**
+ * Gets the email body from the metadata
+ */
+function getEmailBody(metadata: Record<string, unknown> | null): string | undefined {
+	const emailBody = metadata?.emailBody;
+	if (typeof emailBody !== 'string') return;
+	return emailBody.length > 0 ? emailBody : undefined;
 }
 
 /** * Transforms raw audit events into rows ready for the case history table. */
@@ -85,7 +96,8 @@ export function createCaseHistoryViewModel(
 			details,
 			user: userName,
 			action,
-			fileList: getFileList(metadata)
+			fileList: getFileList(metadata),
+			emailBody: getEmailBody(metadata)
 		};
 	});
 }

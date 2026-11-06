@@ -29,15 +29,16 @@ import {
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
-import { S62aNotificationService, sendNotificationAndUpdateFlag } from '../util/notification-service.ts';
+import { S62aManageNotificationService } from '../util/notification-service.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
 
 /**
  * Save handler for S62A Case updates.
  * Takes the raw form answers, maps them to Prisma format, and updates the database.
  */
 export function buildS62aUpdateCase(service: ManageService, clearAnswer = false): SaveDataFn {
-	const notificationService = new S62aNotificationService(service.s62aNotifyClient, service.logger);
+	const notificationService = new S62aManageNotificationService(service.s62aNotifyClient, service.logger);
 	return async ({ req, res, data }: { req: Request; res: Response; data: { answers?: UpdateCaseAnswers } }) => {
 		const { db, logger, audit } = service;
 		const id = getStringParam(req.params, 'id');
@@ -161,7 +162,8 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				logContext: { caseId: id }
 			});
 
-			handleUpdateEmails(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id);
+			acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req);
+			handleUpdateEmails(answers, previousCase, notificationService, service, id, req);
 		}
 	};
 }
@@ -246,14 +248,15 @@ async function recordAuditEntries(
  */
 function handleUpdateEmails(
 	answers: UpdateCaseAnswers,
-	previousCase: S62aCaseViewModel,
-	notificationService: S62aNotificationService,
+	previousCase: Record<string, unknown>,
+	notificationService: S62aManageNotificationService,
 	service: ManageService,
-	id: string
+	id: string,
+	req: Request
 ): void {
 	if (previousCase.publishedToLegacyGovUk) return;
 
-	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id);
+	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -261,15 +264,17 @@ function handleUpdateEmails(
  */
 export function acknowledgePreNotificationEmail(
 	answers: UpdateCaseAnswers,
-	previousCase: S62aCaseViewModel,
-	notificationService: S62aNotificationService,
+	previousCase: Record<string, unknown>,
+	notificationService: S62aManageNotificationService,
 	service: ManageService,
 	id: string,
-	sendNotificationFn = sendNotificationAndUpdateFlag
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
 ) {
 	const acknowledgePreNotificationEmailSent = previousCase.acknowledgePreNotificationEmailSent === BOOLEAN_OPTIONS.YES;
 
 	if (!answers.notificationReceivedDate || acknowledgePreNotificationEmailSent) return;
+	if (typeof previousCase.reference !== 'string') return;
 
 	const mergedAnswers = {
 		...previousCase,
@@ -284,10 +289,58 @@ export function acknowledgePreNotificationEmail(
 
 	sendNotificationFn(
 		emailPromise,
-		service.db,
+		service,
 		id,
 		'acknowledgePreNotificationEmailSent',
-		service.logger,
-		'Send Acknowledgement Pre-notification (Update)'
+		'Send Acknowledgement Pre-notification (Update)',
+		CASE_DATA_MODEL.S62A,
+		req
+	);
+}
+
+/**
+ * Sends the application-received acknowledgement only when a received date is
+ * first added and the email has not already been sent.
+ */
+export function acknowledgeApplicationReceivedEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: Record<string, unknown>,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+): void {
+	const hasReceivedDate = Boolean(answers.applicationReceivedDate);
+	const receivedDateWasAlreadySet = Boolean(previousCase.applicationReceivedDate);
+	const acknowledgementWasAlreadySent = previousCase.acknowledgeApplicationReceivedEmailSent === BOOLEAN_OPTIONS.YES;
+	const isApplicationCase = previousCase.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+	const isLegacyPublishedCase = previousCase.publishedToLegacyGovUk === true;
+
+	if (
+		!hasReceivedDate ||
+		receivedDateWasAlreadySet ||
+		acknowledgementWasAlreadySent ||
+		!isApplicationCase ||
+		isLegacyPublishedCase
+	) {
+		return;
+	}
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as S62aCaseViewModel;
+
+	const emailPromise = notificationService.processAcknowledgementApplicationReceived(mergedAnswers);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'acknowledgeApplicationReceivedEmailSent',
+		'Send Acknowledgement of Application Received (Update)',
+		CASE_DATA_MODEL.S62A,
+		req
 	);
 }

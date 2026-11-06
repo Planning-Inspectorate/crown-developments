@@ -6,14 +6,19 @@ import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts
 import type { Logger } from 'pino';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
-import type { ManageService } from '#service';
-import { fireAndForget } from '@pins/crowndev-lib/util/retry.ts';
+import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
+import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
+import type { S62aCaseViewModel } from '../view/view-model.ts';
+import { getApplicationReceivedNotificationMissingFields } from './application-received-notification.ts';
+import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { formatFee } from '@pins/crowndev-lib/util/numbers.ts';
+import { formatDateForDisplay, BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
  * for the main S62aGovNotifyClient class to send the emails off
  */
-export class S62aNotificationService {
+export class S62aManageNotificationService {
 	private readonly notifyClient: S62aGovNotifyClient | null;
 	private readonly logger: Logger;
 	constructor(notifyClient: S62aGovNotifyClient | null, logger: Logger) {
@@ -33,20 +38,20 @@ export class S62aNotificationService {
 			major?: string;
 			nonMajor?: string;
 		}
-	): Promise<boolean> {
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
 		if (!answers.notificationReceivedDate) {
-			return false;
+			return { wasSent: false };
 		}
 
 		if (!this.notifyClient) {
 			this.logger.warn('S62A Gov Notify is not enabled...');
-			return false;
+			return { wasSent: false };
 		}
 
 		const notificationContacts = this.extractNotificationContacts(answers);
 		if (!notificationContacts.length) {
 			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
-			return false;
+			return { wasSent: false };
 		}
 
 		const s62aEmail =
@@ -54,16 +59,78 @@ export class S62aNotificationService {
 
 		if (!s62aEmail) {
 			this.logger.warn({ reference }, `No return email address configured ${reference}`);
-			return false;
+			return { wasSent: false };
 		}
 
 		try {
-			await this.notifyClient.sendAcknowledgePreNotificationToMany(notificationContacts, { reference, s62aEmail });
+			const auditData = await this.notifyClient.sendAcknowledgePreNotificationToMany(notificationContacts, {
+				reference,
+				s62aEmail
+			});
+
 			this.logger.info({ reference }, 'Acknowledgement pre-notification emails dispatched successfully');
 
-			return true;
+			return {
+				wasSent: true,
+				auditData
+			};
 		} catch (error) {
 			this.logger.error({ error, reference }, 'Error dispatching email');
+			throw new Error('Error encountered during email notification dispatch', { cause: error });
+		}
+	}
+
+	/**
+	 * Sends the one-time acknowledgement of an application being received.
+	 */
+	public async processAcknowledgementApplicationReceived(
+		answers: S62aCaseViewModel
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		const { reference } = answers;
+
+		if (!answers.applicationReceivedDate) {
+			return { wasSent: false };
+		}
+
+		const missingFields = getApplicationReceivedNotificationMissingFields(answers);
+		if (missingFields.length) {
+			this.logger.warn(
+				{ reference, missingFields },
+				'Application received acknowledgement not sent because required case data is missing'
+			);
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		const formattedAddress = formatAddress(answers.siteAddress);
+		const siteAddress =
+			formattedAddress !== '-'
+				? formattedAddress
+				: `Easting: ${answers.siteEasting}, Northing: ${answers.siteNorthing}`;
+		const applicationFee =
+			answers.hasApplicationFee === BOOLEAN_OPTIONS.YES ? formatFee(answers.applicationFee!) : 'No fee';
+		const s62aEmail = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? MAJOR_EMAIL : NON_MAJOR_EMAIL;
+
+		try {
+			const auditData = await this.notifyClient.sendAcknowledgementApplicationReceivedToMany(notificationContacts, {
+				reference,
+				siteAddress,
+				applicationDescription: answers.developmentDescription,
+				applicationReceivedDate: formatDateForDisplay(answers.applicationReceivedDate),
+				applicationFee,
+				s62aEmail
+			});
+
+			this.logger.info({ reference }, 'Application received acknowledgement emails dispatched successfully');
+
+			return { wasSent: true, auditData };
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching application received acknowledgement email');
 			throw new Error('Error encountered during email notification dispatch', { cause: error });
 		}
 	}
@@ -72,7 +139,9 @@ export class S62aNotificationService {
 	 * Takes the email, first name and last name from the answered questions.
 	 * Prioritises the agent, if there is an agent, we do not send to the applicant.
 	 */
-	private extractNotificationContacts(answers: S62aCreateCaseAnswers): ContactNotificationType[] {
+	private extractNotificationContacts(
+		answers: Pick<S62aCreateCaseAnswers, 'manageAgentContactDetails' | 'manageApplicantContactDetails'>
+	): ContactNotificationType[] {
 		const notificationContacts: ContactNotificationType[] = [];
 
 		if (answers.manageAgentContactDetails && answers.manageAgentContactDetails.length > 0) {
@@ -106,35 +175,4 @@ export class S62aNotificationService {
 
 		return notificationContacts;
 	}
-}
-
-/**
- * Executes a notification in the background and updates a case flag ONLY if the notification was sent.
- * Completely non-blocking and event-loop safe.
- */
-export function sendNotificationAndUpdateFlag(
-	notificationPromise: Promise<boolean>,
-	db: ManageService['db'],
-	caseId: string,
-	flagField: 'acknowledgePreNotificationEmailSent',
-	logger: Logger,
-	operationName: string
-): void {
-	const operation = async () => {
-		try {
-			const wasSent = await notificationPromise;
-
-			if (wasSent) {
-				await db.s62aCase.update({
-					where: { id: caseId },
-					data: { [flagField]: true }
-				});
-				logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and flag updated successfully');
-			}
-		} catch (error) {
-			logger.error({ error, caseId, operation: operationName }, 'Background notification failed');
-		}
-	};
-
-	fireAndForget(operation(), logger, { operation: operationName, caseId });
 }

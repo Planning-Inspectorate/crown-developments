@@ -128,7 +128,10 @@ export interface CaseTeamInspectorItem {
 
 export type S62aCaseDbModel = Prisma.S62aCaseGetPayload<{
 	include: typeof S62A_VIEW_SELECT_INCLUDE;
-}>;
+}> & {
+	acknowledgePreNotificationEmailSent?: boolean | null;
+	acknowledgeApplicationReceivedEmailSent?: boolean | null;
+};
 
 export type S62aResidentialHousingDbModel = NonNullable<S62aCaseDbModel['S62aResidential']>['Housing'][number];
 
@@ -387,7 +390,8 @@ export interface S62aCaseViewModel {
 	vehicleParking?: VehicleParkingItem[];
 
 	// Email flags
-	acknowledgePreNotificationEmailSent?: YesNo;
+	acknowledgePreNotificationEmailSent?: string;
+	acknowledgeApplicationReceivedEmailSent?: string;
 }
 
 /**
@@ -402,7 +406,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'eiaScreening',
 	'eiaScreeningOutcome',
 	'isWasteManagementDevelopment',
-	'acknowledgePreNotificationEmailSent'
+	'acknowledgePreNotificationEmailSent',
+	'acknowledgeApplicationReceivedEmailSent'
 ] as const);
 
 /**

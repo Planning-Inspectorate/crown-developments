@@ -1,11 +1,15 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { S62aNotificationService, sendNotificationAndUpdateFlag } from './notification-service.ts';
+import type { Request } from 'express';
+import { S62aManageNotificationService } from './notification-service.ts';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { Logger } from 'pino';
 import type { ManageService } from '#service';
+import type { S62aCaseViewModel } from '../view/view-model.ts';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 
 /**
  * Helper to generate a baseline of case answers
@@ -27,7 +31,7 @@ const flushMicrotasks = () => new Promise(process.nextTick);
 describe('S62aNotificationService', () => {
 	let mockLogger: Logger;
 	let mockNotifyClient: S62aGovNotifyClient;
-	let service: S62aNotificationService;
+	let service: S62aManageNotificationService;
 
 	beforeEach(() => {
 		mockLogger = {
@@ -37,41 +41,42 @@ describe('S62aNotificationService', () => {
 		} as unknown as Logger;
 
 		mockNotifyClient = {
-			sendAcknowledgePreNotificationToMany: mock.fn(async () => {})
+			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
+			sendAcknowledgementApplicationReceivedToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
-		service = new S62aNotificationService(mockNotifyClient, mockLogger);
+		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
 	});
 
 	describe('processAcknowledgementPreNotification', () => {
-		it('returns false when notificationReceivedDate is absent', async () => {
+		it('returns wasSent: false when notificationReceivedDate is absent', async () => {
 			const result = await service.processAcknowledgementPreNotification(
 				answers({ notificationReceivedDate: undefined }),
 				'REF-123',
 				emailObject
 			);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls.length, 0);
 		});
 
-		it('returns false and logs a warning when the notify client is null', async () => {
-			const nullClientService = new S62aNotificationService(null, mockLogger);
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
 			const result = await nullClientService.processAcknowledgementPreNotification(answers(), 'REF-123', emailObject);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
 			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
 		});
 
-		it('returns false and logs a warning when there are no valid notification contacts', async () => {
+		it('returns wasSent: false and logs a warning when there are no valid notification contacts', async () => {
 			const result = await service.processAcknowledgementPreNotification(
 				answers({ manageAgentContactDetails: [], manageApplicantContactDetails: [] }),
 				'REF-123',
 				emailObject
 			);
 
-			assert.strictEqual(result, false);
+			assert.strictEqual(result.wasSent, false);
 			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
 			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments[0], { reference: 'REF-123' });
 		});
@@ -88,7 +93,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			assert.strictEqual((mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls.length, 1);
 
 			const [contacts, options] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0]
@@ -107,7 +112,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			const [contacts] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0].arguments;
 			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'Alice', lastName: 'Jones' }]);
 		});
@@ -122,7 +127,7 @@ describe('S62aNotificationService', () => {
 
 			const result = await service.processAcknowledgementPreNotification(caseAnswers, 'REF-123', emailObject);
 
-			assert.strictEqual(result, true);
+			assert.strictEqual(result.wasSent, true);
 			const [contacts] = (mockNotifyClient.sendAcknowledgePreNotificationToMany as any).mock.calls[0].arguments;
 			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'Alice', lastName: 'Jones' }]);
 		});
@@ -173,87 +178,71 @@ describe('S62aNotificationService', () => {
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
 		});
 	});
-});
 
-describe('sendNotificationAndUpdateFlag', () => {
-	let mockLogger: Logger;
-	let mockDb: ManageService['db'];
+	describe('processAcknowledgementApplicationReceived', () => {
+		const receivedApplication = (overrides: Partial<S62aCaseViewModel> = {}): S62aCaseViewModel =>
+			({
+				id: 'case-123',
+				reference: 'REF-123',
+				developmentDescription: 'New housing development',
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				applicationReceivedDate: new Date('2026-10-30T12:00:00.000Z'),
+				hasApplicationFee: BOOLEAN_OPTIONS.YES,
+				applicationFee: 1000,
+				siteAddress: {
+					addressLine1: '1 High Street',
+					addressLine2: '',
+					townCity: 'Reading',
+					county: '',
+					postcode: 'RG1 1AA'
+				},
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'agent@test.com', agentFirstName: 'Bob', agentLastName: 'Smith' }
+				],
+				manageApplicantContactDetails: [
+					{
+						applicantContactEmail: 'applicant@test.com',
+						applicantFirstName: 'Alice',
+						applicantLastName: 'Jones'
+					}
+				],
+				...overrides
+			}) as S62aCaseViewModel;
 
-	beforeEach(() => {
-		mockLogger = {
-			info: mock.fn(),
-			error: mock.fn()
-		} as unknown as Logger;
+		it('sends to the agent with all application details when the data is complete', async () => {
+			const result = await service.processAcknowledgementApplicationReceived(receivedApplication());
 
-		mockDb = {
-			s62aCase: {
-				update: mock.fn(async () => ({}))
-			}
-		} as unknown as ManageService['db'];
-	});
-
-	it('updates the database flag and logs success if the notification was sent', async () => {
-		sendNotificationAndUpdateFlag(
-			Promise.resolve(true),
-			mockDb,
-			'case-1',
-			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockDb.s62aCase.update as any).mock.calls[0].arguments[0], {
-			where: { id: 'case-1' },
-			data: { acknowledgePreNotificationEmailSent: true }
+			assert.strictEqual(result.wasSent, true);
+			const [contacts, personalisation] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock
+				.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'agent@test.com', firstName: 'Bob', lastName: 'Smith' }]);
+			assert.deepStrictEqual(personalisation, {
+				reference: 'REF-123',
+				siteAddress: '1 High Street, Reading, RG1 1AA',
+				applicationDescription: 'New housing development',
+				applicationReceivedDate: '30 Oct 2026',
+				applicationFee: '1,000.00',
+				s62aEmail: MAJOR_EMAIL
+			});
 		});
 
-		assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments[0], {
-			caseId: 'case-1',
-			flagField: 'acknowledgePreNotificationEmailSent',
-			operation: 'AcknowledgePreNotification'
-		});
-	});
+		it('does not send when mandatory notification data is missing', async () => {
+			const result = await service.processAcknowledgementApplicationReceived(
+				receivedApplication({
+					manageAgentContactDetails: [],
+					manageApplicantContactDetails: [],
+					siteAddress: undefined,
+					siteEasting: undefined,
+					siteNorthing: undefined
+				})
+			);
 
-	it('does not update the database flag if the notification was not sent', async () => {
-		sendNotificationAndUpdateFlag(
-			Promise.resolve(false),
-			mockDb,
-			'case-2',
-			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockLogger.info as any).mock.calls.length, 0);
-	});
-
-	it('catches and logs an error if the notification promise rejects', async () => {
-		const networkError = new Error('Service Unavailable');
-
-		sendNotificationAndUpdateFlag(
-			Promise.reject(networkError),
-			mockDb,
-			'case-3',
-			'acknowledgePreNotificationEmailSent',
-			mockLogger,
-			'AcknowledgePreNotification'
-		);
-
-		await flushMicrotasks();
-
-		assert.strictEqual((mockDb.s62aCase.update as any).mock.calls.length, 0);
-		assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
-		assert.deepStrictEqual((mockLogger.error as any).mock.calls[0].arguments[0], {
-			error: networkError,
-			caseId: 'case-3',
-			operation: 'AcknowledgePreNotification'
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls.length, 0);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments[0].missingFields, [
+				'the applicant or agent email address',
+				'the site address or site coordinates'
+			]);
 		});
 	});
 });

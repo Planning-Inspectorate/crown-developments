@@ -120,3 +120,6 @@ export const S62A_VIEW_SELECT_INCLUDE = {
 		select: { id: true, reference: true }
 	}
 } as const satisfies Prisma.S62aCaseInclude;
+
+export const MAJOR_EMAIL = 'section62a@planninginspectorate.gov.uk';
+export const NON_MAJOR_EMAIL = 'section62anonmajor@planninginspectorate.gov.uk';

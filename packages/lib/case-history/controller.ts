@@ -14,6 +14,7 @@ import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts'
 
 import { CASE_MODELS, type CaseDataModel } from '../util/types.ts';
 import type { AuditTemplates } from '../audit/actions.ts';
+import { SYSTEM_USER_ID } from '../audit/user.ts';
 
 export interface CaseHistoryService {
 	db: PrismaClient;
@@ -84,7 +85,7 @@ export function buildViewCaseHistory(
 
 		const eventsWithUserNames = events.map((event) => ({
 			...event,
-			userName: userMap.get(event.userId ?? '') ?? 'Unknown User'
+			userName: event.userId === SYSTEM_USER_ID ? 'System' : (userMap.get(event.userId ?? '') ?? 'Unknown User')
 		}));
 
 		const rows = createCaseHistoryViewModel(eventsWithUserNames, templates);

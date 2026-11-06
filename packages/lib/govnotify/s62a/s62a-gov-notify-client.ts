@@ -1,4 +1,4 @@
-import { GovNotifyClient, type NotifyConfig } from '../gov-notify-client.ts';
+import { type AuditData, GovNotifyClient, type NotifyConfig } from '../gov-notify-client.ts';
 import type { Logger } from 'pino';
 import type { RetryConfig } from '../../util/retry.ts';
 import { toText } from '../../util/string.ts';
@@ -6,11 +6,19 @@ import { toText } from '../../util/string.ts';
 export interface TemplateIds {
 	test?: string; // Once we start adding proper templates we can remove this
 	acknowledgePreNotification?: string;
+	acknowledgeRepresentationReceived?: string;
+	acknowledgementOfApplicationReceived?: string;
 }
 
-export interface S62aNotifyConfig extends NotifyConfig {
-	templateIds: TemplateIds;
-}
+export type AcknowledgementApplicationPersonalisation = {
+	reference: string;
+	applicantContact: string;
+	siteAddress: string;
+	applicationDescription: string;
+	applicationReceivedDate: string;
+	applicationFee: string;
+	s62aEmail: string;
+};
 
 export type ContactNotificationType = {
 	email: string;
@@ -18,11 +26,36 @@ export type ContactNotificationType = {
 	lastName?: string;
 };
 
+export type RepresentorNotificationType = ContactNotificationType & {
+	representorName?: string;
+};
+
+export type RepresentationDetails = {
+	caseReference: string;
+	representationReference: string;
+	representationReceivedDate: string;
+	siteAddress: string;
+	applicationDescription: string;
+};
+
 export type AcknowledgePreNotificationPersonalisation = {
 	name: string;
 	applicantName: string;
 	section62aEmail: string;
 };
+
+export type RepresentationReceivedPersonalisation = {
+	representorName: string;
+	representationReceivedDate: string;
+	representationReference: string;
+	caseReference: string;
+	siteAddress: string;
+	applicationDescription: string;
+};
+
+export interface S62aNotifyConfig extends NotifyConfig {
+	templateIds: TemplateIds;
+}
 
 /**
  * Gov notify for the s62a apps, contains all the
@@ -37,16 +70,107 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 		this.templateIds = templateIds;
 	}
 
+	async sendAcknowledgementApplicationReceived(
+		notificationData: ContactNotificationType,
+		personalisation: Omit<AcknowledgementApplicationPersonalisation, 'applicantContact'>
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.acknowledgementOfApplicationReceived;
+
+		if (!templateId) {
+			this.logger.warn('application received acknowledgement template not enabled. ignoring request.');
+			throw new Error('Application received acknowledgement template not enabled.');
+		}
+
+		const applicantContact = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				...personalisation,
+				applicantContact: applicantContact || 'Applicant/agent'
+			},
+			reference: personalisation.reference
+		});
+	}
+
+	async sendAcknowledgementApplicationReceivedToMany(
+		notificationData: ContactNotificationType[],
+		personalisation: Omit<AcknowledgementApplicationPersonalisation, 'applicantContact'>
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((contact) => contact.email),
+			(email) => {
+				const contact = notificationData.find((item) => item.email === email);
+				if (!contact) {
+					throw new Error(`No contact found for ${email}`);
+				}
+				return this.sendAcknowledgementApplicationReceived(contact, personalisation);
+			},
+			'Failed to send application received acknowledgement to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email acknowledging that a representation has been received
+	 */
+	async sendRepresentationReceived(
+		notificationData: RepresentorNotificationType,
+		representationData: RepresentationDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.acknowledgeRepresentationReceived;
+
+		if (!templateId) {
+			this.logger.warn('representation received template not enabled. ignoring request.');
+			throw new Error('Representation received template not enabled.');
+		}
+
+		const representorName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				representorName,
+				representationReceivedDate: representationData.representationReceivedDate,
+				representationReference: representationData.representationReference,
+				caseReference: representationData.caseReference,
+				siteAddress: representationData.siteAddress,
+				applicationDescription: representationData.applicationDescription
+			},
+			reference: representationData.representationReference
+		});
+	}
+
+	/**
+	 * Sends an email to multiple recipients acknowledging that a representation has been received
+	 */
+	async sendRepresentationReceivedToMany(
+		notificationData: RepresentorNotificationType[],
+		representationData: RepresentationDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as RepresentorNotificationType;
+				return this.sendRepresentationReceived(contact, representationData);
+			},
+			'Failed to send representation received notification to one or more email addresses.'
+		);
+	}
+
 	/**
 	 * Sends an email to applicant/agent acknowledging that their application pre-notification has been received
 	 */
 	async sendAcknowledgePreNotification(
 		notificationData: ContactNotificationType,
 		sharedData: { reference: string; s62aEmail: string }
-	): Promise<void> {
+	): Promise<Omit<AuditData, 'email'>> {
 		if (!this.templateIds.acknowledgePreNotification) {
 			this.logger.warn('acknowledge pre notification template not enabled. ignoring request.');
-			return;
+			throw new Error('Acknowledge pre-notification template not enabled.');
 		}
 
 		const fullName = [toText(notificationData.firstName), toText(notificationData.lastName)]
@@ -54,7 +178,7 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			.join(' ')
 			.trim();
 
-		await this.sendEmail(this.templateIds.acknowledgePreNotification, notificationData.email, {
+		return this.sendEmailWithAudit(this.templateIds.acknowledgePreNotification, notificationData.email, {
 			personalisation: {
 				applicantName: fullName,
 				caseReference: sharedData.reference,
@@ -70,8 +194,8 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 	async sendAcknowledgePreNotificationToMany(
 		notificationData: ContactNotificationType[],
 		sharedData: { reference: string; s62aEmail: string }
-	): Promise<void> {
-		return this.sendToMany(
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
 			notificationData.map((d) => d.email),
 			(address) => {
 				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
