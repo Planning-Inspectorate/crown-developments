@@ -43,6 +43,7 @@ import {
 	type AdditionalContactAnswer
 } from '../util/party-types.ts';
 import { addBusinessDays, addWeeks } from 'date-fns';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
@@ -536,6 +537,17 @@ export class S62aCaseUpdateMapper {
 	/**
 	 * Calculates or clears targetDecisionDate based on valid date, classification, and EIA status.
 	 * Returns `true` if targetDecisionDate was mutated, `false` otherwise.
+	 *
+	 * Note:
+	 *
+	 * Because we receive dates in UTC here, we need to convert to "london time"
+	 * before doing our calculation, otherwise a date that's in BST but moves
+	 * into GMT in the calculation will be 1 day off, we then convert back
+	 * to UTC before storage.
+	 *
+	 * E.g. 6th August 2026 0:00 arrives here as 5th August 2026 23:00 UTC
+	 * because of BST, if we then add 13 weeks to that we will get 4th November
+	 * 2026 23:00 which is now in GMT so it is now wrong.
 	 */
 	private applyTargetDecisionDateLogic(
 		datesToUpdate: Prisma.S62aDatesUpdateWithoutS62aCaseInput & Prisma.S62aDatesCreateWithoutS62aCaseInput
@@ -562,7 +574,8 @@ export class S62aCaseUpdateMapper {
 			? this.answers.eiaScreeningOutcome
 			: this.existingCase?.eiaScreeningOutcome;
 
-		const isPresent = (val: unknown): boolean => val !== undefined && val !== null && val !== '';
+		const isPresent = <T>(val: T): val is NonNullable<T> =>
+			val !== undefined && val !== null && (val as unknown) !== '';
 
 		if (!isPresent(validDate) || !isPresent(classificationId) || !isPresent(eiaScreening)) {
 			datesToUpdate.targetDecisionDate = null;
@@ -587,7 +600,11 @@ export class S62aCaseUpdateMapper {
 			weeksToAdd = isMajor ? TARGET_DECISION_MAJOR_BUFFER : TARGET_DECISION_NON_MAJOR_BUFFER;
 		}
 
-		datesToUpdate.targetDecisionDate = addWeeks(validDate as Date, weeksToAdd);
+		const londonDate = toZonedTime(validDate, 'Europe/London');
+
+		const targetLondon = addWeeks(londonDate, weeksToAdd);
+
+		datesToUpdate.targetDecisionDate = fromZonedTime(targetLondon, 'Europe/London');
 		return true;
 	}
 
