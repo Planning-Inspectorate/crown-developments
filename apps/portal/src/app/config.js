@@ -100,9 +100,8 @@ export function loadConfig() {
 	config = {
 		appName: 'portal',
 		appHostname: APP_HOSTNAME,
-		staticCacheControl: {
-			maxAge: STATIC_CACHE_CONTROL_MAX_AGE || '30d',
-			immutable: true
+		cacheControl: {
+			maxAge: STATIC_CACHE_CONTROL_MAX_AGE || '30d'
 		},
 		dynamicCacheControl: {
 			// by default, dynamic cache control is disabled
