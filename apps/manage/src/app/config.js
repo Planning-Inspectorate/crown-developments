@@ -34,6 +34,7 @@ export function loadConfig() {
 	const {
 		APP_HOSTNAME,
 		PORTAL_HOSTNAME,
+		S62A_PORTAL_HOSTNAME,
 		AUTH_DISABLED,
 		AZURE_CLIENT_ID, // required for SharePoint
 		AZURE_CLIENT_SECRET, // required for SharePoint
@@ -75,6 +76,7 @@ export function loadConfig() {
 		S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
 		S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
 		S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID,
+		S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID,
 		FEATURE_FLAG_S62A_MANAGE_NOT_LIVE,
 		FEATURE_FLAG_S62A_PORTAL_NOT_LIVE,
 		FEATURE_FLAG_S62A_NOTIFY_CALL_BACK_NOT_LIVE,
@@ -161,7 +163,8 @@ export function loadConfig() {
 		const props = {
 			S62A_GOV_NOTIFY_API_KEY,
 			S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
-			S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID
+			S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID,
+			S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID
 		};
 		for (const [k, v] of Object.entries(props)) {
 			if (v === undefined || v === '') {
@@ -198,6 +201,7 @@ export function loadConfig() {
 		appName: 'manage',
 		appHostname: APP_HOSTNAME,
 		portalBaseUrl: PORTAL_HOSTNAME,
+		s62aPortalBaseUrl: S62A_PORTAL_HOSTNAME,
 		auth: {
 			authority: `https://login.microsoftonline.com/${AZURE_TENANT_ID}`,
 			clientId: AZURE_CLIENT_ID,
@@ -298,7 +302,8 @@ export function loadConfig() {
 			templateIds: {
 				test: S62A_GOV_NOTIFY_TEST_TEMPLATE_ID,
 				acknowledgePreNotification: S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID,
-				acknowledgePreApplication: S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID
+				acknowledgePreApplication: S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID,
+				applicantDecision: S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID
 			},
 			retryConfig: {
 				enabled: isRetryLive // Note: same as Crown

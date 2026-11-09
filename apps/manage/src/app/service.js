@@ -168,4 +168,8 @@ export class ManageService extends Service {
 	get s62aNotifyCallBackEnabled() {
 		return this.#config.featureFlags.isS62aNotifyCallBackEnabled;
 	}
+
+	get s62aPortalBaseUrl() {
+		return this.#config.s62aPortalBaseUrl;
+	}
 }

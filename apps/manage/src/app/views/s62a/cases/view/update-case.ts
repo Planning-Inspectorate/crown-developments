@@ -5,7 +5,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { S62aCaseUpdateMapper, type UpdateCaseAnswers } from './s62a-update-case-mapper.ts';
 import { addSessionData } from '@pins/crowndev-lib/util/session.ts';
-import { s62aCaseToViewModel } from './view-model.ts';
+import { s62aCaseToViewModel, type S62aCaseViewModel } from './view-model.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { S62A_VIEW_SELECT_INCLUDE } from './constants.ts';
 import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
@@ -257,6 +257,7 @@ function handleUpdateEmails(
 
 	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
+	applicantDecisionEmail(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
 }
 
 /**
@@ -338,6 +339,46 @@ export function acknowledgePreApplicationEmail(
 		id,
 		'acknowledgePreApplicationEmailSent',
 		'Send Acknowledgement Pre-notification (Update)',
+		CASE_DATA_MODEL.S62A,
+		req
+	);
+}
+
+/**
+ * Determines whether to begin the process of sending the applicantDecisionEmail.
+ * Triggered only when a case populates decisionDate for the first time.
+ */
+export function applicantDecisionEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const applicantDecisionEmailSentAlready = previousCase.applicantDecisionEmailSent === BOOLEAN_OPTIONS.YES;
+	if (applicantDecisionEmailSentAlready || !answers.decisionDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const frontOfficeAppInfoLink = `${service.s62aPortalBaseUrl}/applications/${previousCase.id}/application-information`;
+
+	const emailPromise = notificationService.processApplicantDecision(
+		mergedAnswers,
+		previousCase.reference,
+		frontOfficeAppInfoLink
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'applicantDecisionEmailSent',
+		'Send Applicant Decision Notification (Update)',
 		CASE_DATA_MODEL.S62A,
 		req
 	);

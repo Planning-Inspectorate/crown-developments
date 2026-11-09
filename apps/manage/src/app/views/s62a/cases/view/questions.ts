@@ -2110,12 +2110,43 @@ export function getQuestions(
 			type: COMPONENT_TYPES.DATE,
 			title: 'Decision date',
 			question: 'What date was the decision made?',
-			hint: 'For example, 27 3 2007',
+			hint: 'You must first add the decision outcome and publish the decision notice',
 			fieldName: 'decisionDate',
 			url: 'decision-date',
-			validators: [new DateValidator('decision date')],
+			validators: [
+				new DateValidator('decision date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'publishDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, publishDate) => {
+						if (!publishDate) throw new Error('Publish the case before you add the decision date');
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'hasSiteLocation',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, hasSiteLocation) => {
+						if (!hasSiteLocation)
+							throw new Error('Add the site address or site coordinates before you add the decision date');
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'decisionOutcomeId',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, decisionOutcome) => {
+						if (!decisionOutcome) throw new Error('Add the decision outcome before you add the decision date');
+
+						return true;
+					}
+				})
+			],
 			viewData: {
-				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'decision-date/remove' }]
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'decision-date/remove' }],
+				warningMessage: 'Adding a date will send notifications to the applicant/agent, the LPA and interested parties'
 			}
 		},
 		recoveredReportSentDate: {

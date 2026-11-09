@@ -4,6 +4,7 @@ import { S62aManageNotificationService } from './notification-service.ts';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import { MAJOR_EMAIL, NON_MAJOR_EMAIL } from '../view/constants.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
+import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { Logger } from 'pino';
 
@@ -35,6 +36,22 @@ const preAppAnswers = (overrides: Partial<PreAppAnswers> = {}): PreAppAnswers =>
 		...overrides
 	}) as PreAppAnswers;
 
+/**
+ * Helper to generate a baseline of applicant decision case answers
+ */
+const decisionAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+	({
+		decisionDate: new Date('2026-10-30T12:00:00.000Z'),
+		developmentDescription: 'Test proposal description',
+		siteAddress: {
+			line1: '123 High Street',
+			town: 'Bristol',
+			postcode: 'BS1 1AA'
+		},
+		manageAgentContactDetails: [{ agentContactEmail: 'agent@test.com', agentFirstName: 'Bob', agentLastName: 'Smith' }],
+		...overrides
+	}) as UpdateCaseAnswers;
+
 describe('S62aManageNotificationService', () => {
 	let mockLogger: Logger;
 	let mockNotifyClient: S62aGovNotifyClient;
@@ -49,7 +66,8 @@ describe('S62aManageNotificationService', () => {
 
 		mockNotifyClient = {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
-			sendAcknowledgePreApplicationToMany: mock.fn(async () => [])
+			sendAcknowledgePreApplicationToMany: mock.fn(async () => []),
+			sendApplicantDecisionToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
 		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
@@ -306,6 +324,147 @@ describe('S62aManageNotificationService', () => {
 			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
+		});
+	});
+
+	describe('processApplicantDecision', () => {
+		const testAppInfoLink = 'TEST';
+
+		it('returns wasSent: false when decisionDate is absent', async () => {
+			const result = await service.processApplicantDecision(
+				decisionAnswers({ decisionDate: undefined }),
+				'REF-123',
+				testAppInfoLink
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
+			const result = await nullClientService.processApplicantDecision(decisionAnswers(), 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+		});
+
+		it('returns wasSent: false and logs a warning when there are no valid notification contacts', async () => {
+			const result = await service.processApplicantDecision(
+				decisionAnswers({ manageAgentContactDetails: [], manageApplicantContactDetails: [] }),
+				'REF-123',
+				testAppInfoLink
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments[0], { reference: 'REF-123' });
+			assert.strictEqual(
+				(mockLogger.warn as any).mock.calls[0].arguments[1],
+				'No emails to send for reference REF-123'
+			);
+		});
+
+		it('successfully dispatches applicant decision email with formatted address, description, reference, and appInfoLink', async () => {
+			const caseAnswers = decisionAnswers({
+				developmentDescription: 'Construction of commercial storage units',
+				siteAddress: {
+					line1: '123 High Street',
+					town: 'Bristol',
+					postcode: 'BS1 1AA'
+				} as any,
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'agent@test.com', agentFirstName: 'Alice', agentLastName: 'Smith' }
+				]
+			});
+
+			const result = await service.processApplicantDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, []);
+			assert.strictEqual((mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls.length, 1);
+
+			const [contacts, details] = (mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls[0].arguments;
+
+			assert.deepStrictEqual(contacts, [{ email: 'agent@test.com', firstName: 'Alice', lastName: 'Smith' }]);
+			assert.strictEqual(details.reference, 'REF-123');
+			assert.strictEqual(details.applicationDescription, 'Construction of commercial storage units');
+			assert.ok(details.siteAddress);
+			assert.strictEqual(details.appInfoLink, testAppInfoLink);
+			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'Applicant decision emails dispatched successfully'
+			]);
+		});
+
+		it('falls back to easting and northing when siteAddress is not provided', async () => {
+			const caseAnswers = decisionAnswers({
+				siteAddress: undefined,
+				siteEasting: 350000,
+				siteNorthing: 170000
+			});
+
+			const result = await service.processApplicantDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, []);
+			const [, details] = (mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.siteAddress, 'Easting: 350000, Northing: 170000');
+		});
+
+		it('falls back to empty string when developmentDescription is falsy', async () => {
+			const caseAnswers = decisionAnswers({
+				developmentDescription: undefined as any
+			});
+
+			const result = await service.processApplicantDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, []);
+			const [, details] = (mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.applicationDescription, '');
+		});
+
+		it('falls back to applicant contacts when no agent contacts with email are present', async () => {
+			const caseAnswers = decisionAnswers({
+				manageAgentContactDetails: undefined,
+				manageApplicantContactDetails: [
+					{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'John', applicantLastName: 'Doe' }
+				]
+			});
+
+			const result = await service.processApplicantDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, []);
+			const [contacts] = (mockNotifyClient.sendApplicantDecisionToMany as any).mock.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'John', lastName: 'Doe' }]);
+		});
+
+		it('throws an error and logs it if the notify client fails to send', async () => {
+			const error = new Error('Service unavailable');
+			mockNotifyClient.sendApplicantDecisionToMany = mock.fn(() => Promise.reject(error));
+
+			const caseAnswers = decisionAnswers();
+
+			await assert.rejects(
+				() => service.processApplicantDecision(caseAnswers, 'REF-123', testAppInfoLink),
+				(err: Error) => {
+					assert.strictEqual(err.message, 'Error encountered during applicant decision email notification dispatch');
+					assert.strictEqual(err.cause, error);
+					return true;
+				}
+			);
+
+			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
+			assert.strictEqual(
+				(mockLogger.error as any).mock.calls[0].arguments[1],
+				'Error dispatching applicant decision email'
+			);
 		});
 	});
 });

@@ -8,6 +8,7 @@ export interface TemplateIds {
 	acknowledgePreNotification?: string;
 	acknowledgeRepresentationReceived?: string;
 	acknowledgePreApplication?: string;
+	applicantDecision?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -52,6 +53,13 @@ export type PreApplicationDetails = {
 	siteAddress: string;
 	applicationDescription: string;
 	receivedDate: string;
+};
+
+export type ApplicantDecisionDetails = {
+	reference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	appInfoLink: string;
 };
 
 /**
@@ -205,6 +213,54 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendAcknowledgePreApplication(contact, details);
 			},
 			'Failed to send acknowledge pre-application notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email to applicant/agent notifying that a decision has been made
+	 */
+	async sendApplicantDecision(
+		notificationData: ContactNotificationType,
+		details: ApplicantDecisionDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.applicantDecision;
+
+		if (!templateId) {
+			this.logger.warn('applicant decision template not enabled. ignoring request.');
+			throw new Error('Applicant decision template not enabled.');
+		}
+
+		const fullName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				recipientName: fullName,
+				ourReference: details.reference, // TODO: enquire as to why it's ourReference for this email
+				siteAddress: details.siteAddress,
+				applicationDescription: details.applicationDescription,
+				appInfoUrl: details.appInfoLink
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends an email to multiple applicants/agents notifying that a decision has been made
+	 */
+	async sendApplicantDecisionToMany(
+		notificationData: ContactNotificationType[],
+		details: ApplicantDecisionDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
+				return this.sendApplicantDecision(contact, details);
+			},
+			'Failed to send applicant decision notification to one or more email addresses.'
 		);
 	}
 
