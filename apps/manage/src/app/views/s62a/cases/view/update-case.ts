@@ -257,6 +257,7 @@ function handleUpdateEmails(
 
 	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
+	applicantDecisionEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -337,6 +338,45 @@ export function acknowledgePreApplicationEmail(
 		id,
 		'acknowledgePreApplicationEmailSent',
 		'Send Acknowledgement Pre-notification (Update)',
+		req
+	);
+}
+
+/**
+ * Determines whether to begin the process of sending the applicantDecisionEmail.
+ * Triggered only when a case populates decisionDate for the first time.
+ */
+export function applicantDecisionEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const applicantDecisionEmailSentAlready = previousCase.applicantDecisionEmailSent === BOOLEAN_OPTIONS.YES;
+	if (applicantDecisionEmailSentAlready || !answers.decisionDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const frontOfficeAppInfoLink = `${service.s62aPortalBaseUrl}/applications/${previousCase.id}/application-information`;
+
+	const emailPromise = notificationService.processApplicantDecision(
+		mergedAnswers,
+		previousCase.reference,
+		frontOfficeAppInfoLink
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'applicantDecisionEmailSent',
+		'Send Applicant Decision Notification (Update)',
 		req
 	);
 }
