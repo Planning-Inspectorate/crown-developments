@@ -1,4 +1,4 @@
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 import { BOOLEAN_OPTIONS, type SaveDataFn } from '@planning-inspectorate/dynamic-forms';
 import type { ManageService } from '#service';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -50,7 +50,7 @@ export function buildS62aUpdateCase(
 
 		logger.info({ id }, 'S62A case update initiated');
 		// The case as it was before this save, used to work out what changed
-		let previousCase: Record<string, unknown> = {};
+		let previousCase: S62aCaseViewModel | undefined;
 
 		const answers = data?.answers || {};
 
@@ -132,7 +132,7 @@ export function buildS62aUpdateCase(
 			// fields that didn't change, e.g. the rest of a multi-field question, or
 			// the linked pre-application case's reference. It's the view model we've
 			// already loaded for the save, so this costs nothing extra.
-			previousCase = { ...viewModel };
+			previousCase = viewModel;
 
 			updateSucceeded = true;
 
@@ -148,11 +148,11 @@ export function buildS62aUpdateCase(
 			});
 		}
 
-		if (updateSucceeded) {
+		if (updateSucceeded && previousCase) {
 			await recordAuditEntries(audit, logger, res, {
 				caseId: id,
 				userId,
-				previousCase,
+				previousCase: { ...previousCase },
 				answers: { ...answersSnapshot, ...derivedAnswers },
 				updatedFieldNames: [...updatedFieldNames, ...Object.keys(derivedAnswers)]
 			});
@@ -166,7 +166,7 @@ export function buildS62aUpdateCase(
 				logContext: { caseId: id }
 			});
 
-			handleUpdateEmails(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
+			handleUpdateEmails(answers, previousCase, notificationService, service, id, req);
 		}
 	};
 }
