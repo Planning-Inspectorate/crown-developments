@@ -4,7 +4,7 @@ import type { BaseConfig } from '@planning-inspectorate/core/app';
 interface Config extends BaseConfig {
 	appName: string;
 	appHostname: string;
-	staticCacheControl: {
+	cacheControl: {
 		maxAge: string;
 	};
 	dynamicCacheControl: {
