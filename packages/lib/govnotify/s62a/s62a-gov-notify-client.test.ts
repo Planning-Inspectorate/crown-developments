@@ -576,4 +576,186 @@ describe('S62aGovNotifyClient', () => {
 			]);
 		});
 	});
+
+	describe('sendApplicantDecision', () => {
+		const details = {
+			reference: 'S62A/2026/0003',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			appInfoLink: 'TEST'
+		};
+
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(() => client.sendApplicantDecision({ email: 'applicant@test.com' }, details), {
+				name: 'Error',
+				message: 'Applicant decision template not enabled.'
+			});
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'applicant decision template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call super.sendEmailWithAudit with correct arguments and return the audit result', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { applicantDecision: 'applicant-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = { notifyId: 'mock-notify-id-decision', body: 'Applicant decision email body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'applicant@test.com',
+				firstName: 'Jane',
+				lastName: 'Doe'
+			};
+
+			const result = await client.sendApplicantDecision(notificationData, details);
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'applicant-decision-template-123',
+				'applicant@test.com',
+				{
+					personalisation: {
+						recipientName: 'Jane Doe',
+						caseReference: 'S62A/2026/0003',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						appInfoUrl: 'TEST'
+					},
+					reference: 'S62A/2026/0003'
+				}
+			]);
+		});
+
+		it('should correctly format the recipient name if only the first name is provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { applicantDecision: 'applicant-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			const notificationData = { email: 'applicant@test.com', firstName: 'Jane' };
+
+			await client.sendApplicantDecision(notificationData, details);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.recipientName, 'Jane');
+		});
+
+		it('should correctly format the recipient name as an empty string when no names are provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { applicantDecision: 'applicant-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			const notificationData = { email: 'applicant@test.com' };
+
+			await client.sendApplicantDecision(notificationData, details);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.recipientName, '');
+		});
+	});
+
+	describe('sendApplicantDecisionToMany', () => {
+		const details = {
+			reference: 'S62A/2026/0003',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			appInfoLink: 'TEST'
+		};
+
+		it('should call super.sendToManyWithAudit with the mapped emails and correct error message', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { applicantDecision: 'applicant-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditRecords = [
+				{ email: 'agent1@test.com', notifyId: 'notify-1', body: 'body-1' },
+				{ email: 'agent2@test.com', notifyId: 'notify-2', body: 'body-2' }
+			];
+			const sendToManyWithAuditMock = ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async () => mockAuditRecords
+			);
+
+			const contacts = [
+				{ email: 'agent1@test.com', firstName: 'Alice' },
+				{ email: 'agent2@test.com', firstName: 'Bob' }
+			];
+
+			const result = await client.sendApplicantDecisionToMany(contacts, details);
+
+			assert.deepStrictEqual(result, mockAuditRecords);
+			assert.strictEqual(sendToManyWithAuditMock.mock.callCount(), 1);
+
+			const args = sendToManyWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args[0], ['agent1@test.com', 'agent2@test.com']);
+			assert.strictEqual(typeof args[1], 'function');
+			assert.strictEqual(args[2], 'Failed to send applicant decision notification to one or more email addresses.');
+		});
+
+		it('should invoke sendApplicantDecision for each contact in the sendToManyWithAudit callback', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { applicantDecision: 'applicant-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendApplicantDecisionMock = ctx.mock.method(client as any, 'sendApplicantDecision', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (emails: string[], cb: (email: string) => Promise<{ notifyId: string; body: string }>) => {
+					const results = [];
+					for (const email of emails) {
+						const audit = await cb(email);
+						results.push({ email, ...audit });
+					}
+					return results;
+				}
+			);
+
+			const contacts = [
+				{ email: 'userA@test.com', firstName: 'User', lastName: 'A' },
+				{ email: 'userB@test.com', firstName: 'User', lastName: 'B' }
+			];
+
+			const results = await client.sendApplicantDecisionToMany(contacts, details);
+
+			assert.strictEqual(sendApplicantDecisionMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendApplicantDecisionMock.mock.calls[0].arguments, [contacts[0], details]);
+			assert.deepStrictEqual(sendApplicantDecisionMock.mock.calls[1].arguments, [contacts[1], details]);
+			assert.deepStrictEqual(results, [
+				{ email: 'userA@test.com', notifyId: 'id', body: 'body' },
+				{ email: 'userB@test.com', notifyId: 'id', body: 'body' }
+			]);
+		});
+	});
 });

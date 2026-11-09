@@ -50,6 +50,7 @@ interface Config extends BaseConfig {
 	govNotify: CrownNotifyConfig;
 	s62aGovNotify: S62aNotifyConfig;
 	portalBaseUrl: string;
+	s62aPortalBaseUrl: string;
 	sharePoint: {
 		disabled: boolean; // Enable/disable sharepoint connection
 		driveId?: string; // DriveId of Crown Dev Site
