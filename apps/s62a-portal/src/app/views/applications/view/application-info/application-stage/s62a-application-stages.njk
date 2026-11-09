@@ -12,6 +12,10 @@
 				<p class="govuk-body"><a class="govuk-link" href="have-your-say"> Comment on the proposed development by {{ haveYourSayDeadline }}.</a></p>
 			{% endif %}
 		{% endif %}
+
+		{% if currentStage.stageId === 'post-decision' and s62aFields.decisionOutcome and s62aFields.decisionDate %}
+			<p class="govuk-body">This application was {{ s62aFields.decisionOutcome | lower }} on {{ s62aFields.decisionDate }}.</p>
+		{% endif %}
 	{% endif %}
 
 	<div id="application-stages">
