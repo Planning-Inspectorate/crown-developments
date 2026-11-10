@@ -316,6 +316,7 @@ model S62aCase {
   acknowledgePreNotificationEmailSent Boolean? @default(false)
   acknowledgePreApplicationEmailSent  Boolean? @default(false)
   applicantDecisionEmailSent          Boolean? @default(false)
+  lpaDecisionEmailSent                Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {

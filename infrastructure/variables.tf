@@ -88,6 +88,7 @@ variable "apps_config" {
         ack_rep_template_id      = string
         ack_pre_app_template_id  = string
         app_decision_template_id = string
+        lpa_decision_template_id = string
       })
     })
 

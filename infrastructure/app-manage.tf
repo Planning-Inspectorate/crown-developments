@@ -101,6 +101,7 @@ module "app_manage" {
     S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID      = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
     S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID  = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
     S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.app_decision_template_id
+    S62A_GOV_NOTIFY_LPA_DECISION_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.lpa_decision_template_id
 
     S62A_MAJOR_CONTACT_EMAIL     = var.apps_config.s62a_major_contact_email
     S62A_NON_MAJOR_CONTACT_EMAIL = var.apps_config.s62a_non_major_contact_email
