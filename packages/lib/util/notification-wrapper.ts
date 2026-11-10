@@ -17,7 +17,11 @@ export function sendS62aNotificationAndUpdateFlag(
 	service: { db: PrismaClient; audit?: AuditService; logger: Logger; isAuditLive?: boolean },
 	caseId: string,
 	flagField:
-		'acknowledgePreNotificationEmailSent' | 'acknowledgePreApplicationEmailSent' | 'applicantDecisionEmailSent' | null,
+		| 'acknowledgePreNotificationEmailSent'
+		| 'acknowledgePreApplicationEmailSent'
+		| 'applicantDecisionEmailSent'
+		| 'lpaDecisionEmailSent'
+		| null,
 	operationName: string,
 	dataModel: 's62a' | 'crown',
 	req?: Request

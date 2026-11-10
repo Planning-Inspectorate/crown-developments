@@ -390,6 +390,7 @@ export interface S62aCaseViewModel {
 	// Email flags
 	acknowledgePreNotificationEmailSent?: string;
 	applicantDecisionEmailSent?: YesNo;
+	lpaDecisionEmailSent?: YesNo;
 }
 
 /**

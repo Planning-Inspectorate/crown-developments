@@ -258,6 +258,7 @@ function handleUpdateEmails(
 	acknowledgePreNotificationEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
 	applicantDecisionEmail(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
+	lpaDecisionEmail(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
 }
 
 /**
@@ -379,6 +380,46 @@ export function applicantDecisionEmail(
 		id,
 		'applicantDecisionEmailSent',
 		'Send Applicant Decision Notification (Update)',
+		CASE_DATA_MODEL.S62A,
+		req
+	);
+}
+
+/**
+ * Determines whether to begin the process of sending the lpaDecisionEmail.
+ */
+export function lpaDecisionEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const lpaDecisionEmailSentAlready = previousCase.lpaDecisionEmailSent === BOOLEAN_OPTIONS.YES;
+
+	if (lpaDecisionEmailSentAlready || !answers.decisionDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	};
+
+	const frontOfficeAppInfoLink = `${service.s62aPortalBaseUrl}/applications/${previousCase.id}/application-information`;
+
+	const emailPromise = notificationService.processLpaDecision(
+		mergedAnswers as unknown as UpdateCaseAnswers,
+		previousCase.reference,
+		frontOfficeAppInfoLink
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'lpaDecisionEmailSent',
+		'Send LPA Decision Notification (Update)',
 		CASE_DATA_MODEL.S62A,
 		req
 	);

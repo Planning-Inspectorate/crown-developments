@@ -77,6 +77,7 @@ apps_config = {
       ack_rep_template_id      = ""
       ack_pre_app_template_id  = ""
       app_decision_template_id = ""
+      lpa_decision_template_id = ""
     }
   }
 

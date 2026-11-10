@@ -758,4 +758,185 @@ describe('S62aGovNotifyClient', () => {
 			]);
 		});
 	});
+	describe('sendLpaDecision', () => {
+		const details = {
+			reference: 'S62A/2026/0003',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			appInfoLink: 'https://portal.example.gov.uk/applications/123/application-information'
+		};
+
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(() => client.sendLpaDecision({ email: 'lpa@test.com' }, details), {
+				name: 'Error',
+				message: 'LPA decision template not enabled.'
+			});
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'LPA decision template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call super.sendEmailWithAudit with correct arguments and return the audit result', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { lpaDecision: 'lpa-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = { notifyId: 'mock-notify-id-lpa-decision', body: 'LPA decision email body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'planning@council.gov.uk',
+				firstName: 'Jane',
+				lastName: 'Officer'
+			};
+
+			const result = await client.sendLpaDecision(notificationData, details);
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'lpa-decision-template-123',
+				'planning@council.gov.uk',
+				{
+					personalisation: {
+						recipientName: 'Jane Officer',
+						ourReference: 'S62A/2026/0003',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						appInfoUrl: 'https://portal.example.gov.uk/applications/123/application-information'
+					},
+					reference: 'S62A/2026/0003'
+				}
+			]);
+		});
+
+		it('should correctly format the recipient name if only the first name is provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { lpaDecision: 'lpa-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			const notificationData = { email: 'planning@council.gov.uk', firstName: 'Planning' };
+
+			await client.sendLpaDecision(notificationData, details);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.recipientName, 'Planning');
+		});
+
+		it('should correctly format the recipient name as an empty string when no names are provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { lpaDecision: 'lpa-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			const notificationData = { email: 'planning@council.gov.uk' };
+
+			await client.sendLpaDecision(notificationData, details);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.recipientName, '');
+		});
+	});
+
+	describe('sendLpaDecisionToMany', () => {
+		const details = {
+			reference: 'S62A/2026/0003',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			appInfoLink: 'https://portal.example.gov.uk/applications/123/application-information'
+		};
+
+		it('should call super.sendToManyWithAudit with the mapped emails and correct error message', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { lpaDecision: 'lpa-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditRecords = [
+				{ email: 'lpa1@test.com', notifyId: 'notify-1', body: 'body-1' },
+				{ email: 'lpa2@test.com', notifyId: 'notify-2', body: 'body-2' }
+			];
+			const sendToManyWithAuditMock = ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async () => mockAuditRecords
+			);
+
+			const contacts = [
+				{ email: 'lpa1@test.com', firstName: 'Alice' },
+				{ email: 'lpa2@test.com', firstName: 'Bob' }
+			];
+
+			const result = await client.sendLpaDecisionToMany(contacts, details);
+
+			assert.deepStrictEqual(result, mockAuditRecords);
+			assert.strictEqual(sendToManyWithAuditMock.mock.callCount(), 1);
+
+			const args = sendToManyWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args[0], ['lpa1@test.com', 'lpa2@test.com']);
+			assert.strictEqual(typeof args[1], 'function');
+			assert.strictEqual(args[2], 'Failed to send LPA decision notification to one or more email addresses.');
+		});
+
+		it('should invoke sendLpaDecision for each contact in the sendToManyWithAudit callback', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { lpaDecision: 'lpa-decision-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendLpaDecisionMock = ctx.mock.method(client as any, 'sendLpaDecision', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (emails: string[], cb: (email: string) => Promise<{ notifyId: string; body: string }>) => {
+					const results = [];
+					for (const email of emails) {
+						const audit = await cb(email);
+						results.push({ email, ...audit });
+					}
+					return results;
+				}
+			);
+
+			const contacts = [
+				{ email: 'lpaPrimary@test.com', firstName: 'Jane', lastName: 'Officer' },
+				{ email: 'lpaSecondary@test.com', firstName: 'John', lastName: 'Clerk' }
+			];
+
+			const results = await client.sendLpaDecisionToMany(contacts, details);
+
+			assert.strictEqual(sendLpaDecisionMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendLpaDecisionMock.mock.calls[0].arguments, [contacts[0], details]);
+			assert.deepStrictEqual(sendLpaDecisionMock.mock.calls[1].arguments, [contacts[1], details]);
+			assert.deepStrictEqual(results, [
+				{ email: 'lpaPrimary@test.com', notifyId: 'id', body: 'body' },
+				{ email: 'lpaSecondary@test.com', notifyId: 'id', body: 'body' }
+			]);
+		});
+	});
 });

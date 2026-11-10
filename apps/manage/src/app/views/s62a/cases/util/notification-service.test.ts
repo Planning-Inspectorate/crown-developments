@@ -7,6 +7,7 @@ import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts
 import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { Logger } from 'pino';
+import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 
 type PreAppAnswers = S62aCreateCaseAnswers & { applicationReceivedDate?: Date };
 
@@ -52,6 +53,24 @@ const decisionAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCase
 		...overrides
 	}) as UpdateCaseAnswers;
 
+/**
+ * Helper to generate a baseline of LPA decision case answers
+ */
+const lpaDecisionAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+	({
+		decisionDate: new Date('2026-10-30T12:00:00.000Z'),
+		developmentDescription: 'Test proposal description',
+		siteAddress: {
+			line1: '123 High Street',
+			town: 'Bristol',
+			postcode: 'BS1 1AA'
+		},
+		lpaEmailAddress: 'primary-lpa@test.com',
+		lpaFirstName: 'Jane',
+		lpaLastName: 'Officer',
+		...overrides
+	}) as UpdateCaseAnswers;
+
 describe('S62aManageNotificationService', () => {
 	let mockLogger: Logger;
 	let mockNotifyClient: S62aGovNotifyClient;
@@ -67,7 +86,8 @@ describe('S62aManageNotificationService', () => {
 		mockNotifyClient = {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
 			sendAcknowledgePreApplicationToMany: mock.fn(async () => []),
-			sendApplicantDecisionToMany: mock.fn(async () => [])
+			sendApplicantDecisionToMany: mock.fn(async () => []),
+			sendLpaDecisionToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
 		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
@@ -465,6 +485,170 @@ describe('S62aManageNotificationService', () => {
 				(mockLogger.error as any).mock.calls[0].arguments[1],
 				'Error dispatching applicant decision email'
 			);
+		});
+	});
+	describe('processLpaDecision', () => {
+		const testAppInfoLink = 'TEST';
+
+		it('returns wasSent: false when decisionDate is absent', async () => {
+			const result = await service.processLpaDecision(
+				lpaDecisionAnswers({ decisionDate: undefined }),
+				'REF-123',
+				testAppInfoLink
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendLpaDecisionToMany as any).mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
+			const result = await nullClientService.processLpaDecision(lpaDecisionAnswers(), 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+		});
+
+		it('returns wasSent: true and logs info when there are no valid LPA contacts (marking notification as processed without sending)', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				lpaEmailAddress: undefined,
+				secondaryLpaEmailAddress: undefined
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.strictEqual((mockNotifyClient.sendLpaDecisionToMany as any).mock.calls.length, 0);
+			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'No LPA contact details found for reference REF-123. Marking notification as processed without sending.'
+			]);
+		});
+
+		it('successfully dispatches LPA decision email to primary LPA with formatted address, description, reference, and appInfoLink', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				developmentDescription: 'Construction of commercial storage units',
+				siteAddress: {
+					line1: '123 High Street',
+					town: 'Bristol',
+					postcode: 'BS1 1AA'
+				} as any,
+				lpaEmailAddress: 'primary-lpa@test.com',
+				lpaFirstName: 'Jane',
+				lpaLastName: 'Officer'
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, []);
+			assert.strictEqual((mockNotifyClient.sendLpaDecisionToMany as any).mock.calls.length, 1);
+
+			const [contacts, details] = (mockNotifyClient.sendLpaDecisionToMany as any).mock.calls[0].arguments;
+
+			assert.strictEqual(contacts.length, 1);
+			assert.strictEqual(contacts[0].email, 'primary-lpa@test.com');
+			assert.strictEqual(contacts[0].firstName, 'Jane');
+			assert.strictEqual(contacts[0].lastName, 'Officer');
+			assert.ok(contacts[0].fallbackName);
+			assert.strictEqual(details.reference, 'REF-123');
+			assert.strictEqual(details.applicationDescription, 'Construction of commercial storage units');
+			assert.ok(details.siteAddress);
+			assert.strictEqual(details.appInfoLink, testAppInfoLink);
+			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'LPA decision email dispatched successfully'
+			]);
+		});
+
+		it('includes secondary LPA contact when hasSecondaryLpa is YES and secondaryLpaEmailAddress is present', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				lpaEmailAddress: 'primary@council.gov.uk',
+				lpaFirstName: 'Primary',
+				lpaLastName: 'Officer',
+				hasSecondaryLpa: BOOLEAN_OPTIONS.YES,
+				secondaryLpaEmailAddress: 'secondary@council.gov.uk',
+				secondaryLpaFirstName: 'Secondary',
+				secondaryLpaLastName: 'Clerk'
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.strictEqual((mockNotifyClient.sendLpaDecisionToMany as any).mock.calls.length, 1);
+
+			const [contacts] = (mockNotifyClient.sendLpaDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(contacts.length, 2);
+			assert.strictEqual(contacts[0].email, 'primary@council.gov.uk');
+			assert.strictEqual(contacts[1].email, 'secondary@council.gov.uk');
+			assert.strictEqual(contacts[1].firstName, 'Secondary');
+			assert.strictEqual(contacts[1].lastName, 'Clerk');
+			assert.ok(contacts[1].fallbackName);
+		});
+
+		it('ignores secondary LPA contact when hasSecondaryLpa is not YES', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				lpaEmailAddress: 'primary@council.gov.uk',
+				hasSecondaryLpa: BOOLEAN_OPTIONS.NO,
+				secondaryLpaEmailAddress: 'secondary@council.gov.uk'
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			const [contacts] = (mockNotifyClient.sendLpaDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(contacts.length, 1);
+			assert.strictEqual(contacts[0].email, 'primary@council.gov.uk');
+		});
+
+		it('falls back to easting and northing when siteAddress is not provided', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				siteAddress: undefined,
+				siteEasting: 350000,
+				siteNorthing: 170000
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendLpaDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.siteAddress, 'Easting: 350000, Northing: 170000');
+		});
+
+		it('falls back to empty string when developmentDescription is falsy', async () => {
+			const caseAnswers = lpaDecisionAnswers({
+				developmentDescription: undefined as any
+			});
+
+			const result = await service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink);
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendLpaDecisionToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.applicationDescription, '');
+		});
+
+		it('throws an error and logs it if the notify client fails to send', async () => {
+			const error = new Error('Service unavailable');
+			mockNotifyClient.sendLpaDecisionToMany = mock.fn(() => Promise.reject(error));
+
+			const caseAnswers = lpaDecisionAnswers();
+
+			await assert.rejects(
+				() => service.processLpaDecision(caseAnswers, 'REF-123', testAppInfoLink),
+				(err: Error) => {
+					assert.strictEqual(err.message, 'Error encountered during LPA decision email notification dispatch');
+					assert.strictEqual(err.cause, error);
+					return true;
+				}
+			);
+
+			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[1], 'Error dispatching LPA decision email');
 		});
 	});
 });

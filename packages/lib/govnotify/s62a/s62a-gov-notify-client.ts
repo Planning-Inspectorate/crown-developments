@@ -9,6 +9,7 @@ export interface TemplateIds {
 	acknowledgeRepresentationReceived?: string;
 	acknowledgePreApplication?: string;
 	applicantDecision?: string;
+	lpaDecision?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -19,6 +20,7 @@ export type ContactNotificationType = {
 	email: string;
 	firstName?: string;
 	lastName?: string;
+	fallbackName?: string;
 };
 
 export type RepresentorNotificationType = ContactNotificationType & {
@@ -56,6 +58,13 @@ export type PreApplicationDetails = {
 };
 
 export type ApplicantDecisionDetails = {
+	reference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	appInfoLink: string;
+};
+
+export type LpaDecisionDetails = {
 	reference: string;
 	siteAddress: string;
 	applicationDescription: string;
@@ -261,6 +270,54 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendApplicantDecision(contact, details);
 			},
 			'Failed to send applicant decision notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email to the LPA notifying that a decision has been made
+	 */
+	async sendLpaDecision(
+		notificationData: ContactNotificationType,
+		details: LpaDecisionDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.lpaDecision;
+
+		if (!templateId) {
+			this.logger.warn('LPA decision template not enabled. ignoring request.');
+			throw new Error('LPA decision template not enabled.');
+		}
+
+		const lpaName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				recipientName: lpaName,
+				ourReference: details.reference,
+				siteAddress: details.siteAddress,
+				applicationDescription: details.applicationDescription,
+				appInfoUrl: details.appInfoLink
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends an email to multiple LPA contacts notifying that a decision has been made
+	 */
+	async sendLpaDecisionToMany(
+		notificationData: ContactNotificationType[],
+		details: LpaDecisionDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as ContactNotificationType;
+				return this.sendLpaDecision(contact, details);
+			},
+			'Failed to send LPA decision notification to one or more email addresses.'
 		);
 	}
 

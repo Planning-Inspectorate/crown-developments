@@ -100,6 +100,7 @@ module "app_manage" {
     S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID      = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
     S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID  = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
     S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.app_decision_template_id
+    S62A_GOV_NOTIFY_LPA_DECISION_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.lpa_decision_template_id
 
     #feature flags
     FEATURE_FLAG_S62A_MANAGE_NOT_LIVE           = var.apps_config.feature_flags.s62a_manage_not_live
