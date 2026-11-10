@@ -391,6 +391,7 @@ export interface S62aCaseViewModel {
 	acknowledgePreNotificationEmailSent?: YesNo;
 	acknowledgePreApplicationEmailSent?: YesNo;
 	applicantDecisionEmailSent?: YesNo;
+	lpaDecisionEmailSent?: YesNo;
 }
 
 /**
@@ -407,7 +408,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'isWasteManagementDevelopment',
 	'acknowledgePreNotificationEmailSent',
 	'acknowledgePreApplicationEmailSent',
-	'applicantDecisionEmailSent'
+	'applicantDecisionEmailSent',
+	'lpaDecisionEmailSent'
 ] as const);
 
 /**
