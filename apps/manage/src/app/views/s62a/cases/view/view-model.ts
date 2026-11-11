@@ -773,6 +773,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 						additionalContactRelationId: ac.id,
 						additionalContactType: typeValue,
 						otherContactType: otherTypeValue || undefined,
+						 
 						additionalContactType_otherContactType: otherTypeValue || undefined,
 						firstName: ac.Contact.firstName || undefined,
 						lastName: ac.Contact.lastName || undefined,
