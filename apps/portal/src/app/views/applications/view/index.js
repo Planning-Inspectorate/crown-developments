@@ -9,13 +9,16 @@ import { buildDetailedInformationPage } from '../../static/detailed-information/
 import { buildApplicationUpdatesPage } from './application-updates/controller.js';
 import { checkIfExpiredMiddleware, checkIfWithdrawnOrExpiredMiddleware } from './utils/middleware.ts';
 import { buildCachingDynamicContentMiddleware } from '../../util/caching-middleware.js';
+import { publishedFolderPath } from '@pins/crowndev-lib/util/sharepoint-path.js';
 
 export function createRoutes(service) {
 	const router = createRouter({ mergeParams: true });
 	const applicationInfoController = buildApplicationInformationPage(service);
 	const applicationUpdatesController = buildApplicationUpdatesPage(service);
 	const applicationDocumentsPage = buildApplicationDocumentsPage(service);
-	const viewDocumentPage = buildDocumentView(service);
+	const viewDocumentPage = buildDocumentView(service, {
+		getAllowedFolderPath: (reference) => publishedFolderPath(reference)
+	});
 	const haveYourSayPageRoutes = createHaveYourSayRoutes(service);
 	const writtenRepresentationsRoutes = createWrittenRepresentationsRoutes(service);
 	const isPublishedAndNotExpired = checkIfExpiredMiddleware(service);
