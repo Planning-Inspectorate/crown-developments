@@ -320,7 +320,9 @@ export function acknowledgePreApplicationEmail(
 
 	if (acknowledgePreApplicationEmailSentAlready) return;
 
-	if (!(isPreApplication && hasApplicationReceivedDate)) return;
+	if (!isPreApplication) return;
+
+	if (!hasApplicationReceivedDate) return;
 
 	const mergedAnswers = {
 		...previousCase,

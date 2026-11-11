@@ -676,8 +676,21 @@ export function getQuestions(
 					}
 				})
 			],
-			hint: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning,
-			viewData: { warningMessage: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning }
+			hint: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateHint,
+			viewData: {
+				warningMessage: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning,
+				...(isPreApp
+					? {}
+					: {
+							extraActionButtons: [
+								{
+									text: 'Remove and save',
+									type: 'submit',
+									formaction: 'application-received/remove'
+								}
+							]
+						})
+			}
 		},
 		applicationAcknowledgedDate: {
 			type: COMPONENT_TYPES.DATE,
