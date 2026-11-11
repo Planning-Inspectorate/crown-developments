@@ -292,10 +292,12 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			.join(' ')
 			.trim();
 
+		const fullName = lpaName || notificationData.fallbackName || 'LPA';
+
 		return this.sendEmailWithAudit(templateId, notificationData.email, {
 			personalisation: {
-				recipientName: lpaName,
-				ourReference: details.reference,
+				lpaContactName: fullName,
+				caseReference: details.reference,
 				siteAddress: details.siteAddress,
 				applicationDescription: details.applicationDescription,
 				appInfoUrl: details.appInfoLink
