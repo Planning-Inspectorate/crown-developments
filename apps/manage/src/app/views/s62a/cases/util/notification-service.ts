@@ -100,9 +100,7 @@ export class S62aManageNotificationService {
 			return { wasSent: false };
 		}
 
-		const formattedAddress = answers.siteAddress
-			? formatAddress(answers.siteAddress)
-			: 'Easting: ' + answers.siteEasting + ', Northing: ' + answers.siteNorthing;
+		const formattedAddress = this.formatAddress(answers);
 
 		const applicationDescription = answers.developmentDescription || '';
 		const receivedDate = formatDateForDisplay(answers.applicationReceivedDate);
@@ -164,5 +162,63 @@ export class S62aManageNotificationService {
 		}
 
 		return notificationContacts;
+	}
+
+	/**
+	 * Orchestrates the applicant/agent decision notification email process.
+	 * Triggered when a decision date is populated for the first time.
+	 */
+	public async processApplicantDecision(
+		answers: UpdateCaseAnswers,
+		reference: string,
+		appInfoLink: string
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (!answers.decisionDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		if (!notificationContacts.length) {
+			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
+			return { wasSent: false };
+		}
+
+		const formattedAddress = this.formatAddress(answers);
+
+		const applicationDescription = answers.developmentDescription || '';
+
+		try {
+			const auditData = await this.notifyClient.sendApplicantDecisionToMany(notificationContacts, {
+				reference,
+				siteAddress: formattedAddress,
+				applicationDescription,
+				appInfoLink
+			});
+
+			this.logger.info({ reference }, 'Applicant decision emails dispatched successfully');
+
+			return {
+				wasSent: true,
+				auditData
+			};
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching applicant decision email');
+			throw new Error('Error encountered during applicant decision email notification dispatch', { cause: error });
+		}
+	}
+
+	/**
+	 * Address will attempt to display a site address, and fallback
+	 * to the easting & northing if none available.
+	 */
+	private formatAddress(answers: UpdateCaseAnswers) {
+		return answers.siteAddress
+			? formatAddress(answers.siteAddress)
+			: 'Easting: ' + answers.siteEasting + ', Northing: ' + answers.siteNorthing;
 	}
 }

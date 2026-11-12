@@ -176,4 +176,8 @@ export class ManageService extends Service {
 	get s62aNonMajorContactEmail() {
 		return this.#config.s62aDevContactInfo?.nonMajorEmail;
 	}
+
+	get s62aPortalBaseUrl() {
+		return this.#config.s62aPortalBaseUrl;
+	}
 }
