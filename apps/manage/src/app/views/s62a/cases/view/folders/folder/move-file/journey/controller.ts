@@ -57,7 +57,6 @@ export function buildLoadCaseData(service: ManageService): RequestHandler {
  * them to. Errors, clears session, redirects if any issues are found.
  */
 export function validateRequestState(req: Request, res: Response, caseId: string, journeyId: string, logger: Logger) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const journeyResponse = res.locals?.journeyResponse;
 	const fileIds = req.session.moveFilesIds;
 
@@ -74,7 +73,6 @@ export function validateRequestState(req: Request, res: Response, caseId: string
 		return res.redirect(`/s62a/cases/${caseId}/case-folders`);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- TODO: remove once Response Locals typing is fixed (follow-up PR)
 	const { fileLocation } = journeyResponse.answers as unknown as { fileLocation: string };
 
 	if (!fileLocation) {
