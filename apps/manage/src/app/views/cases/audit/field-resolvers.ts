@@ -18,7 +18,8 @@ import {
 	defaultResolver,
 	entraUserResolver,
 	lpaLookupResolver,
-	monetaryResolver
+	monetaryResolver,
+	siteCoordinatesResolver
 } from '@pins/crowndev-lib/audit/resolvers/index.ts';
 
 // Lookup maps for Crown reference data
@@ -123,5 +124,6 @@ export const CROWN_FIELD_RESOLVERS: FieldResolverRegistry = {
 	/** Date fields with a range, e.g. start and end date */
 	representationsPeriod: dateRangeResolver('representationsPeriod'),
 	/** Date fields that also include a time component */
-	siteVisitDate: dateAndTimeResolver('siteVisitDate')
+	siteVisitDate: dateAndTimeResolver('siteVisitDate'),
+	siteCoordinates: siteCoordinatesResolver('siteCoordinates')
 };
