@@ -51,6 +51,9 @@ export function addLocalsConfiguration(service, manifest) {
 				current: link.href === path
 			})),
 			serviceFeedbackUrl: 'https://forms.cloud.microsoft/e/DeXLbhNrBn',
+			featureFlags: {
+				isSnowModeLive: service.isSnowModeLive
+			},
 			manifest: {
 				styleFile: manifest['style.css'] ?? 'style.css',
 				govukJsFile: manifest['govuk-frontend.min.js'] ?? 'govuk-frontend.min.js',

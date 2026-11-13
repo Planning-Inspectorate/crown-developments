@@ -11,6 +11,12 @@
 	<link rel="stylesheet" href="/index.css" />
 {% endblock %}
 
+{% block bodyStart %}
+	{% if config.featureFlags.isSnowModeLive %}
+		{% include "views/layouts/components/core/snow.njk" %}
+	{% endif %}
+{% endblock %}
+
 {% block pageTitle %}
 	{% if pageTitle %}
 		{{ pageTitle }} - {{ serviceName | default('Manage a Crown Development Application') }}
