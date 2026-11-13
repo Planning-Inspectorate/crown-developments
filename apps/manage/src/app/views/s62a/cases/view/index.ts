@@ -1,5 +1,5 @@
 import type { ManageService } from '#service';
-import { Router as createRouter } from 'express';
+import { Router as createRouter, type RequestHandler, type Router } from 'express';
 import { buildGetJourneyMiddleware, buildViewCaseDetails } from './controller.ts';
 import { asyncHandler } from '@planning-inspectorate/core/util';
 import { VIEW_TAB_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -11,8 +11,9 @@ import {
 	validate,
 	validationErrorHandler
 } from '@planning-inspectorate/dynamic-forms';
-import { JOURNEY_ID } from './journey.ts';
+import { isSectionOfTab, JOURNEY_ID, tabHasSubSections } from './journey.ts';
 import { buildS62aUpdateCase } from './update-case.ts';
+import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
 import { createRoutes as createCaseFoldersRoutes } from './folders/index.ts';
 import { createRoutes as createRepsRoutes } from './manage-reps/index.ts';
@@ -31,6 +32,30 @@ import {
 } from './publish.ts';
 import { S62A_AUDIT_TEMPLATES } from '../audit/actions.ts';
 import { buildRecordS62aCaseAction } from '../audit/case-actions.ts';
+
+const VIEW_TAB_IDS: ReadonlySet<string> = new Set(Object.values(VIEW_TAB_ID));
+
+/**
+ * For question routes under a tab: only applies to that tab's own sections, so
+ * /dates/application-valid/remove isn't taken as section 'application-valid'.
+ */
+export const onlySectionsOfTheTab: RequestHandler = (req, res, next) => {
+	const matches = isSectionOfTab(getStringParam(req.params, 'tab'), getStringParam(req.params, 'section'));
+	next(matches ? undefined : 'route');
+};
+
+/**
+ * For question routes under the case: only applies to a tab with one section,
+ * named after the tab. Sets the tab from the section, as the journey reads it.
+ */
+export const onlyTabsWithOneSection: RequestHandler = (req, res, next) => {
+	const section = getStringParam(req.params, 'section');
+	if (!VIEW_TAB_IDS.has(section) || tabHasSubSections(section)) {
+		return next('route');
+	}
+	req.params.tab = section;
+	next();
+};
 
 export function createRoutes(service: ManageService) {
 	const router = createRouter({ mergeParams: true });
@@ -92,35 +117,49 @@ export function createRoutes(service: ManageService) {
 		tabRouter.use('/unpublish', unpublishCase);
 	}
 
-	tabRouter.get(
-		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
-		getJourneyResponse,
-		getQuestionJourney,
-		asyncHandler(question)
-	);
+	/** Adds the question routes, each starting with `guard` to decide whether the route applies */
+	const addQuestionRoutes = (questionRouter: Router, guard: RequestHandler) => {
+		questionRouter.get(
+			'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+			guard,
+			getJourneyResponse,
+			getQuestionJourney,
+			asyncHandler(question)
+		);
 
-	tabRouter.post(
-		'/:section/:question',
-		getJourneyResponse,
-		getQuestionJourney,
-		validate,
-		validationErrorHandler,
-		asyncHandler(updateCase)
-	);
+		questionRouter.post(
+			'/:section/:question',
+			guard,
+			getJourneyResponse,
+			getQuestionJourney,
+			validate,
+			validationErrorHandler,
+			asyncHandler(updateCase)
+		);
 
-	tabRouter.post(
-		'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
-		getJourneyResponse,
-		getQuestionJourney,
-		validate,
-		validationErrorHandler,
-		deleteManageListItemOnConfirmRemove,
-		buildSave(saveDataToSession)
-	);
+		questionRouter.post(
+			'/:section/:question{/:manageListAction/:manageListItemId/:manageListQuestion}',
+			guard,
+			getJourneyResponse,
+			getQuestionJourney,
+			validate,
+			validationErrorHandler,
+			deleteManageListItemOnConfirmRemove,
+			buildSave(saveDataToSession)
+		);
 
-	tabRouter.post('/:section/:question/remove', getJourney, asyncHandler(clearAndUpdateCase));
+		questionRouter.post('/:section/:question/remove', guard, getJourney, asyncHandler(clearAndUpdateCase));
+	};
+
+	// Under the tab, e.g. /residential/existing/has-existing. Also serves the
+	// older /dates/dates/application-valid form, so existing links keep working.
+	addQuestionRoutes(tabRouter, onlySectionsOfTheTab);
 
 	router.use('/:tab', tabRouter);
+
+	// Under the case, for tabs with one section named after the tab, e.g.
+	// /dates/application-valid. After the tab router, so its own pages win.
+	addQuestionRoutes(router, onlyTabsWithOneSection);
 
 	return router;
 }

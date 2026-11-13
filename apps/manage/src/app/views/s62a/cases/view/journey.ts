@@ -26,6 +26,28 @@ import { showPreApplicationTab } from '../util/pre-application.ts';
 
 export const JOURNEY_ID = 's62a-case-details';
 
+/**
+ * Tabs with more than one section, and their sections' segments. Their
+ * questions keep the tab in the URL, e.g. /residential/existing/has-existing.
+ *
+ * Every other tab has one section named after it, so its questions sit under
+ * the case instead, e.g. /dates/application-valid rather than
+ * /dates/dates/application-valid.
+ */
+const TABS_WITH_SUB_SECTIONS: Readonly<Record<string, readonly string[]>> = Object.freeze({
+	[VIEW_TAB_ID.RESIDENTIAL]: ['residential', 'existing', 'proposed']
+});
+
+/** Whether a tab's questions keep the tab in the URL */
+export function tabHasSubSections(tab: string): boolean {
+	return Object.hasOwn(TABS_WITH_SUB_SECTIONS, tab);
+}
+
+/** Whether a section belongs to a tab */
+export function isSectionOfTab(tab: string, section: string): boolean {
+	return TABS_WITH_SUB_SECTIONS[tab]?.includes(section) ?? section === tab;
+}
+
 export function createJourney(questions: Record<string, Question>, response: JourneyResponse, req: Request) {
 	const id = getStringParam(req.params, 'id');
 	const currentTab = getStringParam(req.params, 'tab');
@@ -461,12 +483,13 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				)
 				.withCondition(floorspaceChangeIsYes)
 		],
-		taskListUrl: '',
+		// Saving returns to the tab, whichever base the questions use
+		taskListUrl: tabHasSubSections(currentTab) ? '' : currentTab,
 		journeyTemplate: 'views/layouts/forms-question.njk',
 		taskListTemplate: 'views/s62a/cases/view/view.njk',
 		journeyTitle: 'Case details',
 		returnToListing: false,
-		makeBaseUrl: () => req.baseUrl,
+		makeBaseUrl: () => (tabHasSubSections(currentTab) ? `/s62a/cases/${id}/${currentTab}` : `/s62a/cases/${id}`),
 		response
 	});
 }
