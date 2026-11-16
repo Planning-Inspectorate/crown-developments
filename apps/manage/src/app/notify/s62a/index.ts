@@ -1,15 +1,18 @@
 import { Router as createRouter } from 'express';
 import { asyncHandler } from '@planning-inspectorate/core/util';
-import { buildNotifyCallbackTokenValidator } from '#util/notify-callback.js';
 import type { ManageService } from '#service';
-import { buildS62aNotifyCallbackController } from './controller.ts';
+import { buildS62aNotifyCallbackController, buildS62aRepresentationsPublishedController } from './controller.ts';
+import { buildTokenValidator } from '../../../util/token-validator.ts';
 
 export function createNotifyRoutes(service: ManageService) {
 	const router = createRouter();
 	const notifyCallbackController = buildS62aNotifyCallbackController(service);
-	const validateRequest = buildNotifyCallbackTokenValidator(service);
+	const publishedRepsEmail = buildS62aRepresentationsPublishedController(service);
+	const validateCallback = buildTokenValidator(service, 'webHookToken');
+	const validateRepsPublished = buildTokenValidator(service, 's62aRepresentationsToken');
 
-	router.post('/callback', validateRequest, asyncHandler(notifyCallbackController));
+	router.post('/callback', validateCallback, asyncHandler(notifyCallbackController));
+	router.post('/representations-published', validateRepsPublished, asyncHandler(publishedRepsEmail));
 
 	return router;
 }

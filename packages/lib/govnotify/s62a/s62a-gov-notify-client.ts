@@ -10,10 +10,12 @@ export interface TemplateIds {
 	acknowledgePreApplication?: string;
 	applicantDecision?: string;
 	lpaDecision?: string;
+	representationPublished?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
 	templateIds: TemplateIds;
+	representationsToken?: string;
 }
 
 export type ContactNotificationType = {
@@ -71,6 +73,17 @@ export type LpaDecisionDetails = {
 	appInfoLink: string;
 };
 
+export type RepresentationPublishedNotificationType = RepresentorNotificationType & {
+	representationReference: string;
+	representationLink: string;
+};
+
+export type RepresentationPublishedSharedData = {
+	applicationReference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	s62aEmail: string;
+};
 /**
  * Gov notify for the s62a apps, contains all the
  * specific s62a email sending functions and templates
@@ -338,5 +351,82 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			},
 			reference: reference
 		});
+	}
+
+	/**
+	 * Sends an email to a representation submitter notifying that their representation has been published
+	 */
+	async sendRepresentationPublished(
+		notificationData: RepresentationPublishedNotificationType,
+		sharedData: RepresentationPublishedSharedData
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.representationPublished;
+
+		if (!templateId) {
+			this.logger.warn('representation published template not enabled. ignoring request.');
+			throw new Error('Representation published template not enabled.');
+		}
+
+		const representorName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				caseReference: sharedData.applicationReference,
+				representorName: representorName,
+				representationReference: notificationData.representationReference,
+				siteAddress: sharedData.siteAddress,
+				applicationDescription: sharedData.applicationDescription,
+				writtenRepresentationsTabUrl: notificationData.representationLink,
+				section62aEmail: sharedData.s62aEmail
+			},
+			reference: notificationData.representationReference
+		});
+	}
+
+	/**
+	 * Sends representation published emails to multiple submitters.
+	 * Logs individual failures without discarding audit data for emails that succeeded.
+	 */
+	async sendRepresentationPublishedToMany(
+		notificationData: RepresentationPublishedNotificationType[],
+		sharedData: RepresentationPublishedSharedData,
+		onSent?: (representationReference: string) => Promise<void>
+	): Promise<AuditData[]> {
+		if (notificationData.length === 0) {
+			return [];
+		}
+
+		const results = await Promise.allSettled(
+			notificationData.map(async (recipient) => {
+				const audit = await this.sendRepresentationPublished(recipient, sharedData);
+				await onSent?.(recipient.representationReference);
+				return {
+					email: recipient.email,
+					...audit
+				};
+			})
+		);
+
+		const successfulEmails: AuditData[] = [];
+
+		results.forEach((result, index) => {
+			if (result.status === 'rejected') {
+				this.logger.error(
+					{
+						error: result.reason,
+						emailAddress: notificationData[index].email,
+						representationReference: notificationData[index].representationReference
+					},
+					'Failed to send representation published notification'
+				);
+			} else {
+				successfulEmails.push(result.value);
+			}
+		});
+
+		return successfulEmails;
 	}
 }

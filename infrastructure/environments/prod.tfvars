@@ -74,12 +74,13 @@ apps_config = {
   s62a_gov_notify = {
     disabled = true
     templates = {
-      test_template_id         = ""
-      pre_ack_template_id      = ""
-      ack_rep_template_id      = ""
-      ack_pre_app_template_id  = ""
-      app_decision_template_id = ""
-      lpa_decision_template_id = ""
+      test_template_id          = ""
+      pre_ack_template_id       = ""
+      ack_rep_template_id       = ""
+      ack_pre_app_template_id   = ""
+      app_decision_template_id  = ""
+      lpa_decision_template_id  = ""
+      rep_published_template_id = ""
     }
   }
 

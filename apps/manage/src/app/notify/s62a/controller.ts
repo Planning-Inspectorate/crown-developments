@@ -2,6 +2,12 @@ import type { ManageService } from '#service';
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import type { NotificationResponse } from 'notifications-node-client/types/client/notification.js';
 import type { AsyncRequestHandlerWithBody } from '@planning-inspectorate/core/util';
+import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
+import { S62aManageNotificationService } from '../../views/s62a/cases/util/notification-service.ts';
+import { S62A_VIEW_SELECT_INCLUDE } from '../../views/s62a/cases/view/constants.ts';
+import { s62aCaseToViewModel } from '../../views/s62a/cases/view/view-model.ts';
 
 const IS_S62A_REPRESENTATION = /^[A-F0-9]{5}-[A-F0-9]{5}$/;
 const IS_S62A_APPLICATION = /^S62A\/\d{4}\/\d{7}(?:\/PRE)?$/;
@@ -216,4 +222,84 @@ export function findS62aMissingReference(textToSearch: string | null | undefined
 	const s62aApplicationReference = textToSearch.match(/\bS62A\/\d{4}\/\d{7}(?:\/PRE)?\b/g) || [];
 
 	return s62aRepresentationReference[0] ?? s62aApplicationReference[0] ?? null;
+}
+
+/**
+ * Scheduled endpoint handler (triggered via Azure Function) that finds S62A cases
+ * whose representationsPublishDate is today or in the past and dispatches emails for any
+ * accepted representations that have not yet been notified.
+ */
+export function buildS62aRepresentationsPublishedController(service: ManageService): AsyncRequestHandler {
+	const { db, logger } = service;
+	const notificationService = new S62aManageNotificationService(service.s62aNotifyClient, logger);
+
+	return async (req, res) => {
+		if (!service.s62aNotifyClient) {
+			logger.warn('S62A Gov Notify is not enabled; skipping scheduled representation published notifications');
+			res.status(200).json({ message: 'Gov Notify disabled', casesProcessed: 0 });
+			return;
+		}
+
+		const pendingRepresentations = await db.s62aRepresentation.findMany({
+			where: {
+				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+				publishedEmailSent: false,
+				SubmittedByContact: {
+					email: {
+						not: null,
+						notIn: ['']
+					}
+				}
+			},
+			select: {
+				applicationId: true
+			},
+			distinct: ['applicationId']
+		});
+
+		const candidateCaseIds = pendingRepresentations.map((rep) => rep.applicationId);
+
+		if (candidateCaseIds.length === 0) {
+			logger.info('No pending accepted representations found for published notifications');
+			res.status(200).json({ message: 'No pending notifications', casesProcessed: 0 });
+			return;
+		}
+
+		const casesToNotify = await db.s62aCase.findMany({
+			where: {
+				id: { in: candidateCaseIds },
+				representationsPublishDate: { lte: new Date() },
+				S62aDates: {
+					publishDate: { lte: new Date() }
+				},
+				OR: [{ publishedToLegacyGovUk: false }, { publishedToLegacyGovUk: null }]
+			},
+			include: S62A_VIEW_SELECT_INCLUDE
+		});
+
+		logger.info({ casesCount: casesToNotify.length }, 'Triggering scheduled representation published notifications');
+
+		for (const s62aCase of casesToNotify) {
+			const viewModel = s62aCaseToViewModel(s62aCase);
+			const emailPromise = notificationService.processRepresentationPublished(
+				viewModel,
+				db,
+				service.s62aPortalBaseUrl,
+				{ major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail }
+			);
+
+			sendS62aNotificationAndUpdateFlag(
+				emailPromise,
+				service,
+				s62aCase.id,
+				null,
+				'Send Representation Published Notification (Scheduled)'
+			);
+		}
+
+		res.status(200).json({
+			message: 'Representation published notifications triggered',
+			casesProcessed: casesToNotify.length
+		});
+	};
 }

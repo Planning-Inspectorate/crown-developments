@@ -5,7 +5,8 @@ import {
 	acknowledgePreNotificationEmail,
 	acknowledgePreApplicationEmail,
 	applicantDecisionEmail,
-	lpaDecisionEmail
+	lpaDecisionEmail,
+	representationPublishedEmail
 } from './update-case.ts';
 import type { Request, Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveParams } from '@planning-inspectorate/dynamic-forms';
@@ -247,6 +248,62 @@ describe('buildS62aUpdateCase', () => {
 
 			assert.strictEqual(processMock.mock.calls.length, 1);
 			processMock.mock.restore();
+		});
+
+		it('does not trigger processRepresentationPublished if the case was publishedToLegacyGovUk (migrated)', async () => {
+			const repPublishedMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processRepresentationPublished',
+				async () => ({ wasSent: false })
+			);
+
+			caseRecord = {
+				id: 'case-123',
+				publishedToLegacyGovUk: true,
+				reference: 'REF-MIGRATED'
+			};
+			const handler = buildS62aUpdateCase(mockService);
+
+			await handler({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						representationsPublishDate: new Date('2026-10-30')
+					}
+				}
+			} as unknown as SaveParams);
+
+			assert.strictEqual(repPublishedMock.mock.calls.length, 0);
+			repPublishedMock.mock.restore();
+		});
+
+		it('delegates to representationPublishedEmail when representationsPublishDate is saved on a non-migrated case', async () => {
+			const repPublishedMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processRepresentationPublished',
+				async () => ({ wasSent: false })
+			);
+
+			caseRecord = {
+				id: 'case-123',
+				publishedToLegacyGovUk: false,
+				reference: 'REF-NEW'
+			};
+			const handler = buildS62aUpdateCase(mockService);
+
+			await handler({
+				req: mockReq,
+				res: mockRes,
+				data: {
+					answers: {
+						representationsPublishDate: new Date('2026-10-30')
+					}
+				}
+			} as unknown as SaveParams);
+
+			assert.strictEqual(repPublishedMock.mock.calls.length, 1);
+			repPublishedMock.mock.restore();
 		});
 	});
 
@@ -879,6 +936,97 @@ describe('lpaDecisionEmail', () => {
 		assert.strictEqual(sendArgs[2], 'case-123');
 		assert.strictEqual(sendArgs[3], 'lpaDecisionEmailSent');
 		assert.strictEqual(sendArgs[4], 'Send LPA Decision Notification (Update)');
+		assert.strictEqual(sendArgs[5], mockReq);
+	});
+});
+
+describe('representationPublishedEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processRepresentationPublished', async () =>
+			Promise.resolve({ wasSent: true })
+		);
+
+		mockService = {
+			s62aPortalBaseUrl: 'https://portal.example.gov.uk',
+			db: { marker: 'db' },
+			logger: {}
+		} as unknown as ManageService;
+
+		mockSendFn = mock.fn();
+		mockReq = {
+			session: {
+				account: {
+					localAccountId: 'user-123'
+				}
+			}
+		};
+	});
+
+	it('returns early without doing anything if representationsPublishDate is not in the answers payload', () => {
+		const answers = { developmentDescription: 'New Description' };
+		const previousCase = { id: 'case-123', reference: 'REF-123' };
+
+		representationPublishedEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processRepresentationPublished as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('merges previousCase with answers and delegates to sendNotificationFn with null flagField', () => {
+		const repsPublishDate = new Date('2026-10-30T00:00:00.000Z');
+		const publishDate = new Date('2026-10-01T00:00:00.000Z');
+		const answers = { representationsPublishDate: repsPublishDate };
+		const previousCase = {
+			id: 'case-123',
+			reference: 'REF-REP-123',
+			publishDate,
+			siteAddress: { line1: '123 High Street' }
+		};
+
+		representationPublishedEmail(
+			answers as any,
+			previousCase as any,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+		assert.strictEqual((mockNotificationService.processRepresentationPublished as any).mock.calls.length, 1);
+
+		const [mergedCaseArg, dbArg, portalUrlArg] = (mockNotificationService.processRepresentationPublished as any).mock
+			.calls[0].arguments;
+
+		assert.strictEqual(mergedCaseArg.id, 'case-123');
+		assert.strictEqual(mergedCaseArg.reference, 'REF-REP-123');
+		assert.strictEqual(mergedCaseArg.publishDate, publishDate);
+		assert.strictEqual(mergedCaseArg.representationsPublishDate, repsPublishDate);
+		assert.strictEqual(dbArg, mockService.db);
+		assert.strictEqual(portalUrlArg, 'https://portal.example.gov.uk');
+
+		assert.strictEqual(mockSendFn.mock.calls.length, 1);
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+
+		assert.ok(sendArgs[0] instanceof Promise);
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], null);
+		assert.strictEqual(sendArgs[4], 'Send Representation Published Notification (Update)');
 		assert.strictEqual(sendArgs[5], mockReq);
 	});
 });

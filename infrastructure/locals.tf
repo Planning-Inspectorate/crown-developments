@@ -16,6 +16,7 @@ locals {
     "crown-sharepoint-root-id",
     "crown-sharepoint-template-folder-id",
     "s62a-gov-notify-api-key",
+    "s62a-gov-notify-representations-token",
     "microsoft-provider-authentication-secret"
   ]
 

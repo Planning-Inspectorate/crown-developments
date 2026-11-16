@@ -6,6 +6,7 @@ import { buildRepresentationTaskList, buildReviewRepresentationSubmission } from
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { S62A_AUDIT_ACTIONS } from '../../../audit/actions.ts';
 import { CASE_DATA_MODEL } from '@pins/crowndev-lib/util/types.ts';
+import { S62aManageNotificationService } from '../../../util/notification-service.ts';
 
 describe('Representation Controllers', () => {
 	const infoMock = mock.fn();
@@ -23,11 +24,12 @@ describe('Representation Controllers', () => {
 	const findManyDraftsMock = mock.fn();
 	const deleteManyDraftsMock = mock.fn();
 	const deleteBlobIfExistsMock = mock.fn();
+	const caseFindUniqueMock = mock.fn(async () => null);
 
 	const mockDb = {
 		s62aRepresentation: { findUnique: findUniqueMock, update: updateMock },
 		s62aRepresentationItem: { update: updateMock, findMany: mock.fn() },
-		s62aCase: { update: updateMock },
+		s62aCase: { update: updateMock, findUnique: caseFindUniqueMock },
 		draftBlobRepresentationDocument: { findMany: findManyDraftsMock, deleteMany: deleteManyDraftsMock },
 		$transaction: mock.fn(async (arg) => {
 			if (Array.isArray(arg)) {
@@ -41,7 +43,12 @@ describe('Representation Controllers', () => {
 		deleteBlobIfExists: deleteBlobIfExistsMock
 	} as unknown as ManageService['blobStore'];
 
-	const service = { db: mockDb, logger: mockLogger, blobStore: mockBlobStore } as unknown as ManageService;
+	const service = {
+		db: mockDb,
+		logger: mockLogger,
+		blobStore: mockBlobStore,
+		s62aPortalBaseUrl: 'https://portal.example.gov.uk'
+	} as unknown as ManageService;
 
 	const MANAGE_JOURNEY_ID = 's62a-manage-reps-manage-journey';
 	const OTHER_JOURNEY_ID = 'other-journey';
@@ -82,6 +89,7 @@ describe('Representation Controllers', () => {
 		infoMock.mock.resetCalls();
 		errorMock.mock.resetCalls();
 		warnMock.mock.resetCalls();
+		caseFindUniqueMock.mock.resetCalls();
 	});
 
 	describe('buildRepresentationTaskList', () => {
@@ -482,6 +490,194 @@ describe('Representation Controllers', () => {
 				const [[entry]] = (recordMany.mock.calls[0] as any).arguments;
 				assert.strictEqual(entry.action, S62A_AUDIT_ACTIONS.REPRESENTATION_APPROVED);
 				assert.strictEqual((res.redirect as unknown as ReturnType<typeof mock.fn>).mock.callCount(), 1);
+			});
+		});
+		describe('representation published email trigger', () => {
+			it('triggers processRepresentationPublished after updating review status when representation is accepted on a non-legacy case', async () => {
+				const callSequence: string[] = [];
+
+				findUniqueMock.mock.mockImplementationOnce(
+					() => Promise.resolve({ statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW }) as unknown as undefined
+				);
+
+				updateMock.mock.mockImplementation(async () => {
+					callSequence.push('db:updateStatus');
+				});
+
+				findUniqueMock.mock.mockImplementation(async (args: any) => {
+					if (args?.select?.publishedEmailSent) {
+						return {
+							id: 'rep-uuid-1',
+							statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+							publishedEmailSent: false
+						};
+					}
+					return {
+						id: 'rep-uuid-1',
+						statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW,
+						Attachments: []
+					};
+				});
+
+				caseFindUniqueMock.mock.mockImplementationOnce(
+					() =>
+						Promise.resolve({
+							id: '123',
+							reference: 'S62A/2026/0000001',
+							publishedToLegacyGovUk: false,
+							representationsPublishDate: new Date('2026-01-10T00:00:00.000Z'),
+							S62aDates: {
+								publishDate: new Date('2026-01-01T00:00:00.000Z')
+							}
+						}) as any
+				);
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => {
+						callSequence.push('notify:processRepresentationPublished');
+						return { wasSent: false };
+					}
+				);
+
+				const req = mockReq({
+					session: {
+						account: { localAccountId: 'user-1' },
+						reviewDecisions: { 'REP-001': { comment: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED } } },
+						files: { 'REP-001': {} },
+						itemsToBeDeleted: { 'REP-001': [] }
+					}
+				});
+
+				const handler = buildReviewRepresentationSubmission(service);
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.strictEqual(processMock.mock.calls.length, 1);
+				const [viewModelArg, dbArg, portalUrlArg, emailArg, repIdArg] = processMock.mock.calls[0].arguments;
+				assert.strictEqual(viewModelArg?.id, '123');
+				assert.strictEqual(dbArg, mockDb);
+				assert.strictEqual(portalUrlArg, 'https://portal.example.gov.uk');
+				assert.strictEqual(repIdArg, 'rep-uuid-1');
+
+				assert.strictEqual(callSequence[0], 'db:updateStatus');
+				assert.strictEqual(callSequence.at(-1), 'notify:processRepresentationPublished');
+
+				processMock.mock.restore();
+			});
+
+			it('does not re-send email if publishedEmailSent is already true (repeat review/edit)', async () => {
+				findUniqueMock.mock.mockImplementation(async (args: any) => {
+					if (args?.select?.publishedEmailSent) {
+						return {
+							id: 'rep-uuid-1',
+							statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+							publishedEmailSent: true
+						};
+					}
+					return {
+						id: 'rep-uuid-1',
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						Attachments: []
+					};
+				});
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => ({ wasSent: false })
+				);
+
+				const req = mockReq({
+					session: {
+						account: { localAccountId: 'user-1' },
+						reviewDecisions: { 'REP-001': { comment: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED } } },
+						files: { 'REP-001': {} },
+						itemsToBeDeleted: { 'REP-001': [] }
+					}
+				});
+
+				const handler = buildReviewRepresentationSubmission(service);
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.strictEqual(caseFindUniqueMock.mock.callCount(), 0);
+				assert.strictEqual(processMock.mock.calls.length, 0);
+
+				processMock.mock.restore();
+			});
+
+			it('does not trigger email if the parent case is a legacy migrated case', async () => {
+				findUniqueMock.mock.mockImplementationOnce(
+					() => Promise.resolve({ statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW }) as unknown as undefined
+				);
+				findUniqueMock.mock.mockImplementationOnce(
+					() =>
+						Promise.resolve({
+							id: 'rep-uuid-1',
+							statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+							publishedEmailSent: false
+						}) as unknown as undefined
+				);
+				caseFindUniqueMock.mock.mockImplementationOnce(
+					() =>
+						Promise.resolve({
+							id: '123',
+							reference: 'S62A/2026/0000001',
+							publishedToLegacyGovUk: true
+						}) as unknown as any
+				);
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => ({ wasSent: false })
+				);
+
+				const req = mockReq({
+					session: {
+						account: { localAccountId: 'user-1' },
+						reviewDecisions: { 'REP-001': { comment: { reviewDecision: REPRESENTATION_STATUS_ID.ACCEPTED } } },
+						files: { 'REP-001': {} },
+						itemsToBeDeleted: { 'REP-001': [] }
+					}
+				});
+
+				const handler = buildReviewRepresentationSubmission(service);
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.strictEqual(processMock.mock.calls.length, 0);
+
+				processMock.mock.restore();
+			});
+
+			it('does not trigger email when review decision is not ACCEPTED (e.g. REJECTED)', async () => {
+				findUniqueMock.mock.mockImplementationOnce(
+					() => Promise.resolve({ statusId: REPRESENTATION_STATUS_ID.AWAITING_REVIEW }) as unknown as undefined
+				);
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => ({ wasSent: false })
+				);
+
+				const req = mockReq({
+					session: {
+						account: { localAccountId: 'user-1' },
+						reviewDecisions: { 'REP-001': { comment: { reviewDecision: REPRESENTATION_STATUS_ID.REJECTED } } },
+						files: { 'REP-001': {} },
+						itemsToBeDeleted: { 'REP-001': [] }
+					}
+				});
+
+				const handler = buildReviewRepresentationSubmission(service);
+				await handler(req, mockRes(), mock.fn() as unknown as undefined);
+
+				assert.strictEqual(findUniqueMock.mock.callCount(), 1);
+				assert.strictEqual(caseFindUniqueMock.mock.callCount(), 0);
+				assert.strictEqual(processMock.mock.calls.length, 0);
+
+				processMock.mock.restore();
 			});
 		});
 	});

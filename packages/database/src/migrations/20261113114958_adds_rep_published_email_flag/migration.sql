@@ -1,0 +1,19 @@
+BEGIN TRY
+
+BEGIN TRAN;
+
+-- AlterTable
+ALTER TABLE [dbo].[S62aRepresentation] ADD [publishedEmailSent] BIT NOT NULL CONSTRAINT [S62aRepresentation_publishedEmailSent_df] DEFAULT 0;
+
+COMMIT TRAN;
+
+END TRY
+BEGIN CATCH
+
+IF @@TRANCOUNT > 0
+BEGIN
+    ROLLBACK TRAN;
+END;
+THROW
+
+END CATCH

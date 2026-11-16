@@ -1198,6 +1198,9 @@ model S62aRepresentation {
   preWithdrawalStatusId               String?
   DraftBlobWithdrawalRequestDocuments DraftBlobWithdrawalRequestDocument[]
   BlobWithdrawalRequestDocuments      BlobWithdrawalRequestDocument[]
+
+  /// Email flags
+  publishedEmailSent Boolean @default(false)
 }
 
 // Document attached to a representation, such as evidence or a letter

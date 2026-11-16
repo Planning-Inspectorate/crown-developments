@@ -180,4 +180,8 @@ export class ManageService extends Service {
 	get s62aPortalBaseUrl() {
 		return this.#config.s62aPortalBaseUrl;
 	}
+
+	get s62aRepresentationsToken() {
+		return this.#config.s62aGovNotify.representationsToken;
+	}
 }
