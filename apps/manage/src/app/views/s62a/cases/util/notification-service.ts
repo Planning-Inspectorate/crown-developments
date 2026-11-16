@@ -1,5 +1,6 @@
 import type {
 	ContactNotificationType,
+	RepresentationPublishedNotificationType,
 	S62aGovNotifyClient
 } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
@@ -8,9 +9,30 @@ import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/dat
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
-import { BOOLEAN_OPTIONS, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
+import {
+	type Address,
+	BOOLEAN_OPTIONS,
+	dateIsToday,
+	formatDateForDisplay,
+	isNowAfterStartDate
+} from '@planning-inspectorate/dynamic-forms';
 import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
+import type { ManageService } from '#service';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+
+export interface RepresentationPublishedCaseContext {
+	id: string;
+	reference: string;
+	publishDate?: Date | null;
+	representationsPublishDate?: Date | null;
+	publishedToLegacyGovUk?: boolean | null;
+	classificationId?: string | null;
+	siteAddress?: Address;
+	siteEasting?: number | string | null;
+	siteNorthing?: number | string | null;
+	developmentDescription?: string | null;
+}
 
 /**
  * Class that handles the pre-processing of notification emails, checking and preparing data
@@ -302,6 +324,138 @@ export class S62aManageNotificationService {
 		} catch (error) {
 			this.logger.error({ error, reference }, 'Error dispatching applicant decision email');
 			throw new Error('Error encountered during applicant decision email notification dispatch', { cause: error });
+		}
+	}
+
+	/** Processes a rep or series of accepted reps ready for emailing.
+	 *
+	 * We take an optional representationId so that we can call this function
+	 * from the representation update function and only have that 1 email send
+	 * out, otherwise a series of reps from case update.
+	 */
+	public async processRepresentationPublished(
+		caseContext: RepresentationPublishedCaseContext,
+		db: ManageService['db'],
+		portalBaseUrl: string,
+		emails: {
+			major?: string;
+			nonMajor?: string;
+		},
+		representationId?: string
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (caseContext.publishedToLegacyGovUk || !caseContext.representationsPublishDate || !caseContext.publishDate) {
+			return { wasSent: false };
+		}
+
+		const isRepPublishDateTodayOrInPast =
+			dateIsToday(caseContext.representationsPublishDate) ||
+			isNowAfterStartDate(caseContext.representationsPublishDate);
+
+		const isPublishDateTodayOrInPast =
+			dateIsToday(caseContext.publishDate) || isNowAfterStartDate(caseContext.publishDate);
+
+		if (!isRepPublishDateTodayOrInPast || !isPublishDateTodayOrInPast) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const unnotifiedRepresentations = await db.s62aRepresentation.findMany({
+			where: {
+				applicationId: caseContext.id,
+				statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+				publishedEmailSent: false,
+				...(representationId ? { id: representationId } : {})
+			},
+			include: {
+				SubmittedByContact: true
+			}
+		});
+
+		// Technically they could have no email, so filter out the ones without
+		const emailableRepresentations = unnotifiedRepresentations.filter((rep) =>
+			Boolean(rep.SubmittedByContact?.email?.trim())
+		);
+
+		if (!emailableRepresentations.length) {
+			this.logger.info(
+				{ caseReference: caseContext.reference, representationId },
+				'No un-notified accepted representations with email addresses found.'
+			);
+			return { wasSent: false };
+		}
+
+		const formattedAddress = caseContext.siteAddress
+			? formatAddress(caseContext.siteAddress)
+			: `Easting: ${caseContext.siteEasting}, Northing: ${caseContext.siteNorthing}`;
+
+		const applicationDescription = caseContext.developmentDescription || '';
+		const s62aEmail = caseContext.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+
+		if (!s62aEmail) {
+			this.logger.warn(
+				{ reference: caseContext.reference },
+				`No return email address configured ${caseContext.reference}`
+			);
+			return { wasSent: false };
+		}
+
+		const notificationContacts: RepresentationPublishedNotificationType[] = emailableRepresentations.map((rep) => ({
+			email: rep.SubmittedByContact!.email!.trim(),
+			firstName: rep.SubmittedByContact?.firstName ?? undefined,
+			lastName: rep.SubmittedByContact?.lastName ?? undefined,
+			representationReference: rep.reference,
+			representationLink: `${portalBaseUrl}/applications/${caseContext.id}/written-representations/${rep.reference}`
+		}));
+
+		const repIdByReference = new Map(emailableRepresentations.map((rep) => [rep.reference, rep.id]));
+
+		try {
+			const auditData = await this.notifyClient.sendRepresentationPublishedToMany(
+				notificationContacts,
+				{
+					applicationReference: caseContext.reference,
+					siteAddress: formattedAddress,
+					applicationDescription,
+					s62aEmail
+				},
+				async (representationReference) => {
+					const repId = repIdByReference.get(representationReference);
+					if (repId) {
+						await db.s62aRepresentation.update({
+							where: { id: repId },
+							data: { publishedEmailSent: true }
+						});
+					}
+				}
+			);
+
+			if (auditData.length > 0) {
+				this.logger.info(
+					{
+						caseReference: caseContext.reference,
+						sentCount: auditData.length,
+						totalAttempted: emailableRepresentations.length
+					},
+					'Representation published emails dispatched'
+				);
+			}
+
+			return {
+				wasSent: auditData.length > 0,
+				auditData
+			};
+		} catch (error) {
+			this.logger.error(
+				{ error, caseReference: caseContext.reference },
+				'Error dispatching representation published email'
+			);
+			throw new Error('Error encountered during representation published email notification dispatch', {
+				cause: error
+			});
 		}
 	}
 

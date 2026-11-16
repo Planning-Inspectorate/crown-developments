@@ -1,6 +1,12 @@
-import { describe, it, beforeEach } from 'node:test';
+import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { buildS62aNotifyCallbackController, findS62aMissingReference } from './controller.ts';
+import {
+	buildS62aNotifyCallbackController,
+	buildS62aRepresentationsPublishedController,
+	findS62aMissingReference
+} from './controller.ts';
+import { S62aManageNotificationService } from '../../views/s62a/cases/util/notification-service.ts';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 describe('S62A Notify Callback Controller', () => {
 	describe('findS62aMissingReference', () => {
@@ -42,6 +48,7 @@ describe('S62A Notify Callback Controller', () => {
 			mockRes = {
 				statusCode: null,
 				sendData: null,
+				jsonData: null,
 				status(code: number) {
 					this.statusCode = code;
 					return this;
@@ -49,10 +56,15 @@ describe('S62A Notify Callback Controller', () => {
 				send(data: any) {
 					this.sendData = data;
 					return this;
+				},
+				json(data: any) {
+					this.jsonData = data;
+					return this;
 				}
 			};
 
 			mockService = {
+				s62aPortalBaseUrl: 'https://portal.example.gov.uk',
 				logger: {
 					info: () => {},
 					warn: () => {},
@@ -71,10 +83,12 @@ describe('S62A Notify Callback Controller', () => {
 				},
 				db: {
 					s62aRepresentation: {
-						findUnique: async () => null
+						findUnique: async () => null,
+						findMany: async () => []
 					},
 					s62aCase: {
-						findUnique: async () => null
+						findUnique: async () => null,
+						findMany: async () => []
 					},
 					notifyEmail: {
 						create: async (payload: any) => {
@@ -202,6 +216,122 @@ describe('S62A Notify Callback Controller', () => {
 
 			assert.strictEqual(mockRes.statusCode, 500);
 			assert.strictEqual(mockRes.sendData, 'Database operation failed');
+		});
+
+		describe('buildS62aRepresentationsPublishedController', () => {
+			it('returns 200 and skips processing when s62aNotifyClient is disabled', async () => {
+				mockService.s62aNotifyClient = null;
+				const findManyRepsMock = mock.fn(async () => [{ applicationId: 'case-1' }]);
+				mockService.db.s62aRepresentation.findMany = findManyRepsMock;
+
+				const handler = buildS62aRepresentationsPublishedController(mockService);
+				await handler(mockReq, mockRes, () => {});
+
+				assert.strictEqual(mockRes.statusCode, 200);
+				assert.deepStrictEqual(mockRes.jsonData, { message: 'Gov Notify disabled', casesProcessed: 0 });
+				assert.strictEqual(findManyRepsMock.mock.calls.length, 0);
+			});
+
+			it('returns 200 without querying cases when no un-notified accepted representations exist', async () => {
+				mockService.db.s62aRepresentation.findMany = async () => [];
+				const findManyCasesMock = mock.fn(async () => []);
+				mockService.db.s62aCase.findMany = findManyCasesMock;
+
+				const handler = buildS62aRepresentationsPublishedController(mockService);
+				await handler(mockReq, mockRes, () => {});
+
+				assert.strictEqual(mockRes.statusCode, 200);
+				assert.deepStrictEqual(mockRes.jsonData, { message: 'No pending notifications', casesProcessed: 0 });
+				assert.strictEqual(findManyCasesMock.mock.calls.length, 0);
+			});
+
+			it('queries pending accepted representations and filters eligible non-legacy published cases', async () => {
+				let repQueryArgs: any;
+				let caseQueryArgs: any;
+
+				mockService.db.s62aRepresentation.findMany = async (args: any) => {
+					repQueryArgs = args;
+					return [{ applicationId: 'case-1' }, { applicationId: 'case-2' }];
+				};
+
+				mockService.db.s62aCase.findMany = async (args: any) => {
+					caseQueryArgs = args;
+					return [
+						{ id: 'case-1', reference: 'S62A/2026/0000001' },
+						{ id: 'case-2', reference: 'S62A/2026/0000002' }
+					];
+				};
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => ({ wasSent: false })
+				);
+
+				const handler = buildS62aRepresentationsPublishedController(mockService);
+				await handler(mockReq, mockRes, () => {});
+
+				assert.deepStrictEqual(repQueryArgs, {
+					where: {
+						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						publishedEmailSent: false,
+						SubmittedByContact: {
+							email: {
+								not: null,
+								notIn: ['']
+							}
+						}
+					},
+					select: {
+						applicationId: true
+					},
+					distinct: ['applicationId']
+				});
+
+				assert.deepStrictEqual(caseQueryArgs.where.id, { in: ['case-1', 'case-2'] });
+				assert.ok(caseQueryArgs.where.representationsPublishDate.lte instanceof Date);
+				assert.ok(caseQueryArgs.where.S62aDates.publishDate.lte instanceof Date);
+				assert.deepStrictEqual(caseQueryArgs.where.OR, [
+					{ publishedToLegacyGovUk: false },
+					{ publishedToLegacyGovUk: null }
+				]);
+
+				assert.strictEqual(processMock.mock.calls.length, 2);
+				assert.strictEqual(processMock.mock.calls[0].arguments[0].id, 'case-1');
+				assert.strictEqual(processMock.mock.calls[0].arguments[2], 'https://portal.example.gov.uk');
+				assert.strictEqual(processMock.mock.calls[1].arguments[0].id, 'case-2');
+
+				assert.strictEqual(mockRes.statusCode, 200);
+				assert.deepStrictEqual(mockRes.jsonData, {
+					message: 'Representation published notifications triggered',
+					casesProcessed: 2
+				});
+
+				processMock.mock.restore();
+			});
+
+			it('returns casesProcessed: 0 when pending representations exist but their cases are unpublished or in the future', async () => {
+				mockService.db.s62aRepresentation.findMany = async () => [{ applicationId: 'case-future' }];
+				mockService.db.s62aCase.findMany = async () => [];
+
+				const processMock = mock.method(
+					S62aManageNotificationService.prototype,
+					'processRepresentationPublished',
+					async () => ({ wasSent: false })
+				);
+
+				const handler = buildS62aRepresentationsPublishedController(mockService);
+				await handler(mockReq, mockRes, () => {});
+
+				assert.strictEqual(processMock.mock.calls.length, 0);
+				assert.strictEqual(mockRes.statusCode, 200);
+				assert.deepStrictEqual(mockRes.jsonData, {
+					message: 'Representation published notifications triggered',
+					casesProcessed: 0
+				});
+
+				processMock.mock.restore();
+			});
 		});
 	});
 });

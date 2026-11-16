@@ -24,6 +24,7 @@ export interface Config extends BaseConfig {
 		retryConfig: {
 			enabled: boolean;
 		};
+		representationsToken?: string;
 	};
 }
 

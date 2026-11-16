@@ -1389,8 +1389,20 @@ export function getQuestions(
 			question: 'When were or will written representations be published?',
 			fieldName: 'representationsPublishDate',
 			url: 'publish-date',
-			validators: [new DateValidator('representations publish date')],
+			validators: [
+				new DateValidator('representations publish date'),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'publishDate',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, publishDate) => {
+						if (!publishDate) throw new Error('You must publish the case');
+
+						return true;
+					}
+				})
+			],
 			viewData: {
+				warningMessage: 'Adding a date will send notifications to interested parties',
 				extraActionButtons: [
 					{
 						text: 'Remove and save',

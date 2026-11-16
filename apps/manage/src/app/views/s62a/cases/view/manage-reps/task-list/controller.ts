@@ -23,6 +23,10 @@ import { addRepReviewedSession, getStatusDisplayName } from '@pins/crowndev-lib/
 import type { Logger } from 'pino';
 import { MANAGE_REPS_MANAGE_JOURNEY_ID } from '../index.ts';
 import { recordS62aRepresentationAudit, resolveRepresentationReviewAction } from '../../../audit/representations.ts';
+import { S62aManageNotificationService } from '../../../util/notification-service.ts';
+import { s62aCaseToViewModel } from '../../view-model.ts';
+import { S62A_VIEW_SELECT_INCLUDE } from '../../constants.ts';
+import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
 
 export function buildRepresentationTaskList(service: ManageService, journeyId: string): AsyncRequestHandler {
 	const { db, logger } = service;
@@ -171,7 +175,9 @@ function initialiseRepresentationReviewSession(
 }
 
 export function buildReviewRepresentationSubmission(service: ManageService): AsyncRequestHandler {
-	const { db, logger, blobStore } = service;
+	const { db, logger, blobStore, s62aNotifyClient } = service;
+	const notificationService = new S62aManageNotificationService(s62aNotifyClient, logger);
+
 	return async (req, res) => {
 		const { id, representationRef } = getStringParams(req.params, ['id', 'representationRef']);
 
@@ -190,6 +196,14 @@ export function buildReviewRepresentationSubmission(service: ManageService): Asy
 		const statusBeforeReview = await getRepresentationStatus(db, logger, representationRef);
 
 		await updateRepresentationItemsReviewStatus(req, db, logger);
+
+		if (reviewDecision === REPRESENTATION_STATUS_ID.ACCEPTED) {
+			try {
+				await triggerRepresentationPublishedEmail(service, notificationService, id, representationRef, req);
+			} catch (error) {
+				logger.error({ error }, 'Failed to send representation published emails');
+			}
+		}
 
 		const reviewAction = resolveRepresentationReviewAction(statusBeforeReview, reviewDecision);
 		if (reviewAction) {
@@ -314,4 +328,61 @@ async function removeDraftRedactions(sessionFiles: string[], req: Request, db: M
 		logger.error({ error }, 'Failed to delete draft redacted attachments');
 		throw error;
 	}
+}
+
+/**
+ * Triggers the representation published email for a newly accepted representation
+ * if the case is not a legacy case and its representationsPublishDate is today or in the past.
+ */
+async function triggerRepresentationPublishedEmail(
+	service: ManageService,
+	notificationService: S62aManageNotificationService,
+	caseId: string,
+	representationRef: string,
+	req: Request
+): Promise<void> {
+	const representation = await service.db.s62aRepresentation.findUnique({
+		where: { reference: representationRef },
+		select: {
+			id: true,
+			statusId: true,
+			publishedEmailSent: true
+		}
+	});
+
+	if (
+		!representation ||
+		representation.statusId !== REPRESENTATION_STATUS_ID.ACCEPTED ||
+		representation.publishedEmailSent
+	) {
+		return;
+	}
+
+	const s62aCase = await service.db.s62aCase.findUnique({
+		where: { id: caseId },
+		include: S62A_VIEW_SELECT_INCLUDE
+	});
+
+	if (!s62aCase) return;
+
+	const viewModel = s62aCaseToViewModel(s62aCase);
+
+	if (viewModel.publishedToLegacyGovUk) return;
+
+	const emailPromise = notificationService.processRepresentationPublished(
+		viewModel,
+		service.db,
+		service.s62aPortalBaseUrl,
+		{ major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail },
+		representation.id
+	);
+
+	sendS62aNotificationAndUpdateFlag(
+		emailPromise,
+		service,
+		caseId,
+		null,
+		'Send Representation Published Notification (Representation Accepted)',
+		req
+	);
 }

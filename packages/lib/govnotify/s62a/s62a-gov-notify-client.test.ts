@@ -939,4 +939,260 @@ describe('S62aGovNotifyClient', () => {
 			]);
 		});
 	});
+
+	describe('sendRepresentationPublished', () => {
+		const sharedData = {
+			applicationReference: 'S62A/2026/0000001',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			s62aEmail: 'section62a@planninginspectorate.gov.uk'
+		};
+
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() =>
+					client.sendRepresentationPublished(
+						{
+							email: 'representor@test.com',
+							representationReference: '1A2B3-4C5D6',
+							representationLink: 'https://portal.example.gov.uk/applications/123/written-representations/1A2B3-4C5D6'
+						},
+						sharedData
+					),
+				{
+					name: 'Error',
+					message: 'Representation published template not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'representation published template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call super.sendEmailWithAudit with correct arguments and return the audit result', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { representationPublished: 'rep-published-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = {
+				notifyId: 'mock-notify-id-rep-pub',
+				body: 'Representation published email body',
+				subject: 'Representation published'
+			};
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'representor@test.com',
+				firstName: 'Sam',
+				lastName: 'Taylor',
+				representationReference: '1A2B3-4C5D6',
+				representationLink: 'https://portal.example.gov.uk/applications/123/written-representations/1A2B3-4C5D6'
+			};
+
+			const result = await client.sendRepresentationPublished(notificationData, sharedData);
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'rep-published-template-123',
+				'representor@test.com',
+				{
+					personalisation: {
+						caseReference: 'S62A/2026/0000001',
+						representorName: 'Sam Taylor',
+						representationReference: '1A2B3-4C5D6',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						writtenRepresentationsTabUrl:
+							'https://portal.example.gov.uk/applications/123/written-representations/1A2B3-4C5D6',
+						section62aEmail: 'section62a@planninginspectorate.gov.uk'
+					},
+					reference: '1A2B3-4C5D6'
+				}
+			]);
+		});
+
+		it('should correctly format representorName when only firstName or no name is provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = { representationPublished: 'rep-published-template-123' };
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await client.sendRepresentationPublished(
+				{
+					email: 'representor@test.com',
+					firstName: 'Sam',
+					representationReference: '1A2B3-4C5D6',
+					representationLink: 'https://portal.example.gov.uk/link'
+				},
+				sharedData
+			);
+			assert.strictEqual(sendEmailWithAuditMock.mock.calls[0].arguments[2].personalisation.representorName, 'Sam');
+
+			await client.sendRepresentationPublished(
+				{
+					email: 'representor@test.com',
+					representationReference: '1A2B3-4C5D6',
+					representationLink: 'https://portal.example.gov.uk/link'
+				},
+				sharedData
+			);
+			assert.strictEqual(sendEmailWithAuditMock.mock.calls[1].arguments[2].personalisation.representorName, '');
+		});
+	});
+
+	describe('sendRepresentationPublishedToMany', () => {
+		const sharedData = {
+			applicationReference: 'S62A/2026/0000001',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			s62aEmail: 'section62a@planninginspectorate.gov.uk'
+		};
+
+		it('should return an empty array without calling sendRepresentationPublished when notificationData is empty', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				representationPublished: 'template-123'
+			});
+
+			const sendSingleMock = ctx.mock.method(client, 'sendRepresentationPublished', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+
+			const result = await client.sendRepresentationPublishedToMany([], sharedData);
+
+			assert.deepStrictEqual(result, []);
+			assert.strictEqual(sendSingleMock.mock.callCount(), 0);
+		});
+
+		it('should send to all recipients, invoke onSent in order for each, and return audit records (including duplicate emails with distinct refs)', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				representationPublished: 'template-123'
+			});
+
+			const callOrder: string[] = [];
+
+			ctx.mock.method(client, 'sendRepresentationPublished', async (recipient: any) => {
+				callOrder.push(`send:${recipient.representationReference}`);
+				return {
+					notifyId: `notify-${recipient.representationReference}`,
+					body: `body-${recipient.representationReference}`,
+					subject: 'Representation published'
+				};
+			});
+
+			const recipients = [
+				{
+					email: 'shared@test.com',
+					firstName: 'Alice',
+					representationReference: '11111-11111',
+					representationLink: 'https://portal.example.gov.uk/11111-11111'
+				},
+				{
+					email: 'shared@test.com',
+					firstName: 'Alice',
+					representationReference: '22222-22222',
+					representationLink: 'https://portal.example.gov.uk/22222-22222'
+				}
+			];
+
+			const results = await client.sendRepresentationPublishedToMany(recipients, sharedData, async (repRef) => {
+				callOrder.push(`onSent:${repRef}`);
+			});
+
+			assert.deepStrictEqual(callOrder, [
+				'send:11111-11111',
+				'send:22222-22222',
+				'onSent:11111-11111',
+				'onSent:22222-22222'
+			]);
+
+			assert.deepStrictEqual(results, [
+				{
+					email: 'shared@test.com',
+					notifyId: 'notify-11111-11111',
+					body: 'body-11111-11111',
+					subject: 'Representation published'
+				},
+				{
+					email: 'shared@test.com',
+					notifyId: 'notify-22222-22222',
+					body: 'body-22222-22222',
+					subject: 'Representation published'
+				}
+			]);
+		});
+
+		it('should isolate partial failures: log the error, only invoke onSent for successful emails, and return successful audit records', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				representationPublished: 'template-123'
+			});
+
+			const onSentRefs: string[] = [];
+
+			ctx.mock.method(client, 'sendRepresentationPublished', async (recipient: any) => {
+				if (recipient.representationReference === 'BAD00-00002') {
+					throw new Error('Invalid email address');
+				}
+				return {
+					notifyId: `notify-${recipient.representationReference}`,
+					body: 'body',
+					subject: 'subject'
+				};
+			});
+
+			const recipients = [
+				{
+					email: 'good1@test.com',
+					representationReference: 'GOOD0-00001',
+					representationLink: 'https://portal.example.gov.uk/1'
+				},
+				{
+					email: 'bad@invalid',
+					representationReference: 'BAD00-00002',
+					representationLink: 'https://portal.example.gov.uk/2'
+				},
+				{
+					email: 'good3@test.com',
+					representationReference: 'GOOD0-00003',
+					representationLink: 'https://portal.example.gov.uk/3'
+				}
+			];
+
+			const results = await client.sendRepresentationPublishedToMany(recipients, sharedData, async (repRef) => {
+				onSentRefs.push(repRef);
+			});
+
+			assert.deepStrictEqual(onSentRefs, ['GOOD0-00001', 'GOOD0-00003']);
+			assert.strictEqual(results.length, 2);
+			assert.deepStrictEqual(
+				results.map((r) => r.email),
+				['good1@test.com', 'good3@test.com']
+			);
+			assert.strictEqual(logger.error.mock.callCount(), 1);
+			assert.strictEqual(logger.error.mock.calls[0].arguments[0].representationReference, 'BAD00-00002');
+		});
+	});
 });

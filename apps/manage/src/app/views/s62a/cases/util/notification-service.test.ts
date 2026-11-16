@@ -1,12 +1,13 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { S62aManageNotificationService } from './notification-service.ts';
+import { type RepresentationPublishedCaseContext, S62aManageNotificationService } from './notification-service.ts';
 import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { Logger } from 'pino';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
+import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 
 /**
  * Helper to generate a baseline of pre-notification case answers
@@ -86,7 +87,8 @@ describe('S62aManageNotificationService', () => {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
 			sendAcknowledgePreApplicationToMany: mock.fn(async () => []),
 			sendApplicantDecisionToMany: mock.fn(async () => []),
-			sendLpaDecisionToMany: mock.fn(async () => [])
+			sendLpaDecisionToMany: mock.fn(async () => []),
+			sendRepresentationPublishedToMany: mock.fn(async () => [])
 		} as unknown as S62aGovNotifyClient;
 
 		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
@@ -650,6 +652,342 @@ describe('S62aManageNotificationService', () => {
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[1], 'Error dispatching LPA decision email');
+		});
+	});
+
+	describe('processRepresentationPublished', () => {
+		const portalBaseUrl = 'https://portal.example.gov.uk';
+
+		const publishedCaseContext = (
+			overrides: Partial<RepresentationPublishedCaseContext> = {}
+		): RepresentationPublishedCaseContext => ({
+			id: 'case-123',
+			reference: 'S62A/2026/0000001',
+			publishDate: new Date('2026-01-01T00:00:00.000Z'),
+			representationsPublishDate: new Date('2026-01-10T00:00:00.000Z'),
+			publishedToLegacyGovUk: false,
+			classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+			siteAddress: {
+				line1: '123 High Street',
+				town: 'Bristol',
+				postcode: 'BS1 1AA'
+			} as any,
+			developmentDescription: 'Solar farm development',
+			...overrides
+		});
+
+		let mockDb: any;
+		let updatedRepIds: string[];
+
+		beforeEach(() => {
+			updatedRepIds = [];
+			mockDb = {
+				s62aRepresentation: {
+					findMany: mock.fn(async () => []),
+					update: mock.fn(async ({ where }: { where: { id: string } }) => {
+						updatedRepIds.push(where.id);
+						return { id: where.id, publishedEmailSent: true };
+					})
+				}
+			};
+		});
+
+		it('returns wasSent: false when the case is a legacy migrated case (publishedToLegacyGovUk)', async () => {
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ publishedToLegacyGovUk: true }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false when publishDate is missing (unpublished case)', async () => {
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ publishDate: null }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false when representationsPublishDate is missing', async () => {
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ representationsPublishDate: undefined }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false when publishDate is in the future', async () => {
+			const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ publishDate: futureDate }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false when representationsPublishDate is in the future', async () => {
+			const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ representationsPublishDate: futureDate }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('proceeds when both publishDate and representationsPublishDate are today', async () => {
+			const today = new Date();
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{
+					id: 'rep-1',
+					reference: '1A2B3-4C5D6',
+					SubmittedByContact: { email: 'rep@test.com', firstName: 'Sam', lastName: 'Taylor' }
+				}
+			]);
+
+			mockNotifyClient.sendRepresentationPublishedToMany = mock.fn(async (contacts, _shared, onSent) => {
+				for (const c of contacts) {
+					await onSent?.(c.representationReference);
+				}
+				return [{ email: 'rep@test.com', notifyId: 'n-1', body: 'b', subject: 's' }];
+			});
+
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({ publishDate: today, representationsPublishDate: today }),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(updatedRepIds, ['rep-1']);
+		});
+
+		it('returns wasSent: false and logs a warning when notifyClient is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
+			const result = await nullClientService.processRepresentationPublished(
+				publishedCaseContext(),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		});
+
+		it('queries un-notified accepted representations across the case when representationId is omitted', async () => {
+			await service.processRepresentationPublished(publishedCaseContext(), mockDb, portalBaseUrl, {
+				major: 'major.email',
+				nonMajor: 'non.major'
+			});
+
+			assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 1);
+			assert.deepStrictEqual(mockDb.s62aRepresentation.findMany.mock.calls[0].arguments[0], {
+				where: {
+					applicationId: 'case-123',
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					publishedEmailSent: false
+				},
+				include: {
+					SubmittedByContact: true
+				}
+			});
+		});
+
+		it('scopes the query to a specific representationId when provided', async () => {
+			await service.processRepresentationPublished(
+				publishedCaseContext(),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' },
+				'rep-single-99'
+			);
+
+			assert.deepStrictEqual(mockDb.s62aRepresentation.findMany.mock.calls[0].arguments[0], {
+				where: {
+					applicationId: 'case-123',
+					statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+					publishedEmailSent: false,
+					id: 'rep-single-99'
+				},
+				include: {
+					SubmittedByContact: true
+				}
+			});
+		});
+
+		it('filters out representations without valid email addresses and returns wasSent: false if none remain', async () => {
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{ id: 'rep-1', reference: '11111-11111', SubmittedByContact: null },
+				{ id: 'rep-2', reference: '22222-22222', SubmittedByContact: { email: null } },
+				{ id: 'rep-3', reference: '33333-33333', SubmittedByContact: { email: '   ' } }
+			]);
+
+			const result = await service.processRepresentationPublished(publishedCaseContext(), mockDb, portalBaseUrl, {
+				major: 'major.email',
+				nonMajor: 'non.major'
+			});
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendRepresentationPublishedToMany as any).mock.calls.length, 0);
+			assert.strictEqual(mockDb.s62aRepresentation.update.mock.calls.length, 0);
+		});
+
+		it('maps contacts, URLs, Major/Non-Major emails, and easting/northing fallback accurately', async () => {
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{
+					id: 'rep-1',
+					reference: 'AAAAA-11111',
+					SubmittedByContact: { email: '  alice@test.com  ', firstName: 'Alice', lastName: 'Smith' }
+				},
+				{
+					id: 'rep-2',
+					reference: 'BBBBB-22222',
+					SubmittedByContact: { email: 'no-email@invalid', firstName: null, lastName: null }
+				}
+			]);
+
+			mockNotifyClient.sendRepresentationPublishedToMany = mock.fn(async (contacts, _shared, onSent) => {
+				for (const c of contacts) {
+					await onSent?.(c.representationReference);
+				}
+				return contacts.map((c) => ({ email: c.email, notifyId: 'n', body: 'b', subject: 's' }));
+			});
+
+			const result = await service.processRepresentationPublished(
+				publishedCaseContext({
+					classificationId: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR,
+					siteAddress: undefined,
+					siteEasting: 350000,
+					siteNorthing: 170000,
+					developmentDescription: null
+				}),
+				mockDb,
+				portalBaseUrl,
+				{ major: 'major.email', nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(updatedRepIds, ['rep-1', 'rep-2']);
+
+			const [contacts, shared] = (mockNotifyClient.sendRepresentationPublishedToMany as any).mock.calls[0].arguments;
+
+			assert.deepStrictEqual(contacts, [
+				{
+					email: 'alice@test.com',
+					firstName: 'Alice',
+					lastName: 'Smith',
+					representationReference: 'AAAAA-11111',
+					representationLink: 'https://portal.example.gov.uk/applications/case-123/written-representations/AAAAA-11111'
+				},
+				{
+					email: 'no-email@invalid',
+					firstName: undefined,
+					lastName: undefined,
+					representationReference: 'BBBBB-22222',
+					representationLink: 'https://portal.example.gov.uk/applications/case-123/written-representations/BBBBB-22222'
+				}
+			]);
+
+			assert.deepStrictEqual(shared, {
+				applicationReference: 'S62A/2026/0000001',
+				siteAddress: 'Easting: 350000, Northing: 170000',
+				applicationDescription: '',
+				s62aEmail: 'non.major'
+			});
+		});
+
+		it('marks only succeeded representations as publishedEmailSent: true during a partial failure', async () => {
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{ id: 'rep-1', reference: 'REP00-00001', SubmittedByContact: { email: 'one@test.com' } },
+				{ id: 'rep-2', reference: 'REP00-00002', SubmittedByContact: { email: 'bad@test.com' } },
+				{ id: 'rep-3', reference: 'REP00-00003', SubmittedByContact: { email: 'three@test.com' } }
+			]);
+
+			mockNotifyClient.sendRepresentationPublishedToMany = mock.fn(async (_contacts, _shared, onSent) => {
+				await onSent?.('REP00-00001');
+				await onSent?.('REP00-00003');
+				return [
+					{ email: 'one@test.com', notifyId: 'n1', body: 'b1', subject: 's1' },
+					{ email: 'three@test.com', notifyId: 'n3', body: 'b3', subject: 's3' }
+				];
+			});
+
+			const result = await service.processRepresentationPublished(publishedCaseContext(), mockDb, portalBaseUrl, {
+				major: 'major.email',
+				nonMajor: 'non.major'
+			});
+
+			assert.strictEqual(result.wasSent, true);
+			assert.strictEqual(result.auditData?.length, 2);
+			assert.deepStrictEqual(updatedRepIds, ['rep-1', 'rep-3']);
+		});
+
+		it('returns wasSent: false when every email in the batch fails (auditData is empty)', async () => {
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{ id: 'rep-1', reference: 'REP00-00001', SubmittedByContact: { email: 'bad@test.com' } }
+			]);
+
+			mockNotifyClient.sendRepresentationPublishedToMany = mock.fn(async () => []);
+
+			const result = await service.processRepresentationPublished(publishedCaseContext(), mockDb, portalBaseUrl, {
+				major: 'major.email',
+				nonMajor: 'non.major'
+			});
+
+			assert.strictEqual(result.wasSent, false);
+			assert.deepStrictEqual(result.auditData, []);
+			assert.deepStrictEqual(updatedRepIds, []);
+		});
+
+		it('logs and throws a wrapped error if sendRepresentationPublishedToMany rejects', async () => {
+			const error = new Error('Notify crash');
+			mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+				{ id: 'rep-1', reference: 'REP00-00001', SubmittedByContact: { email: 'one@test.com' } }
+			]);
+			mockNotifyClient.sendRepresentationPublishedToMany = mock.fn(() => Promise.reject(error));
+
+			await assert.rejects(
+				() =>
+					service.processRepresentationPublished(publishedCaseContext(), mockDb, portalBaseUrl, {
+						major: 'major.email',
+						nonMajor: 'non.major'
+					}),
+				(err: Error) => {
+					assert.strictEqual(
+						err.message,
+						'Error encountered during representation published email notification dispatch'
+					);
+					assert.strictEqual(err.cause, error);
+					return true;
+				}
+			);
+
+			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].caseReference, 'S62A/2026/0000001');
 		});
 	});
 });

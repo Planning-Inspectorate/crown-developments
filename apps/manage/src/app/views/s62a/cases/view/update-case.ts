@@ -259,6 +259,7 @@ function handleUpdateEmails(
 	acknowledgePreApplicationEmail(answers, previousCase, notificationService, service, id, req);
 	applicantDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	lpaDecisionEmail(answers, previousCase, notificationService, service, id, req);
+	representationPublishedEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -412,4 +413,41 @@ export function lpaDecisionEmail(
 	);
 
 	sendNotificationFn(emailPromise, service, id, 'lpaDecisionEmailSent', 'Send LPA Decision Notification (Update)', req);
+}
+
+/**
+ * Determines whether to begin the process of sending the representationPublishedEmail.
+ * Triggered only once when representationsPublishDate is saved with a date that is today or in the past.
+ */
+export function representationPublishedEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	if (!answers.representationsPublishDate) return;
+
+	const mergedCase = {
+		...previousCase,
+		...answers
+	};
+
+	const emailPromise = notificationService.processRepresentationPublished(
+		mergedCase,
+		service.db,
+		service.s62aPortalBaseUrl,
+		{ major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail }
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		null, // Flag is now managed on S62aRepresentation, so we do nothing here
+		'Send Representation Published Notification (Update)',
+		req
+	);
 }
