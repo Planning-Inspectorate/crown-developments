@@ -22,6 +22,7 @@ export function sendS62aNotificationAndUpdateFlag(
 		| 'acknowledgePreApplicationEmailSent'
 		| 'applicantDecisionEmailSent'
 		| 'lpaDecisionEmailSent'
+		| 'acknowledgeApplicationReceivedEmailSent'
 		| null,
 	operationName: string,
 	req?: Request
@@ -33,10 +34,26 @@ export function sendS62aNotificationAndUpdateFlag(
 
 			if (result.wasSent) {
 				if (flagField) {
-					await db.s62aCase.update({
-						where: { id: caseId },
-						data: { [flagField]: true }
-					});
+					// TODO, this is bad.
+					if (flagField === 'acknowledgeApplicationReceivedEmailSent') {
+						const acknowledgedDate = new Date();
+						await db.$transaction([
+							db.s62aCase.update({
+								where: { id: caseId },
+								data: { acknowledgeApplicationReceivedEmailSent: true }
+							}),
+							db.s62aDates.upsert({
+								where: { s62aCaseId: caseId },
+								create: { s62aCaseId: caseId, applicationAcknowledgedDate: acknowledgedDate },
+								update: { applicationAcknowledgedDate: acknowledgedDate }
+							})
+						]);
+					} else {
+						await db.s62aCase.update({
+							where: { id: caseId },
+							data: { [flagField]: true }
+						});
+					}
 				}
 
 				if (result.auditData && result.auditData.length > 0) {

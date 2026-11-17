@@ -232,6 +232,7 @@ export interface S62aCaseViewModel {
 	representationsPublishDate?: Date;
 	applicantType?: string | null;
 	hasSiteLocation?: boolean;
+	isApplicationFeeComplete?: boolean;
 
 	notificationReceivedDate?: Date;
 	applicationReceivedDate?: Date;
@@ -392,6 +393,7 @@ export interface S62aCaseViewModel {
 	acknowledgePreApplicationEmailSent?: YesNo;
 	applicantDecisionEmailSent?: YesNo;
 	lpaDecisionEmailSent?: YesNo;
+	acknowledgeApplicationReceivedEmailSent?: YesNo;
 }
 
 /**
@@ -409,7 +411,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'acknowledgePreNotificationEmailSent',
 	'acknowledgePreApplicationEmailSent',
 	'applicantDecisionEmailSent',
-	'lpaDecisionEmailSent'
+	'lpaDecisionEmailSent',
+	'acknowledgeApplicationReceivedEmailSent'
 ] as const);
 
 /**
@@ -839,6 +842,11 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 	if (dbCase.SiteAddress || (dbCase.siteEasting && dbCase.siteNorthing)) {
 		viewModel.hasSiteLocation = true;
 	}
+
+	// Generic flag used to determine whether we have fully completed the fee check (yes + fee, or no + no fee)
+	const fees = dbCase.S62aFees;
+	viewModel.isApplicationFeeComplete =
+		fees?.hasApplicationFee === false || (fees?.hasApplicationFee === true && fees.applicationFee !== null);
 
 	return viewModel;
 }

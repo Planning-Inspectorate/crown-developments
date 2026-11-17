@@ -95,15 +95,16 @@ module "app_manage" {
     GOV_NOTIFY_LPA_QUEST_SENT_TEMPLATE_ID      = var.apps_config.gov_notify.templates.lpa_quest_sent_template_id
 
     # s62a gov notify
-    S62A_GOV_NOTIFY_DISABLED                  = var.apps_config.s62a_gov_notify.disabled
-    S62A_GOV_NOTIFY_API_KEY                   = local.key_vault_refs["s62a-gov-notify-api-key"]
-    S62A_GOV_NOTIFY_REPRESENTATIONS_TOKEN     = local.key_vault_refs["s62a-gov-notify-representations-token"]
-    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID          = var.apps_config.s62a_gov_notify.templates.test_template_id
-    S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID       = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
-    S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID   = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
-    S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID  = var.apps_config.s62a_gov_notify.templates.app_decision_template_id
-    S62A_GOV_NOTIFY_LPA_DECISION_TEMPLATE_ID  = var.apps_config.s62a_gov_notify.templates.lpa_decision_template_id
-    S62A_GOV_NOTIFY_REP_PUBLISHED_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.rep_published_template_id
+    S62A_GOV_NOTIFY_DISABLED                                = var.apps_config.s62a_gov_notify.disabled
+    S62A_GOV_NOTIFY_API_KEY                                 = local.key_vault_refs["s62a-gov-notify-api-key"]
+    S62A_GOV_NOTIFY_TEST_TEMPLATE_ID                        = var.apps_config.s62a_gov_notify.templates.test_template_id
+    S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID                     = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
+    S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID                 = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
+    S62A_GOV_NOTIFY_APP_DECISION_TEMPLATE_ID                = var.apps_config.s62a_gov_notify.templates.app_decision_template_id
+    S62A_GOV_NOTIFY_LPA_DECISION_TEMPLATE_ID                = var.apps_config.s62a_gov_notify.templates.lpa_decision_template_id
+    S62A_GOV_NOTIFY_REP_PUBLISHED_TEMPLATE_ID               = var.apps_config.s62a_gov_notify.templates.rep_published_template_id
+    S62A_GOV_NOTIFY_APPLICATION_RECEIVED_FEE_TEMPLATE_ID    = var.apps_config.s62a_gov_notify.templates.application_received_fee_template_id
+    S62A_GOV_NOTIFY_APPLICATION_RECEIVED_NO_FEE_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.application_received_no_fee_template_id
 
     S62A_MAJOR_CONTACT_EMAIL     = var.apps_config.s62a_major_contact_email
     S62A_NON_MAJOR_CONTACT_EMAIL = var.apps_config.s62a_non_major_contact_email

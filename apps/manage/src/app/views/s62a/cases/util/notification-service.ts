@@ -20,6 +20,7 @@ import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import type { ManageService } from '#service';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { formatFee } from '@pins/crowndev-lib/util/numbers.ts';
 
 export interface RepresentationPublishedCaseContext {
 	id: string;
@@ -456,6 +457,58 @@ export class S62aManageNotificationService {
 			throw new Error('Error encountered during representation published email notification dispatch', {
 				cause: error
 			});
+		}
+	}
+
+	/**
+	 * Sends the one-time acknowledgement of an application being received.
+	 */
+	public async processAcknowledgementApplicationReceived(
+		answers: UpdateCaseAnswers,
+		reference: string,
+		emails: {
+			major?: string;
+			nonMajor?: string;
+		}
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (!answers.applicationReceivedDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		const formattedAddress = this.formatAddress(answers);
+
+		const applicationFee = answers.hasApplicationFee === BOOLEAN_OPTIONS.YES ? formatFee(answers.applicationFee!) : '';
+
+		const s62aEmail = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+
+		if (!s62aEmail) {
+			this.logger.warn({ reference }, `No return email address configured ${reference}`);
+			return { wasSent: false };
+		}
+
+		try {
+			const auditData = await this.notifyClient.sendAcknowledgementApplicationReceivedToMany(notificationContacts, {
+				reference,
+				siteAddress: formattedAddress,
+				applicationDescription: answers.developmentDescription || '',
+				applicationReceivedDate: formatDateForDisplay(answers.applicationReceivedDate),
+				hasApplicationFee: answers.hasApplicationFee === BOOLEAN_OPTIONS.YES,
+				applicationFee,
+				s62aEmail
+			});
+
+			this.logger.info({ reference }, 'Application received acknowledgement emails dispatched successfully');
+
+			return { wasSent: true, auditData };
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching application received acknowledgement email');
+			throw new Error('Error encountered during email notification dispatch', { cause: error });
 		}
 	}
 

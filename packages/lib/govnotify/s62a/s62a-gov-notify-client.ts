@@ -11,6 +11,8 @@ export interface TemplateIds {
 	applicantDecision?: string;
 	lpaDecision?: string;
 	representationPublished?: string;
+	acknowledgementOfApplicationReceivedFee?: string;
+	acknowledgementOfApplicationReceivedNoFee?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -84,6 +86,18 @@ export type RepresentationPublishedSharedData = {
 	applicationDescription: string;
 	s62aEmail: string;
 };
+
+export type AcknowledgementApplicationPersonalisation = {
+	reference: string;
+	applicantContact: string;
+	siteAddress: string;
+	applicationDescription: string;
+	applicationReceivedDate: string;
+	hasApplicationFee: boolean;
+	applicationFee: string;
+	s62aEmail: string;
+};
+
 /**
  * Gov notify for the s62a apps, contains all the
  * specific s62a email sending functions and templates
@@ -333,6 +347,73 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendLpaDecision(contact, details);
 			},
 			'Failed to send LPA decision notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an acknowledgement to contacts that the application has been received.
+	 * Depending on whether there is a fee or not, then the template changes.
+	 */
+	async sendAcknowledgementApplicationReceived(
+		notificationData: ContactNotificationType,
+		personalisation: Omit<AcknowledgementApplicationPersonalisation, 'applicantContact'>
+	): Promise<Omit<AuditData, 'email'>> {
+		const feeTemplateId = this.templateIds.acknowledgementOfApplicationReceivedFee;
+		const noFeeTemplateId = this.templateIds.acknowledgementOfApplicationReceivedNoFee;
+
+		if (!feeTemplateId || !noFeeTemplateId) {
+			this.logger.warn('application received acknowledgement template(s) not enabled. ignoring request.');
+			throw new Error('Application received acknowledgement template(s) not enabled.');
+		}
+
+		const templateId = personalisation.hasApplicationFee ? feeTemplateId : noFeeTemplateId;
+
+		const applicantContact = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		console.log('minkus', {
+			personalisation: {
+				applicantName: applicantContact || 'Applicant/agent',
+				caseReference: personalisation.reference,
+				siteAddress: personalisation.siteAddress,
+				applicationDescription: personalisation.applicationDescription,
+				receivedDate: personalisation.applicationReceivedDate,
+				applicationFee: `£${personalisation.applicationFee}`,
+				section62aEmail: personalisation.s62aEmail
+			},
+			reference: personalisation.reference
+		});
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				applicantName: applicantContact || 'Applicant/agent',
+				caseReference: personalisation.reference,
+				siteAddress: personalisation.siteAddress,
+				applicationDescription: personalisation.applicationDescription,
+				receivedDate: personalisation.applicationReceivedDate,
+				applicationFee: `£${personalisation.applicationFee}`,
+				section62aEmail: personalisation.s62aEmail
+			},
+			reference: personalisation.reference
+		});
+	}
+
+	async sendAcknowledgementApplicationReceivedToMany(
+		notificationData: ContactNotificationType[],
+		personalisation: Omit<AcknowledgementApplicationPersonalisation, 'applicantContact'>
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((contact) => contact.email),
+			(email) => {
+				const contact = notificationData.find((item) => item.email === email);
+				if (!contact) {
+					throw new Error(`No contact found for ${email}`);
+				}
+				return this.sendAcknowledgementApplicationReceived(contact, personalisation);
+			},
+			'Failed to send application received acknowledgement to one or more email addresses.'
 		);
 	}
 

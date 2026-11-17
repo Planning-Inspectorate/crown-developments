@@ -260,6 +260,7 @@ function handleUpdateEmails(
 	applicantDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	lpaDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	representationPublishedEmail(answers, previousCase, notificationService, service, id, req);
+	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -448,6 +449,48 @@ export function representationPublishedEmail(
 		id,
 		null, // Flag is now managed on S62aRepresentation, so we do nothing here
 		'Send Representation Published Notification (Update)',
+		req
+	);
+}
+
+/**
+ * Sends the application-received acknowledgement only when a received date is
+ * first added and the email has not already been sent.
+ */
+export function acknowledgeApplicationReceivedEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+): void {
+	const hasReceivedDate = Boolean(answers.applicationReceivedDate);
+	const acknowledgementWasAlreadySent = previousCase.acknowledgeApplicationReceivedEmailSent === BOOLEAN_OPTIONS.YES;
+	const isApplicationCase = previousCase.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION;
+
+	if (!hasReceivedDate || acknowledgementWasAlreadySent || !isApplicationCase) {
+		return;
+	}
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const emailPromise = notificationService.processAcknowledgementApplicationReceived(
+		mergedAnswers,
+		previousCase.reference,
+		{ major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail }
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'acknowledgeApplicationReceivedEmailSent',
+		'Send Acknowledgement of Application Received (Update)',
 		req
 	);
 }

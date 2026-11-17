@@ -670,7 +670,22 @@ export function getQuestions(
 					dependencyFieldName: 'hasSiteLocation',
 					useBodyValuesForCurrent: true,
 					validationFunction: (valueToSave, hasSiteLocation) => {
-						if (!hasSiteLocation) throw new Error('You must first add the site address or site coordinates');
+						if (!hasSiteLocation)
+							throw new Error(
+								`Add the site address or site coordinates before you add the ${isPreApp ? 'pre-application' : 'application'} received date`
+							);
+
+						return true;
+					}
+				}),
+				new CrossQuestionValidator({
+					dependencyFieldName: 'isApplicationFeeComplete',
+					useBodyValuesForCurrent: true,
+					validationFunction: (valueToSave, isApplicationFeeComplete) => {
+						if (isPreApp) return true; // Pre-applications do not have fees
+
+						if (!isApplicationFeeComplete)
+							throw new Error('Add the application fee before you add the application received date');
 
 						return true;
 					}
@@ -678,18 +693,7 @@ export function getQuestions(
 			],
 			hint: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateHint,
 			viewData: {
-				warningMessage: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning,
-				...(isPreApp
-					? {}
-					: {
-							extraActionButtons: [
-								{
-									text: 'Remove and save',
-									type: 'submit',
-									formaction: 'application-received/remove'
-								}
-							]
-						})
+				warningMessage: CASE_DETAILS_QUESTION_TEXT[preAppOrAppPath].applicationReceivedDateWarning
 			}
 		},
 		applicationAcknowledgedDate: {

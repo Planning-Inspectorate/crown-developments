@@ -75,13 +75,15 @@ apps_config = {
   s62a_gov_notify = {
     disabled = false
     templates = {
-      test_template_id          = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
-      pre_ack_template_id       = "37da3f28-9fd7-4801-b6e5-c4950552697e"
-      ack_rep_template_id       = "aa5257cb-0076-4ad6-9692-abadce6b54ce"
-      ack_pre_app_template_id   = "b064475b-49f3-4c91-b93d-b9ef93b81d4a"
-      app_decision_template_id  = "59ecc99b-686b-4b59-9403-4614e6b35a86"
-      lpa_decision_template_id  = "77ea88a8-804c-4945-a8fb-88b7fc2aa1be"
-      rep_published_template_id = "6029c0fc-b8c3-48eb-bed2-badc1539b1e9"
+      test_template_id                        = "d6d54cd2-291b-461e-9e18-5efa978b73e7"
+      pre_ack_template_id                     = "37da3f28-9fd7-4801-b6e5-c4950552697e"
+      ack_rep_template_id                     = "aa5257cb-0076-4ad6-9692-abadce6b54ce"
+      ack_pre_app_template_id                 = "b064475b-49f3-4c91-b93d-b9ef93b81d4a"
+      app_decision_template_id                = "59ecc99b-686b-4b59-9403-4614e6b35a86"
+      lpa_decision_template_id                = "77ea88a8-804c-4945-a8fb-88b7fc2aa1be"
+      rep_published_template_id               = "6029c0fc-b8c3-48eb-bed2-badc1539b1e9"
+      application_received_fee_template_id    = "068fe2da-2c0d-43d8-b9c8-de9e1b04bbb1"
+      application_received_no_fee_template_id = "070f4cda-6175-4d7b-b6a1-73ea17d7ca2e"
     }
   }
 
