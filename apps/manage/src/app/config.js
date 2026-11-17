@@ -53,6 +53,8 @@ export function loadConfig() {
 		LOG_LEVEL,
 		PORT,
 		NODE_ENV,
+		ODW_SERVICE_BUS_DISABLED,
+		ODW_SERVICE_BUS_ENDPOINT,
 		REDIS_CONNECTION_STRING,
 		SESSION_SECRETS,
 		SQL_CONNECTION_STRING,
@@ -205,6 +207,19 @@ export function loadConfig() {
 		}
 	}
 
+	// Service bus
+	const odwServiceBusDisabled = ODW_SERVICE_BUS_DISABLED === 'true';
+	if (!odwServiceBusDisabled) {
+		const props = {
+			ODW_SERVICE_BUS_ENDPOINT
+		};
+		for (const [k, v] of Object.entries(props)) {
+			if (v === undefined || v === '') {
+				throw new Error(k + ' must be a non-empty string');
+			}
+		}
+	}
+
 	config = {
 		appName: 'manage',
 		appHostname: APP_HOSTNAME,
@@ -323,6 +338,12 @@ export function loadConfig() {
 		s62aDevContactInfo: {
 			majorEmail: S62A_MAJOR_CONTACT_EMAIL,
 			nonMajorEmail: S62A_NON_MAJOR_CONTACT_EMAIL
+		},
+		serviceBus: {
+			odw: {
+				isLive: ODW_SERVICE_BUS_DISABLED !== 'true',
+				namespace: ODW_SERVICE_BUS_ENDPOINT
+			}
 		}
 	};
 

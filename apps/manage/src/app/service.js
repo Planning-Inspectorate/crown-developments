@@ -14,6 +14,8 @@ import { EntraClient } from '@pins/crowndev-lib/graph/entra.js';
 import { ZipArchive } from 'archiver';
 import { buildAuditService } from '@pins/crowndev-lib/audit/index.ts';
 import { Service } from '@pins/crowndev-lib/app/base-service.ts';
+import { ServiceBus } from '@pins/crowndev-lib/odw/service-bus.ts';
+import { OdwPublisher } from '../service/messaging/odw-publisher.ts';
 
 /**
  * This class encapsulates all the services and clients for the application
@@ -39,6 +41,10 @@ export class ManageService extends Service {
 	 * @type {import('@pins/crowndev-lib/graph/types.js').InitEntraClient}
 	 */
 	getEntraClient;
+	/**
+	 * @type {OdwPublisher}
+	 */
+	odwPublisher;
 	/**
 	 * @type {import('@pins/crowndev-lib/graph/entra.js').EntraClient}
 	 */
@@ -86,6 +92,10 @@ export class ManageService extends Service {
 		this.s62aNotifyClient = initS62aGovNotify(config.s62aGovNotify, logger);
 		this.blobStoreClient = initBlobStore(config.blobStore, logger);
 		this.appEntraClient = new EntraClient(graphClient);
+		this.odwPublisher = new OdwPublisher(
+			config.serviceBus.odw.isLive ? new ServiceBus(config.serviceBus.odw.namespace) : null,
+			logger
+		);
 		this.createZipArchive = (options) => new ZipArchive(options);
 
 		// set up the Azure AI Language client if configured
