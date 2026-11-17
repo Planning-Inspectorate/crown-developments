@@ -20,7 +20,7 @@ export const CASE_DETAILS_QUESTION_TEXT = {
 		expectedSubmissionDateTitle: 'Expected application submission date',
 		applicationReceivedDateTitle: 'Application received date',
 		applicationReceivedDateQuestion: 'When was the application received?',
-		applicationReceivedDateWarning: '',
+		applicationReceivedDateWarning: 'Adding a date will send a notification to the applicant / agent',
 		applicationReceivedDateHint: 'You must first add the application fee and the site address or site coordinates.'
 	}
 };

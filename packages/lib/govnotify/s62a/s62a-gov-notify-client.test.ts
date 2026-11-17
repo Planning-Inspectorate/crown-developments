@@ -940,6 +940,332 @@ describe('S62aGovNotifyClient', () => {
 		});
 	});
 
+	describe('sendAcknowledgementApplicationReceived', () => {
+		const basePersonalisation = {
+			reference: 'S62A/2026/0004',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			applicationReceivedDate: '5 November 2026',
+			hasApplicationFee: true,
+			applicationFee: '1,500',
+			s62aEmail: 'major@s62a.gov.uk'
+		};
+
+		it('should log a warning and throw an error if neither template is configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {});
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() => client.sendAcknowledgementApplicationReceived({ email: 'applicant@test.com' }, basePersonalisation),
+				{
+					name: 'Error',
+					message: 'Application received acknowledgement template(s) not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'application received acknowledgement template(s) not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should log a warning and throw an error if only the fee template is configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123'
+			});
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() => client.sendAcknowledgementApplicationReceived({ email: 'applicant@test.com' }, basePersonalisation),
+				{
+					name: 'Error',
+					message: 'Application received acknowledgement template(s) not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should log a warning and throw an error if only the no-fee template is configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-123'
+			});
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await assert.rejects(
+				() => client.sendAcknowledgementApplicationReceived({ email: 'applicant@test.com' }, basePersonalisation),
+				{
+					name: 'Error',
+					message: 'Application received acknowledgement template(s) not enabled.'
+				}
+			);
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should use the fee template and call super.sendEmailWithAudit with correct arguments when hasApplicationFee is true', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = { notifyId: 'mock-notify-id-fee', body: 'Application received with fee body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'applicant@test.com',
+				firstName: 'Jane',
+				lastName: 'Doe'
+			};
+
+			const result = await client.sendAcknowledgementApplicationReceived(notificationData, {
+				...basePersonalisation,
+				hasApplicationFee: true,
+				applicationFee: '1,500'
+			});
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'fee-template-123',
+				'applicant@test.com',
+				{
+					personalisation: {
+						applicantName: 'Jane Doe',
+						caseReference: 'S62A/2026/0004',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						receivedDate: '5 November 2026',
+						applicationFee: '£1,500',
+						section62aEmail: 'major@s62a.gov.uk'
+					},
+					reference: 'S62A/2026/0004'
+				}
+			]);
+		});
+
+		it('should use the no-fee template and call super.sendEmailWithAudit with correct arguments when hasApplicationFee is false', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditResult = { notifyId: 'mock-notify-id-no-fee', body: 'Application received no fee body' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const notificationData = {
+				email: 'agent@test.com',
+				firstName: 'Bob',
+				lastName: 'Smith'
+			};
+
+			const result = await client.sendAcknowledgementApplicationReceived(notificationData, {
+				...basePersonalisation,
+				hasApplicationFee: false,
+				applicationFee: ''
+			});
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 1);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args, [
+				'no-fee-template-456',
+				'agent@test.com',
+				{
+					personalisation: {
+						applicantName: 'Bob Smith',
+						caseReference: 'S62A/2026/0004',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						receivedDate: '5 November 2026',
+						applicationFee: '£',
+						section62aEmail: 'major@s62a.gov.uk'
+					},
+					reference: 'S62A/2026/0004'
+				}
+			]);
+		});
+
+		it('should correctly format applicantName when only firstName is provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await client.sendAcknowledgementApplicationReceived(
+				{ email: 'applicant@test.com', firstName: 'Jane' },
+				basePersonalisation
+			);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.applicantName, 'Jane');
+		});
+
+		it('should fallback applicantName to "Applicant/agent" when no names are provided', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			await client.sendAcknowledgementApplicationReceived({ email: 'applicant@test.com' }, basePersonalisation);
+
+			const args = sendEmailWithAuditMock.mock.calls[0].arguments;
+			assert.strictEqual(args[2].personalisation.applicantName, 'Applicant/agent');
+		});
+	});
+
+	describe('sendAcknowledgementApplicationReceivedToMany', () => {
+		const personalisation = {
+			reference: 'S62A/2026/0004',
+			siteAddress: '123 High Street, Bristol, BS1 1AA',
+			applicationDescription: 'Construction of commercial storage units',
+			applicationReceivedDate: '5 November 2026',
+			hasApplicationFee: true,
+			applicationFee: '1,500',
+			s62aEmail: 'major@s62a.gov.uk'
+		};
+
+		it('should call super.sendToManyWithAudit with the mapped emails and correct error message', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const mockAuditRecords = [
+				{ email: 'agent1@test.com', notifyId: 'notify-1', body: 'body-1' },
+				{ email: 'agent2@test.com', notifyId: 'notify-2', body: 'body-2' }
+			];
+			const sendToManyWithAuditMock = ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async () => mockAuditRecords
+			);
+
+			const contacts = [
+				{ email: 'agent1@test.com', firstName: 'Alice' },
+				{ email: 'agent2@test.com', firstName: 'Bob' }
+			];
+
+			const result = await client.sendAcknowledgementApplicationReceivedToMany(contacts, personalisation);
+
+			assert.deepStrictEqual(result, mockAuditRecords);
+			assert.strictEqual(sendToManyWithAuditMock.mock.callCount(), 1);
+
+			const args = sendToManyWithAuditMock.mock.calls[0].arguments;
+			assert.deepStrictEqual(args[0], ['agent1@test.com', 'agent2@test.com']);
+			assert.strictEqual(typeof args[1], 'function');
+			assert.strictEqual(
+				args[2],
+				'Failed to send application received acknowledgement to one or more email addresses.'
+			);
+		});
+
+		it('should invoke sendAcknowledgementApplicationReceived for each contact in the sendToManyWithAudit callback', async (ctx) => {
+			const logger = mockLogger() as any;
+			const templateIds = {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			};
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', templateIds);
+
+			const sendSingleMock = ctx.mock.method(client as any, 'sendAcknowledgementApplicationReceived', async () => ({
+				notifyId: 'id',
+				body: 'body'
+			}));
+
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (emails: string[], cb: (email: string) => Promise<{ notifyId: string; body: string }>) => {
+					const results = [];
+					for (const email of emails) {
+						const audit = await cb(email);
+						results.push({ email, ...audit });
+					}
+					return results;
+				}
+			);
+
+			const contacts = [
+				{ email: 'userA@test.com', firstName: 'User', lastName: 'A' },
+				{ email: 'userB@test.com', firstName: 'User', lastName: 'B' }
+			];
+
+			const results = await client.sendAcknowledgementApplicationReceivedToMany(contacts, personalisation);
+
+			assert.strictEqual(sendSingleMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendSingleMock.mock.calls[0].arguments, [contacts[0], personalisation]);
+			assert.deepStrictEqual(sendSingleMock.mock.calls[1].arguments, [contacts[1], personalisation]);
+			assert.deepStrictEqual(results, [
+				{ email: 'userA@test.com', notifyId: 'id', body: 'body' },
+				{ email: 'userB@test.com', notifyId: 'id', body: 'body' }
+			]);
+		});
+
+		it('should throw an error in the callback if no matching contact is found for an email', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				acknowledgementOfApplicationReceivedFee: 'fee-template-123',
+				acknowledgementOfApplicationReceivedNoFee: 'no-fee-template-456'
+			});
+
+			ctx.mock.method(
+				client as any,
+				'sendToManyWithAudit',
+				async (_emails: string[], cb: (email: string) => Promise<unknown>) => cb('missing@test.com')
+			);
+
+			await assert.rejects(
+				() => client.sendAcknowledgementApplicationReceivedToMany([{ email: 'existing@test.com' }], personalisation),
+				{
+					name: 'Error',
+					message: 'No contact found for missing@test.com'
+				}
+			);
+		});
+	});
+
 	describe('sendRepresentationPublished', () => {
 		const sharedData = {
 			applicationReference: 'S62A/2026/0000001',

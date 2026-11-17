@@ -8,6 +8,7 @@ import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a
 import type { Logger } from 'pino';
 import { BOOLEAN_OPTIONS } from '@planning-inspectorate/dynamic-forms';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { formatFee } from '@pins/crowndev-lib/util/numbers.ts';
 
 /**
  * Helper to generate a baseline of pre-notification case answers
@@ -28,6 +29,24 @@ const preAppAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAn
 	({
 		applicationReceivedDate: new Date('2026-10-30T12:00:00.000Z'),
 		developmentDescription: 'Test proposal description',
+		siteAddress: {
+			line1: '123 High Street',
+			town: 'Bristol',
+			postcode: 'BS1 1AA'
+		},
+		manageAgentContactDetails: [{ agentContactEmail: 'agent@test.com', agentFirstName: 'Bob', agentLastName: 'Smith' }],
+		...overrides
+	}) as UpdateCaseAnswers;
+
+/**
+ * Helper to generate a baseline of application received case answers
+ */
+const appReceivedAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+	({
+		applicationReceivedDate: new Date('2026-10-30T12:00:00.000Z'),
+		classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+		developmentDescription: 'Test proposal description',
+		hasApplicationFee: BOOLEAN_OPTIONS.NO,
 		siteAddress: {
 			line1: '123 High Street',
 			town: 'Bristol',
@@ -86,6 +105,7 @@ describe('S62aManageNotificationService', () => {
 		mockNotifyClient = {
 			sendAcknowledgePreNotificationToMany: mock.fn(async () => []),
 			sendAcknowledgePreApplicationToMany: mock.fn(async () => []),
+			sendAcknowledgementApplicationReceivedToMany: mock.fn(async () => []),
 			sendApplicantDecisionToMany: mock.fn(async () => []),
 			sendLpaDecisionToMany: mock.fn(async () => []),
 			sendRepresentationPublishedToMany: mock.fn(async () => [])
@@ -988,6 +1008,214 @@ describe('S62aManageNotificationService', () => {
 			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
 			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].caseReference, 'S62A/2026/0000001');
+		});
+	});
+
+	describe('processAcknowledgementApplicationReceived', () => {
+		it('returns wasSent: false when applicationReceivedDate is absent', async () => {
+			const result = await service.processAcknowledgementApplicationReceived(
+				appReceivedAnswers({ applicationReceivedDate: undefined }),
+				'REF-123',
+				emailObject
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls.length, 0);
+		});
+
+		it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+			const nullClientService = new S62aManageNotificationService(null, mockLogger);
+			const result = await nullClientService.processAcknowledgementApplicationReceived(
+				appReceivedAnswers(),
+				'REF-123',
+				emailObject
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+		});
+
+		it('returns wasSent: false and logs a warning when no return email address is configured', async () => {
+			const result = await service.processAcknowledgementApplicationReceived(
+				appReceivedAnswers({ classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR }),
+				'REF-123',
+				{ major: undefined, nonMajor: 'non.major' }
+			);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual((mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls.length, 0);
+			assert.strictEqual((mockLogger.warn as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'No return email address configured REF-123'
+			]);
+		});
+
+		it('successfully dispatches application received acknowledgement email with fee, formatted address, description, and date', async () => {
+			const mockAuditData = [{ email: 'agent@test.com', notifyId: 'notify-1', body: 'body', subject: 'subject' }];
+			mockNotifyClient.sendAcknowledgementApplicationReceivedToMany = mock.fn(async () => mockAuditData);
+
+			const caseAnswers = appReceivedAnswers({
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				developmentDescription: 'Construction of commercial storage units',
+				hasApplicationFee: BOOLEAN_OPTIONS.YES,
+				applicationFee: 1500,
+				siteAddress: {
+					line1: '123 High Street',
+					town: 'Bristol',
+					postcode: 'BS1 1AA'
+				} as any,
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'agent@test.com', agentFirstName: 'Alice', agentLastName: 'Smith' }
+				]
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			assert.deepStrictEqual(result.auditData, mockAuditData);
+			assert.strictEqual((mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls.length, 1);
+
+			const [contacts, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+
+			assert.deepStrictEqual(contacts, [{ email: 'agent@test.com', firstName: 'Alice', lastName: 'Smith' }]);
+			assert.strictEqual(details.reference, 'REF-123');
+			assert.strictEqual(details.applicationDescription, 'Construction of commercial storage units');
+			assert.ok(details.siteAddress);
+			assert.ok(details.applicationReceivedDate);
+			assert.strictEqual(details.hasApplicationFee, true);
+			assert.strictEqual(details.applicationFee, formatFee(1500));
+			assert.strictEqual(details.s62aEmail, 'major.email');
+			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
+			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [
+				{ reference: 'REF-123' },
+				'Application received acknowledgement emails dispatched successfully'
+			]);
+		});
+
+		it('sets hasApplicationFee to false and applicationFee to empty string when hasApplicationFee is not YES', async () => {
+			const caseAnswers = appReceivedAnswers({
+				hasApplicationFee: BOOLEAN_OPTIONS.NO,
+				applicationFee: 1500
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+			assert.strictEqual(details.hasApplicationFee, false);
+			assert.strictEqual(details.applicationFee, '');
+		});
+
+		it('assigns the major specific S62a email based on classificationId', async () => {
+			const caseAnswers = appReceivedAnswers({
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR
+			});
+
+			await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			const [, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+			assert.strictEqual(details.s62aEmail, 'major.email');
+		});
+
+		it('assigns the non-major specific S62a email based on classificationId', async () => {
+			const caseAnswers = appReceivedAnswers({
+				classificationId: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR
+			});
+
+			await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			const [, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+			assert.strictEqual(details.s62aEmail, 'non.major');
+		});
+
+		it('falls back to easting and northing when siteAddress is not provided', async () => {
+			const caseAnswers = appReceivedAnswers({
+				siteAddress: undefined,
+				siteEasting: 350000,
+				siteNorthing: 170000
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+			assert.strictEqual(details.siteAddress, 'Easting: 350000, Northing: 170000');
+		});
+
+		it('falls back to empty string when developmentDescription is falsy', async () => {
+			const caseAnswers = appReceivedAnswers({
+				developmentDescription: undefined as any
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0]
+				.arguments;
+			assert.strictEqual(details.applicationDescription, '');
+		});
+
+		it('extracts agent contact details and ignores applicants when an agent has an email', async () => {
+			const caseAnswers = appReceivedAnswers({
+				manageAgentContactDetails: [
+					{ agentContactEmail: 'agent@test.com', agentFirstName: 'Bob', agentLastName: 'Smith' }
+				],
+				manageApplicantContactDetails: [
+					{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'Alice', applicantLastName: 'Jones' }
+				]
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			const [contacts] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'agent@test.com', firstName: 'Bob', lastName: 'Smith' }]);
+		});
+
+		it('falls back to applicant contacts when no agent contacts with email are present', async () => {
+			const caseAnswers = appReceivedAnswers({
+				manageAgentContactDetails: undefined,
+				manageApplicantContactDetails: [
+					{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'John', applicantLastName: 'Doe' }
+				]
+			});
+
+			const result = await service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject);
+
+			assert.strictEqual(result.wasSent, true);
+			const [contacts] = (mockNotifyClient.sendAcknowledgementApplicationReceivedToMany as any).mock.calls[0].arguments;
+			assert.deepStrictEqual(contacts, [{ email: 'applicant@test.com', firstName: 'John', lastName: 'Doe' }]);
+		});
+
+		it('throws an error and logs it if the notify client fails to send', async () => {
+			const error = new Error('Service unavailable');
+			mockNotifyClient.sendAcknowledgementApplicationReceivedToMany = mock.fn(() => Promise.reject(error));
+
+			const caseAnswers = appReceivedAnswers();
+
+			await assert.rejects(
+				() => service.processAcknowledgementApplicationReceived(caseAnswers, 'REF-123', emailObject),
+				(err: Error) => {
+					assert.strictEqual(err.message, 'Error encountered during email notification dispatch');
+					assert.strictEqual(err.cause, error);
+					return true;
+				}
+			);
+
+			assert.strictEqual((mockLogger.error as any).mock.calls.length, 1);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].error, error);
+			assert.strictEqual((mockLogger.error as any).mock.calls[0].arguments[0].reference, 'REF-123');
+			assert.strictEqual(
+				(mockLogger.error as any).mock.calls[0].arguments[1],
+				'Error dispatching application received acknowledgement email'
+			);
 		});
 	});
 });
