@@ -67,7 +67,7 @@ resource "azurerm_cdn_frontdoor_route" "s62a_portal" {
   patterns_to_match      = ["/*"]
   supported_protocols    = ["Http", "Https"]
 
-  cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.s62a_portal.id]
+  # cdn_frontdoor_custom_domain_ids = [azurerm_cdn_frontdoor_custom_domain.s62a_portal.id]
   link_to_default_domain          = false
 }
 
@@ -314,11 +314,11 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "s62a_portal" {
 #   name                     = replace("${local.org}-sec-${local.service_name}-s62a-portal-${var.environment}", "-", "")
 #   cdn_frontdoor_profile_id = data.azurerm_cdn_frontdoor_profile.shared.id
 #   provider                 = azurerm.front_door
-
+# 
 #   security_policies {
 #     firewall {
 #       cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.s62a_portal.id
-
+# 
 #       association {
 #         domain {
 #           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.s62a_portal.id
