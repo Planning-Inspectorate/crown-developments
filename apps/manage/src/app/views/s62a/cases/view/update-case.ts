@@ -270,6 +270,7 @@ function handleUpdateEmails(
 	lpaDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	representationPublishedEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req, res);
+	interestedPartyDecisionEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -521,5 +522,48 @@ export function acknowledgeApplicationReceivedEmail(
 				updatedFieldNames: ['applicationAcknowledgedDate']
 			});
 		}
+	);
+}
+
+/**
+ * Determines whether to begin the process of sending the interestedPartyDecisionEmail.
+ * Triggered only when a case populates decisionDate for the first time.
+ * Sends to everyone who submitted a representation, with one case history entry per email.
+ */
+export function interestedPartyDecisionEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+) {
+	const interestedPartyDecisionEmailSentAlready = previousCase.interestedPartyDecisionEmailSent === BOOLEAN_OPTIONS.YES;
+
+	if (interestedPartyDecisionEmailSentAlready || !answers.decisionDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const frontOfficeAppInfoLink = `${service.s62aPortalBaseUrl}/applications/${previousCase.id}/application-information`;
+
+	const emailPromise = notificationService.processInterestedPartyDecision(
+		mergedAnswers,
+		previousCase.id,
+		previousCase.reference,
+		frontOfficeAppInfoLink,
+		service.db
+	);
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'interestedPartyDecisionEmailSent',
+		'Send Interested Party Decision Notification (Update)',
+		req
 	);
 }

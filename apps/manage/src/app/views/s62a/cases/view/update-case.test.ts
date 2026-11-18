@@ -7,7 +7,8 @@ import {
 	applicantDecisionEmail,
 	lpaDecisionEmail,
 	representationPublishedEmail,
-	acknowledgeApplicationReceivedEmail
+	acknowledgeApplicationReceivedEmail,
+	interestedPartyDecisionEmail
 } from './update-case.ts';
 import type { Request, Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveParams } from '@planning-inspectorate/dynamic-forms';
@@ -1200,5 +1201,85 @@ describe('acknowledgeApplicationReceivedEmail', () => {
 		assert.strictEqual(sendArgs[3], 'acknowledgeApplicationReceivedEmailSent');
 		assert.strictEqual(sendArgs[4], 'Send Acknowledgement of Application Received (Update)');
 		assert.strictEqual(sendArgs[5], mockReq);
+	});
+});
+
+describe('interestedPartyDecisionEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processInterestedPartyDecision', async () =>
+			Promise.resolve({ wasSent: true })
+		);
+
+		mockService = {
+			s62aPortalBaseUrl: 'TEST',
+			db: { marker: 'db' },
+			logger: {}
+		} as unknown as ManageService;
+
+		mockSendFn = mock.fn();
+		mockReq = { session: { account: { localAccountId: 'user-123' } } };
+	});
+
+	const callTrigger = (answers: any, previousCase: any) =>
+		interestedPartyDecisionEmail(
+			answers,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+	it('returns early if decisionDate is not in the answers payload', () => {
+		callTrigger({ developmentDescription: 'New Description' }, { id: 'case-123', reference: 'REF-123' });
+
+		assert.strictEqual((mockNotificationService.processInterestedPartyDecision as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('returns early if interestedPartyDecisionEmailSent is already YES', () => {
+		callTrigger(
+			{ decisionDate: new Date('2026-10-30') },
+			{ id: 'case-123', reference: 'REF-123', interestedPartyDecisionEmailSent: BOOLEAN_OPTIONS.YES }
+		);
+
+		assert.strictEqual((mockNotificationService.processInterestedPartyDecision as any).mock.calls.length, 0);
+		assert.strictEqual(mockSendFn.mock.calls.length, 0);
+	});
+
+	it('processes the email with the case id, reference, app info link and db', () => {
+		const decisionDate = new Date('2026-10-30T12:00:00.000Z');
+
+		callTrigger(
+			{ decisionDate, developmentDescription: 'Approved Development' },
+			{ id: 'case-123', reference: 'REF-IP-123', siteAddress: { line1: '123 High Street' } }
+		);
+
+		const processMock = (mockNotificationService.processInterestedPartyDecision as any).mock;
+		assert.strictEqual(processMock.calls.length, 1);
+
+		const [mergedAnswers, caseIdArg, referenceArg, appInfoLinkArg, dbArg] = processMock.calls[0].arguments;
+		assert.strictEqual(mergedAnswers.decisionDate, decisionDate);
+		assert.strictEqual(mergedAnswers.developmentDescription, 'Approved Development');
+		assert.strictEqual(caseIdArg, 'case-123');
+		assert.strictEqual(referenceArg, 'REF-IP-123');
+		assert.strictEqual(appInfoLinkArg, 'TEST/applications/case-123/application-information');
+		assert.strictEqual(dbArg, mockService.db);
+
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+		assert.ok(sendArgs[0] instanceof Promise);
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], 'interestedPartyDecisionEmailSent');
+		assert.strictEqual(sendArgs[4], 'Send Interested Party Decision Notification (Update)');
+		assert.strictEqual(sendArgs[5], mockReq);
+		assert.strictEqual(sendArgs.length, 6);
 	});
 });

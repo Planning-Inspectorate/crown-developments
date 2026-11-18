@@ -99,3 +99,58 @@ describe('sendS62aNotificationAndUpdateFlag', () => {
 		});
 	});
 });
+
+describe('sendS62aNotificationAndUpdateFlag audit entries', () => {
+	const flushBackgroundWork = () => new Promise((resolve) => setImmediate(resolve));
+	const auditData = [
+		{ email: 'one@test.com', notifyId: 'n1', body: 'Dear One', subject: 'Decision made: REF-1' },
+		{ email: 'two@test.com', notifyId: 'n2', body: 'Dear Two', subject: 'Decision made: REF-1' }
+	];
+	let mockService: any;
+	let mockReq: Request;
+
+	beforeEach(() => {
+		mockService = {
+			logger: { info: mock.fn(), error: mock.fn() },
+			db: { s62aCase: { update: mock.fn(async () => ({})) } },
+			audit: { recordMany: mock.fn(async () => {}) }
+		};
+		mockReq = { session: { account: { localAccountId: 'test-user-id' } } } as unknown as Request;
+	});
+
+	it('records one case history entry per email', async () => {
+		sendS62aNotificationAndUpdateFlag(
+			Promise.resolve({ wasSent: true, auditData }),
+			mockService,
+			'case-1',
+			'lpaDecisionEmailSent',
+			'LpaDecision',
+			mockReq
+		);
+
+		await flushBackgroundWork();
+
+		const [entries] = mockService.audit.recordMany.mock.calls[0].arguments;
+		assert.strictEqual(entries.length, 2);
+		assert.deepStrictEqual(
+			entries.map((entry: any) => entry.metadata.email),
+			['one@test.com', 'two@test.com']
+		);
+	});
+
+	it('records nothing but still sets the flag when no emails were sent', async () => {
+		sendS62aNotificationAndUpdateFlag(
+			Promise.resolve({ wasSent: true }),
+			mockService,
+			'case-1',
+			'interestedPartyDecisionEmailSent',
+			'InterestedPartyDecision',
+			mockReq
+		);
+
+		await flushBackgroundWork();
+
+		assert.strictEqual(mockService.db.s62aCase.update.mock.calls.length, 1);
+		assert.strictEqual(mockService.audit.recordMany.mock.calls.length, 0);
+	});
+});

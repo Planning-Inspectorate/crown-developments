@@ -23,6 +23,7 @@ export function sendS62aNotificationAndUpdateFlag(
 		| 'applicantDecisionEmailSent'
 		| 'lpaDecisionEmailSent'
 		| 'acknowledgeApplicationReceivedEmailSent'
+		| 'interestedPartyDecisionEmailSent'
 		| null,
 	operationName: string,
 	req?: Request,

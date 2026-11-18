@@ -1522,3 +1522,119 @@ describe('S62aGovNotifyClient', () => {
 		});
 	});
 });
+
+describe('S62aGovNotifyClient interested party decision', () => {
+	const details = {
+		reference: 'S62A/2026/0004',
+		siteAddress: '123 High Street, Bristol, BS1 1AA',
+		applicationDescription: 'Construction of commercial storage units',
+		appInfoLink: 'https://portal.example.gov.uk/applications/123/application-information'
+	};
+
+	describe('sendInterestedPartyDecision', () => {
+		it('should log a warning and throw an error if the template is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {});
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({}));
+
+			await assert.rejects(() => client.sendInterestedPartyDecision({ email: 'ip@test.com' }, details), {
+				name: 'Error',
+				message: 'Interested party decision template not enabled.'
+			});
+
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.deepStrictEqual(logger.warn.mock.calls[0].arguments, [
+				'interested party decision template not enabled. ignoring request.'
+			]);
+			assert.strictEqual(sendEmailWithAuditMock.mock.callCount(), 0);
+		});
+
+		it('should call sendEmailWithAudit with the template, email and personalisation', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				interestedPartyDecision: 'ip-decision-template-123'
+			});
+			const mockAuditResult = { notifyId: 'notify-ip', body: 'IP decision email body', subject: 'Decision made' };
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => mockAuditResult);
+
+			const result = await client.sendInterestedPartyDecision(
+				{ email: 'ip@test.com', firstName: 'Sam', lastName: 'Jones', orgName: 'Ignored Org' },
+				details
+			);
+
+			assert.deepStrictEqual(result, mockAuditResult);
+			assert.deepStrictEqual(sendEmailWithAuditMock.mock.calls[0].arguments, [
+				'ip-decision-template-123',
+				'ip@test.com',
+				{
+					personalisation: {
+						recipientName: 'Sam Jones',
+						caseReference: 'S62A/2026/0004',
+						siteAddress: '123 High Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of commercial storage units',
+						appInfoUrl: 'https://portal.example.gov.uk/applications/123/application-information'
+					},
+					reference: 'S62A/2026/0004'
+				}
+			]);
+		});
+
+		it('should address the email to the organisation when there is no contact name', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				interestedPartyDecision: 'ip-decision-template-123'
+			});
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({}));
+
+			await client.sendInterestedPartyDecision({ email: 'consultee@test.gov.uk', orgName: 'Natural England' }, details);
+
+			const options = sendEmailWithAuditMock.mock.calls[0].arguments[2] as any;
+			assert.strictEqual(options.personalisation.recipientName, 'Natural England');
+		});
+
+		it('should fall back to a generic salutation when there is no name or organisation', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				interestedPartyDecision: 'ip-decision-template-123'
+			});
+			const sendEmailWithAuditMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({}));
+
+			await client.sendInterestedPartyDecision({ email: 'anon@test.com', firstName: '  ' }, details);
+
+			const options = sendEmailWithAuditMock.mock.calls[0].arguments[2] as any;
+			assert.strictEqual(options.personalisation.recipientName, 'Sir or Madam');
+		});
+	});
+
+	describe('sendInterestedPartyDecisionToMany', () => {
+		it('should send a separate email to each contact with their own name', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				interestedPartyDecision: 'ip-decision-template-123'
+			});
+			const sendMock = ctx.mock.method(client as any, 'sendInterestedPartyDecision', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+			const sendToManySpy = ctx.mock.method(client as any, 'sendToManyWithAudit');
+
+			const contacts = [
+				{ email: 'one@test.com', firstName: 'One' },
+				{ email: 'two@test.com', firstName: 'Two' }
+			];
+
+			const result = await client.sendInterestedPartyDecisionToMany(contacts, details);
+
+			assert.strictEqual(result.length, 2);
+			assert.deepStrictEqual(sendToManySpy.mock.calls[0].arguments[0], ['one@test.com', 'two@test.com']);
+			assert.strictEqual(
+				sendToManySpy.mock.calls[0].arguments[2],
+				'Failed to send interested party decision notification to one or more email addresses.'
+			);
+			assert.strictEqual(sendMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [contacts[0], details]);
+			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [contacts[1], details]);
+		});
+	});
+});

@@ -1,6 +1,7 @@
 import type {
 	ContactNotificationType,
 	RepresentationPublishedNotificationType,
+	InterestedPartyNotificationType,
 	S62aGovNotifyClient
 } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
@@ -200,6 +201,110 @@ export class S62aManageNotificationService {
 			this.logger.error({ error, reference }, 'Error dispatching LPA decision email');
 			throw new Error('Error encountered during LPA decision email notification dispatch', { cause: error });
 		}
+	}
+
+	/**
+	 * Orchestrates the interested party decision notification email process.
+	 * A separate email is sent to everyone who submitted a representation and has an email address.
+	 *
+	 * Returns wasSent: true when there are no interested parties so the flag is still set,
+	 * ensuring no late emails fire if representations are added and the date is edited later.
+	 */
+	public async processInterestedPartyDecision(
+		answers: UpdateCaseAnswers,
+		caseId: string,
+		reference: string,
+		appInfoLink: string,
+		db: ManageService['db']
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		if (!answers.decisionDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const contacts = await this.getInterestedPartyContacts(db, caseId);
+
+		if (!contacts.length) {
+			this.logger.warn(
+				{ reference },
+				`No interested party email addresses found for reference ${reference}. Marking notification as processed without sending.`
+			);
+			return { wasSent: true };
+		}
+
+		const formattedAddress = this.formatAddress(answers);
+
+		const applicationDescription = answers.developmentDescription || '';
+
+		try {
+			const auditData = await this.notifyClient.sendInterestedPartyDecisionToMany(contacts, {
+				reference,
+				siteAddress: formattedAddress,
+				applicationDescription,
+				appInfoLink
+			});
+
+			this.logger.info(
+				{ reference, recipientCount: contacts.length },
+				'Interested party decision emails dispatched successfully'
+			);
+
+			return {
+				wasSent: true,
+				auditData
+			};
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching interested party decision email');
+			throw new Error('Error encountered during interested party decision email notification dispatch', {
+				cause: error
+			});
+		}
+	}
+
+	/**
+	 * Fetches the contact details of everyone who submitted a representation on the case
+	 * (interested parties and statutory consultees), skipping withdrawn representations.
+	 * Contacts without an email are dropped, and duplicate emails (case-insensitive) are only
+	 * included once, so someone with several representations gets one email.
+	 */
+	private async getInterestedPartyContacts(
+		db: ManageService['db'],
+		caseId: string
+	): Promise<InterestedPartyNotificationType[]> {
+		const representations = await db.s62aRepresentation.findMany({
+			where: {
+				applicationId: caseId,
+				statusId: { not: REPRESENTATION_STATUS_ID.WITHDRAWN }
+			},
+			select: {
+				SubmittedByContact: {
+					select: { email: true, firstName: true, lastName: true, orgName: true }
+				}
+			},
+			orderBy: { submittedDate: 'asc' }
+		});
+
+		const seenEmails = new Set<string>();
+		const contacts: InterestedPartyNotificationType[] = [];
+
+		for (const { SubmittedByContact: contact } of representations) {
+			const email = contact?.email?.trim();
+			if (!email || seenEmails.has(email.toLowerCase())) continue;
+
+			seenEmails.add(email.toLowerCase());
+			contacts.push({
+				email,
+				firstName: contact?.firstName ?? undefined,
+				lastName: contact?.lastName ?? undefined,
+				orgName: contact?.orgName ?? undefined
+			});
+		}
+
+		return contacts;
 	}
 
 	/**

@@ -13,6 +13,7 @@ export interface TemplateIds {
 	representationPublished?: string;
 	acknowledgementOfApplicationReceivedFee?: string;
 	acknowledgementOfApplicationReceivedNoFee?: string;
+	interestedPartyDecision?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -62,6 +63,17 @@ export type PreApplicationDetails = {
 };
 
 export type ApplicantDecisionDetails = {
+	reference: string;
+	siteAddress: string;
+	applicationDescription: string;
+	appInfoLink: string;
+};
+
+export type InterestedPartyNotificationType = ContactNotificationType & {
+	orgName?: string;
+};
+
+export type InterestedPartyDecisionDetails = {
 	reference: string;
 	siteAddress: string;
 	applicationDescription: string;
@@ -401,6 +413,56 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendAcknowledgementApplicationReceived(contact, personalisation);
 			},
 			'Failed to send application received acknowledgement to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends an email to an interested party notifying them that a decision has been made
+	 */
+	async sendInterestedPartyDecision(
+		notificationData: InterestedPartyNotificationType,
+		details: InterestedPartyDecisionDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId = this.templateIds.interestedPartyDecision;
+
+		if (!templateId) {
+			this.logger.warn('interested party decision template not enabled. ignoring request.');
+			throw new Error('Interested party decision template not enabled.');
+		}
+
+		const contactName = [toText(notificationData.firstName), toText(notificationData.lastName)]
+			.filter(Boolean)
+			.join(' ')
+			.trim();
+
+		const recipientName = contactName || toText(notificationData.orgName) || 'Sir or Madam';
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation: {
+				recipientName,
+				caseReference: details.reference,
+				siteAddress: details.siteAddress,
+				applicationDescription: details.applicationDescription,
+				appInfoUrl: details.appInfoLink
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends a separate decision email to each interested party
+	 */
+	async sendInterestedPartyDecisionToMany(
+		notificationData: InterestedPartyNotificationType[],
+		details: InterestedPartyDecisionDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			(address) => {
+				const contact = notificationData.find((p) => p.email === address) as InterestedPartyNotificationType;
+				return this.sendInterestedPartyDecision(contact, details);
+			},
+			'Failed to send interested party decision notification to one or more email addresses.'
 		);
 	}
 

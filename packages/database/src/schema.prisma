@@ -318,6 +318,7 @@ model S62aCase {
   applicantDecisionEmailSent              Boolean? @default(false)
   lpaDecisionEmailSent                    Boolean? @default(false)
   acknowledgeApplicationReceivedEmailSent Boolean? @default(false)
+  interestedPartyDecisionEmailSent        Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {
