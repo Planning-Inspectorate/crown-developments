@@ -4,6 +4,7 @@ import { buildRouter } from './router.ts';
 import { addLocalsConfiguration } from '../util/config-middleware.ts';
 import { createBaseApp } from '@planning-inspectorate/core/app';
 import { loadManifest } from '@pins/crowndev-lib/util/manifest.ts';
+import { cspDirectives } from '../util/csp-middleware.ts';
 
 export async function createApp(service: S62APortalService) {
 	const router = buildRouter(service);
@@ -12,6 +13,7 @@ export async function createApp(service: S62APortalService) {
 		service,
 		router,
 		configureNunjucks,
+		cspDirectives,
 		multiPartFormRoutes: [
 			// Multer multipart/form-data needs to be handled before Lusca CSRF check,
 			// so the Have your say upload route checks CSRF itself

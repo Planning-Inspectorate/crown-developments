@@ -5,6 +5,7 @@ import { parseSessionSecrets } from '@pins/crowndev-lib/util/session.ts';
 import type { BlobStoreConfig } from '@pins/crowndev-lib/blob-store/types.ts';
 
 export interface Config extends BaseConfig {
+	appHostname: string;
 	/** Have your say attachments are uploaded to the blob store */
 	blobStore: BlobStoreConfig;
 	featureFlags: {
@@ -26,6 +27,7 @@ export interface Config extends BaseConfig {
 		};
 		representationsToken?: string;
 	};
+	googleAnalyticsId?: string;
 }
 
 // cache the config
@@ -47,6 +49,8 @@ export function loadConfig(): Config {
 
 	// get values from the environment
 	const {
+		APP_HOSTNAME,
+		GOOGLE_ANALYTICS_ID,
 		CACHE_CONTROL_MAX_AGE,
 		GIT_SHA,
 		LOG_LEVEL,
@@ -114,7 +118,13 @@ export function loadConfig(): Config {
 		httpPort = port;
 	}
 
+	if (!APP_HOSTNAME) {
+		throw new Error('APP_HOSTNAME is required');
+	}
+
 	config = {
+		appHostname: APP_HOSTNAME,
+		googleAnalyticsId: GOOGLE_ANALYTICS_ID,
 		blobStore: {
 			disabled: blobStoreDisabled,
 			host: BLOB_STORE_HOST || '',
