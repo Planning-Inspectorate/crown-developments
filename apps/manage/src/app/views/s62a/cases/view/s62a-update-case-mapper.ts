@@ -42,11 +42,12 @@ import {
 	type ApplicantContactAnswer,
 	type AdditionalContactAnswer
 } from '../util/party-types.ts';
-import { addBusinessDays, addWeeks } from 'date-fns';
+import { addWeeks } from 'date-fns';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
+import { addWorkingDays } from '@pins/crowndev-lib/util/working-days.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -509,7 +510,8 @@ export class S62aCaseUpdateMapper {
 
 		if (this.hasAnswer('applicationValidDate')) {
 			const validDate = this.answers.applicationValidDate;
-			datesToUpdate.targetPublishDate = validDate ? addBusinessDays(validDate, 5) : null;
+			// 5 working days in UK time, skipping weekends and England and Wales bank holidays
+			datesToUpdate.targetPublishDate = validDate ? addWorkingDays(validDate, 5) : null;
 			hasDateUpdates = true;
 		}
 
