@@ -4,12 +4,20 @@
 {% from "govuk/components/error-summary/macro.njk" import govukErrorSummary %}
 {% from "header/header-with-nav.njk" import headerWithNav %}
 {% from "ui/footer/pins-footer.njk" import pinsFooter %}
+{% from "analytics/google-analytics.njk" import googleAnalytics %}
 
 {% block head %}
 	{# setup the header tags, to link to the styles #}
 	<link rel="stylesheet" href="/{{ config.manifest.styleFile }}" />
 
 	<meta name="referrer" content="origin">
+
+	{{ googleAnalytics({
+        id: config.googleAnalyticsId,
+        cookieDomain: config.googleAnalyticsCookieDomain,
+        enabled: true,
+        cspNonce: cspNonce
+    }) }}
 {% endblock %}
 
 {% block pageTitle %}

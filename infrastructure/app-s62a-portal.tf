@@ -102,7 +102,7 @@ module "app_s62a_portal" {
     DYNAMIC_CACHE_CONTROL_MAX_AGE = var.apps_config.dynamic_cache_control.max_age
 
     # Analytics
-    GOOGLE_ANALYTICS_ID  = var.apps_config.google_analytics_id
+    GOOGLE_ANALYTICS_ID  = var.apps_config.s62a_google_analytics_id
     MICROSOFT_CLARITY_ID = var.apps_config.microsoft_clarity_id
 
     # blob store
