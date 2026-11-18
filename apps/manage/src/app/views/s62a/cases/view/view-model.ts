@@ -394,6 +394,7 @@ export interface S62aCaseViewModel {
 	applicantDecisionEmailSent?: YesNo;
 	lpaDecisionEmailSent?: YesNo;
 	acknowledgeApplicationReceivedEmailSent?: YesNo;
+	interestedPartyDecisionEmailSent?: YesNo;
 }
 
 /**
@@ -412,7 +413,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'acknowledgePreApplicationEmailSent',
 	'applicantDecisionEmailSent',
 	'lpaDecisionEmailSent',
-	'acknowledgeApplicationReceivedEmailSent'
+	'acknowledgeApplicationReceivedEmailSent',
+	'interestedPartyDecisionEmailSent'
 ] as const);
 
 /**

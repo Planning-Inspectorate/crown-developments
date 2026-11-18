@@ -2193,7 +2193,7 @@ export function getQuestions(
 			],
 			viewData: {
 				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'decision-date/remove' }],
-				warningMessage: 'Adding a date will send notifications to the applicant/agent, the LPA and interested parties'
+				warningMessage: 'Adding a date will send notifications to all parties'
 			}
 		},
 		recoveredReportSentDate: {

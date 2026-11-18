@@ -1219,3 +1219,145 @@ describe('S62aManageNotificationService', () => {
 		});
 	});
 });
+
+describe('S62aManageNotificationService processInterestedPartyDecision', () => {
+	const testAppInfoLink = 'TEST/applications/case-123/application-information';
+	let mockLogger: Logger;
+	let mockNotifyClient: S62aGovNotifyClient;
+	let service: S62aManageNotificationService;
+	let mockDb: any;
+
+	const ipDecisionAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+		({
+			decisionDate: new Date('2026-10-30T12:00:00.000Z'),
+			developmentDescription: 'Test proposal description',
+			siteAddress: { line1: '123 High Street', town: 'Bristol', postcode: 'BS1 1AA' },
+			...overrides
+		}) as UpdateCaseAnswers;
+
+	const representations = (...contacts: Array<Record<string, unknown> | null>) =>
+		contacts.map((contact) => ({ SubmittedByContact: contact }));
+
+	const process = (answers = ipDecisionAnswers(), target = service) =>
+		target.processInterestedPartyDecision(answers, 'case-123', 'REF-123', testAppInfoLink, mockDb);
+
+	const sentContacts = () => (mockNotifyClient.sendInterestedPartyDecisionToMany as any).mock.calls[0].arguments[0];
+
+	beforeEach(() => {
+		mockLogger = { info: mock.fn(), warn: mock.fn(), error: mock.fn() } as unknown as Logger;
+		mockNotifyClient = {
+			sendInterestedPartyDecisionToMany: mock.fn(async () => [
+				{ email: 'one@test.com', notifyId: 'n1', body: 'b', subject: 's' }
+			])
+		} as unknown as S62aGovNotifyClient;
+		mockDb = {
+			s62aRepresentation: {
+				findMany: mock.fn(async () =>
+					representations(
+						{ email: 'one@test.com', firstName: 'One', lastName: 'Person', orgName: null },
+						{ email: 'consultee@test.gov.uk', firstName: null, lastName: null, orgName: 'Natural England' }
+					)
+				)
+			}
+		};
+		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
+	});
+
+	it('returns wasSent: false without querying when decisionDate is absent', async () => {
+		const result = await process(ipDecisionAnswers({ decisionDate: undefined }));
+
+		assert.strictEqual(result.wasSent, false);
+		assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+	});
+
+	it('returns wasSent: false without querying when the notify client is null', async () => {
+		const result = await process(ipDecisionAnswers(), new S62aManageNotificationService(null, mockLogger));
+
+		assert.strictEqual(result.wasSent, false);
+		assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.calls.length, 0);
+		assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+	});
+
+	it('queries non-withdrawn representations for the case', async () => {
+		await process();
+
+		const [query] = mockDb.s62aRepresentation.findMany.mock.calls[0].arguments;
+		assert.deepStrictEqual(query.where, {
+			applicationId: 'case-123',
+			statusId: { not: REPRESENTATION_STATUS_ID.WITHDRAWN }
+		});
+	});
+
+	it('sends to every interested party with the case details and returns the audit data', async () => {
+		const result = await process();
+
+		assert.strictEqual(result.wasSent, true);
+		assert.strictEqual(result.auditData?.length, 1);
+
+		const [contacts, details] = (mockNotifyClient.sendInterestedPartyDecisionToMany as any).mock.calls[0].arguments;
+		assert.deepStrictEqual(contacts, [
+			{ email: 'one@test.com', firstName: 'One', lastName: 'Person', orgName: undefined },
+			{ email: 'consultee@test.gov.uk', firstName: undefined, lastName: undefined, orgName: 'Natural England' }
+		]);
+		assert.strictEqual(details.reference, 'REF-123');
+		assert.strictEqual(details.applicationDescription, 'Test proposal description');
+		assert.ok(details.siteAddress.includes('123 High Street'));
+		assert.strictEqual(details.appInfoLink, testAppInfoLink);
+	});
+
+	it('skips contacts without an email and sends once per email address (case-insensitive)', async () => {
+		mockDb.s62aRepresentation.findMany = mock.fn(async () =>
+			representations(
+				{ email: 'Sam@Test.com', firstName: 'Sam', lastName: 'First' },
+				null,
+				{ email: '  ', firstName: 'Blank' },
+				{ email: 'sam@test.com', firstName: 'Sam', lastName: 'Second' },
+				{ email: 'other@test.com', orgName: 'Historic England' }
+			)
+		);
+
+		await process();
+
+		assert.deepStrictEqual(
+			sentContacts().map((contact: any) => [contact.email, contact.lastName]),
+			[
+				['Sam@Test.com', 'First'],
+				['other@test.com', undefined]
+			]
+		);
+	});
+
+	it('returns wasSent: true without sending, and logs a warning, when there are no interested parties', async () => {
+		mockDb.s62aRepresentation.findMany = mock.fn(async () => []);
+
+		const result = await process();
+
+		assert.deepStrictEqual(result, { wasSent: true });
+		assert.strictEqual((mockNotifyClient.sendInterestedPartyDecisionToMany as any).mock.calls.length, 0);
+		assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, [
+			{ reference: 'REF-123' },
+			'No interested party email addresses found for reference REF-123. Marking notification as processed without sending.'
+		]);
+	});
+
+	it('falls back to easting and northing when there is no site address', async () => {
+		await process(ipDecisionAnswers({ siteAddress: undefined, siteEasting: 123456, siteNorthing: 654321 } as any));
+
+		const [, details] = (mockNotifyClient.sendInterestedPartyDecisionToMany as any).mock.calls[0].arguments;
+		assert.strictEqual(details.siteAddress, 'Easting: 123456, Northing: 654321');
+	});
+
+	it('logs and rethrows when the notify client fails', async () => {
+		(mockNotifyClient as any).sendInterestedPartyDecisionToMany = mock.fn(async () => {
+			throw new Error('Notify down');
+		});
+
+		await assert.rejects(() => process(), {
+			message: 'Error encountered during interested party decision email notification dispatch'
+		});
+		assert.strictEqual(
+			(mockLogger.error as any).mock.calls[0].arguments[1],
+			'Error dispatching interested party decision email'
+		);
+	});
+});

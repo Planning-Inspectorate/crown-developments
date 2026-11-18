@@ -84,6 +84,7 @@ apps_config = {
       rep_published_template_id               = "6029c0fc-b8c3-48eb-bed2-badc1539b1e9"
       application_received_fee_template_id    = "068fe2da-2c0d-43d8-b9c8-de9e1b04bbb1"
       application_received_no_fee_template_id = "070f4cda-6175-4d7b-b6a1-73ea17d7ca2e"
+      ip_decision_template_id                 = "b9f7ddc7-ff52-4239-b559-d1d2e8c3bc12"
     }
   }
 

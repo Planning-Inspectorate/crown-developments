@@ -83,6 +83,7 @@ apps_config = {
       rep_published_template_id               = ""
       application_received_fee_template_id    = ""
       application_received_no_fee_template_id = ""
+      ip_decision_template_id                 = ""
     }
   }
 

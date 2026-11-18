@@ -92,6 +92,7 @@ variable "apps_config" {
         rep_published_template_id               = string
         application_received_fee_template_id    = string
         application_received_no_fee_template_id = string
+        ip_decision_template_id                 = string
       })
     })
 
