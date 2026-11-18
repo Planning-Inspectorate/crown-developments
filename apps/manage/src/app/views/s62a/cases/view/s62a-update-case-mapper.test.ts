@@ -28,7 +28,7 @@ import {
 	type UpdateCaseAnswers
 } from './s62a-update-case-mapper.ts';
 import { BOOLEAN_OPTIONS, type Address } from '@planning-inspectorate/dynamic-forms';
-import { addBusinessDays, addWeeks } from 'date-fns';
+import { addWeeks } from 'date-fns';
 import type { S62aCaseViewModel } from './view-model.ts';
 
 type PersistedList =
@@ -264,14 +264,8 @@ describe('S62aCaseUpdateMapper', () => {
 			});
 		});
 
-		it('calculates targetPublishDate as 5 business days after applicationValidDate', () => {
-			const validDate = new Date('2026-07-01T10:00:00Z');
-			const expectedTargetDate = addBusinessDays(validDate, 5);
-
-			const answers: UpdateCaseAnswers = {
-				applicationValidDate: validDate
-			};
-			const mapper = new S62aCaseUpdateMapper(answers);
+		const expectTargetPublishDate = (validDate: Date, expectedTargetDate: Date) => {
+			const mapper = new S62aCaseUpdateMapper({ applicationValidDate: validDate } as UpdateCaseAnswers);
 			const result = mapper.generateUpdateInput();
 
 			assert.deepStrictEqual(result.S62aDates, {
@@ -280,6 +274,21 @@ describe('S62aCaseUpdateMapper', () => {
 					update: { applicationValidDate: validDate, targetPublishDate: expectedTargetDate, targetDecisionDate: null }
 				}
 			});
+		};
+
+		it('calculates targetPublishDate as 5 working days after applicationValidDate', () => {
+			// Wed 1 July 2026 + 5 working days = Wed 8 July 2026
+			expectTargetPublishDate(new Date('2026-07-01T10:00:00Z'), new Date('2026-07-08T10:00:00Z'));
+		});
+
+		it('skips bank holidays when calculating targetPublishDate', () => {
+			// Mon 21 Dec 2026 + 5 working days skips Christmas Day and the Boxing Day substitute (28 Dec)
+			expectTargetPublishDate(new Date('2026-12-21T00:00:00Z'), new Date('2026-12-30T00:00:00Z'));
+		});
+
+		it('calculates targetPublishDate in UK time for a Monday during British Summer Time', () => {
+			// Mon 1 June 2026 UK midnight is stored as Sun 31 May 23:00 UTC; the target is Mon 8 June (UK midnight)
+			expectTargetPublishDate(new Date('2026-05-31T23:00:00Z'), new Date('2026-06-07T23:00:00Z'));
 		});
 
 		it('nullifies targetPublishDate if applicationValidDate is explicitly cleared', () => {
