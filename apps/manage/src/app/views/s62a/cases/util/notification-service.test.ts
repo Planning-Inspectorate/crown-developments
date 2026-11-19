@@ -288,6 +288,18 @@ describe('S62aManageNotificationService', () => {
 			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
 		});
 
+		it('formats applicationReceivedDate as "d MMMM yyyy"', async () => {
+			const caseAnswers = preAppAnswers({
+				applicationReceivedDate: new Date('2026-03-05T12:00:00.000Z')
+			});
+
+			const result = await service.processAcknowledgementPreApplication(caseAnswers, 'REF-123');
+
+			assert.strictEqual(result.wasSent, true);
+			const [, details] = (mockNotifyClient.sendAcknowledgePreApplicationToMany as any).mock.calls[0].arguments;
+			assert.strictEqual(details.receivedDate, '5 March 2026');
+		});
+
 		it('falls back to easting and northing when siteAddress is not provided', async () => {
 			const caseAnswers = preAppAnswers({
 				siteAddress: undefined,
