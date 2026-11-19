@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, mock } from 'node:test';
+import { describe, it, beforeEach, afterEach, mock } from 'node:test';
 import assert from 'node:assert';
 import { S62aPortalNotificationService } from './notification-service.ts';
 import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts';
@@ -40,6 +40,8 @@ describe('S62aPortalNotificationService', () => {
 	};
 
 	beforeEach(() => {
+		mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-30T12:00:00.000Z') });
+
 		mockLogger = {
 			info: mock.fn(),
 			warn: mock.fn(),
@@ -57,6 +59,10 @@ describe('S62aPortalNotificationService', () => {
 		} as unknown as PrismaClient;
 
 		service = new S62aPortalNotificationService(mockNotifyClient, mockLogger);
+	});
+
+	afterEach(() => {
+		mock.timers.reset();
 	});
 
 	describe('processAcknowledgementRepresentationReceived', () => {
@@ -128,7 +134,7 @@ describe('S62aPortalNotificationService', () => {
 			assert.strictEqual((mockNotifyClient.sendRepresentationReceivedToMany as any).mock.calls.length, 0);
 		});
 
-		it('extracts "myself" contact details and dispatches email with formatted address', async () => {
+		it('extracts "myself" contact details and dispatches email with formatted address and date', async () => {
 			const formAnswers = answers({
 				submittedForId: 'myself',
 				myselfEmail: 'myself@test.com',
@@ -163,7 +169,7 @@ describe('S62aPortalNotificationService', () => {
 			assert.strictEqual(representationData.representationReference, 'REP-123');
 			assert.strictEqual(representationData.applicationDescription, 'Proposed solar farm development');
 			assert.ok(representationData.siteAddress.includes('1 High Street'));
-			assert.strictEqual(typeof representationData.representationReceivedDate, 'string');
+			assert.strictEqual(representationData.representationReceivedDate, '30 October 2026');
 
 			assert.strictEqual((mockLogger.info as any).mock.calls.length, 1);
 			assert.deepStrictEqual((mockLogger.info as any).mock.calls[0].arguments, [

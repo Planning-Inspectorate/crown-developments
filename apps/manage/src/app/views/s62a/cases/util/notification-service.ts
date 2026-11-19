@@ -128,7 +128,7 @@ export class S62aManageNotificationService {
 		const formattedAddress = this.formatAddress(answers);
 
 		const applicationDescription = answers.developmentDescription || '';
-		const receivedDate = formatDateForDisplay(answers.applicationReceivedDate);
+		const receivedDate = formatDateForDisplay(answers.applicationReceivedDate, { format: 'd MMMM yyyy' });
 
 		try {
 			const auditData = await this.notifyClient.sendAcknowledgePreApplicationToMany(notificationContacts, {
