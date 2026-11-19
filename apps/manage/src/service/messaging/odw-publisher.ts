@@ -30,8 +30,8 @@ export class OdwPublisher {
 			}
 			await this.#bus.sendMessage(topic, mapper(entity), validate);
 			this.#logger.info({ key, topic }, 'published message to ODW');
-		} catch (error) {
-			this.#logger.error({ error, key }, 'failed to publish message to ODW');
+		} catch (err) {
+			this.#logger.error({ err, key }, 'failed to publish message to ODW');
 		}
 	}
 }

@@ -97,13 +97,6 @@ describe('application updates create controller', () => {
 						}
 					},
 					firstPublished: new Date('2025-01-01T03:24:00.000Z')
-				},
-				include: {
-					Application: {
-						select: {
-							reference: true
-						}
-					}
 				}
 			});
 		});

@@ -4,7 +4,6 @@ import { JOURNEY_ID } from '../journey.js';
 import { APPLICATION_UPDATE_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { addAppUpdateStatus } from '../utils.ts';
-import { applicationUpdateOdwInclude } from '../../../../../../service/messaging/mappers/application-updates.mapper.ts';
 
 export function buildCreateController() {
 	return async (req, res) => {
@@ -28,11 +27,10 @@ export function buildSaveController({ db, logger, odwPublisher }) {
 			logger.info({ reference }, 'creating a new application update');
 
 			const created = await $tx.applicationUpdate.create({
-				data: toCreateInput(answers, id),
-				include: applicationUpdateOdwInclude
+				data: toCreateInput(answers, id)
 			});
 			logger.info({ reference, newApplicationUpdateId: created.id }, 'created a new application update');
-			return created;
+			return { ...created, Application: { reference } };
 		});
 
 		await odwPublisher.publish('application-update', newApplicationUpdate);

@@ -1,11 +1,14 @@
-import { DefaultAzureCredential } from '@azure/identity';
+import { ManagedIdentityCredential } from '@azure/identity';
 import { ServiceBusClient } from '@azure/service-bus';
 import type { ValidateFunction } from 'ajv';
 
 export class ServiceBus {
 	private client: ServiceBusClient;
 
-	constructor(fullyQualifiedNamespace: string, credential: DefaultAzureCredential = new DefaultAzureCredential()) {
+	constructor(
+		fullyQualifiedNamespace: string,
+		credential: ManagedIdentityCredential = new ManagedIdentityCredential()
+	) {
 		this.client = new ServiceBusClient(fullyQualifiedNamespace, credential, {
 			retryOptions: { maxRetries: 2, timeoutInMs: 10_000 }
 		});

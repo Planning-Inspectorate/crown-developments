@@ -8,7 +8,7 @@ interface MessageRegistryEntry {
 
 export const messageRegistry = {
 	'application-update': {
-		topic: 'application-update',
+		topic: 'applications-application-update',
 		schemaId: 'applications-application-update.schema.json',
 		mapper: mapApplicationUpdatesToOdwSchema
 	}
