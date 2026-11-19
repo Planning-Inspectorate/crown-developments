@@ -25,7 +25,8 @@ export function sendS62aNotificationAndUpdateFlag(
 		| 'acknowledgeApplicationReceivedEmailSent'
 		| null,
 	operationName: string,
-	req?: Request
+	req?: Request,
+	onSent?: () => Promise<void>
 ): void {
 	const { db, logger } = service;
 	const operation = async () => {
@@ -34,26 +35,10 @@ export function sendS62aNotificationAndUpdateFlag(
 
 			if (result.wasSent) {
 				if (flagField) {
-					// TODO, this is bad.
-					if (flagField === 'acknowledgeApplicationReceivedEmailSent') {
-						const acknowledgedDate = new Date();
-						await db.$transaction([
-							db.s62aCase.update({
-								where: { id: caseId },
-								data: { acknowledgeApplicationReceivedEmailSent: true }
-							}),
-							db.s62aDates.upsert({
-								where: { s62aCaseId: caseId },
-								create: { s62aCaseId: caseId, applicationAcknowledgedDate: acknowledgedDate },
-								update: { applicationAcknowledgedDate: acknowledgedDate }
-							})
-						]);
-					} else {
-						await db.s62aCase.update({
-							where: { id: caseId },
-							data: { [flagField]: true }
-						});
-					}
+					await db.s62aCase.update({
+						where: { id: caseId },
+						data: { [flagField]: true }
+					});
 				}
 
 				if (result.auditData && result.auditData.length > 0) {
@@ -77,6 +62,10 @@ export function sendS62aNotificationAndUpdateFlag(
 						})),
 						logContext: { caseId }
 					});
+				}
+
+				if (onSent) {
+					await onSent();
 				}
 
 				logger.info({ caseId, flagField, operation: operationName }, 'Notification sent and audited successfully');

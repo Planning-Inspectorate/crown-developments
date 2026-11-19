@@ -162,7 +162,15 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				logContext: { caseId: id }
 			});
 
-			handleUpdateEmails(answers, previousCase as unknown as S62aCaseViewModel, notificationService, service, id, req);
+			handleUpdateEmails(
+				answers,
+				previousCase as unknown as S62aCaseViewModel,
+				notificationService,
+				service,
+				id,
+				req,
+				res
+			);
 		}
 	};
 }
@@ -251,7 +259,8 @@ function handleUpdateEmails(
 	notificationService: S62aManageNotificationService,
 	service: ManageService,
 	id: string,
-	req: Request
+	req: Request,
+	res: Response
 ): void {
 	if (previousCase.publishedToLegacyGovUk) return;
 
@@ -260,7 +269,7 @@ function handleUpdateEmails(
 	applicantDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	lpaDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	representationPublishedEmail(answers, previousCase, notificationService, service, id, req);
-	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req);
+	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req, res);
 }
 
 /**
@@ -464,6 +473,7 @@ export function acknowledgeApplicationReceivedEmail(
 	service: ManageService,
 	id: string,
 	req: Request,
+	res: Response,
 	sendNotificationFn = sendS62aNotificationAndUpdateFlag
 ): void {
 	const hasReceivedDate = Boolean(answers.applicationReceivedDate);
@@ -473,6 +483,8 @@ export function acknowledgeApplicationReceivedEmail(
 	if (!hasReceivedDate || acknowledgementWasAlreadySent || !isApplicationCase) {
 		return;
 	}
+
+	const { db, logger, audit } = service;
 
 	const mergedAnswers = {
 		...previousCase,
@@ -491,6 +503,23 @@ export function acknowledgeApplicationReceivedEmail(
 		id,
 		'acknowledgeApplicationReceivedEmailSent',
 		'Send Acknowledgement of Application Received (Update)',
-		req
+		req,
+		async () => {
+			const acknowledgedDate = new Date();
+			await db.s62aDates.upsert({
+				where: { s62aCaseId: id },
+				create: { s62aCaseId: id, applicationAcknowledgedDate: acknowledgedDate },
+				update: { applicationAcknowledgedDate: acknowledgedDate }
+			});
+
+			// Because we have to do this after the email was sent, we have to audit independently of the main fields
+			await recordAuditEntries(audit, logger, res, {
+				caseId: id,
+				userId: req.session?.account?.localAccountId,
+				previousCase: previousCase as unknown as Record<string, unknown>,
+				answers: { applicationAcknowledgedDate: acknowledgedDate },
+				updatedFieldNames: ['applicationAcknowledgedDate']
+			});
+		}
 	);
 }

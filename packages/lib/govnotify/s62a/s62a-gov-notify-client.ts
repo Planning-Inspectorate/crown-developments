@@ -373,19 +373,6 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			.join(' ')
 			.trim();
 
-		console.log('minkus', {
-			personalisation: {
-				applicantName: applicantContact || 'Applicant/agent',
-				caseReference: personalisation.reference,
-				siteAddress: personalisation.siteAddress,
-				applicationDescription: personalisation.applicationDescription,
-				receivedDate: personalisation.applicationReceivedDate,
-				applicationFee: `£${personalisation.applicationFee}`,
-				section62aEmail: personalisation.s62aEmail
-			},
-			reference: personalisation.reference
-		});
-
 		return this.sendEmailWithAudit(templateId, notificationData.email, {
 			personalisation: {
 				applicantName: applicantContact || 'Applicant/agent',
