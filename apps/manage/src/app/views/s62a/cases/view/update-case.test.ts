@@ -1069,6 +1069,7 @@ describe('acknowledgeApplicationReceivedEmail', () => {
 	let mockService: ManageService;
 	let mockSendFn: any;
 	let mockReq: any;
+	let mockRes: any;
 
 	beforeEach(() => {
 		mockNotificationService = new S62aManageNotificationService(null, null as any);
@@ -1091,6 +1092,7 @@ describe('acknowledgeApplicationReceivedEmail', () => {
 				}
 			}
 		};
+		mockRes = {} as unknown as Partial<Response>;
 	});
 
 	it('returns early without doing anything if applicationReceivedDate is not in the answers payload', () => {
@@ -1173,6 +1175,7 @@ describe('acknowledgeApplicationReceivedEmail', () => {
 			mockService,
 			'case-123',
 			mockReq,
+			mockRes,
 			mockSendFn
 		);
 
