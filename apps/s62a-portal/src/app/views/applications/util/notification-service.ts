@@ -72,7 +72,7 @@ export class S62aPortalNotificationService {
 		const representationData: RepresentationDetails = {
 			caseReference: s62aCase.reference,
 			representationReference,
-			representationReceivedDate: formatDateForDisplay(new Date()),
+			representationReceivedDate: formatDateForDisplay(new Date(), { format: 'd MMMM yyyy' }),
 			siteAddress: formattedAddress,
 			applicationDescription: s62aCase.description ?? ''
 		};
