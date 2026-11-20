@@ -60,7 +60,15 @@ describe('application updates create controller', () => {
 				}
 			};
 
-			const controller = buildSaveController({ db: mockDb, logger: mockLogger() });
+			const mockOdwPublisher = {
+				publish: mock.fn()
+			};
+
+			const controller = buildSaveController({
+				db: mockDb,
+				logger: mockLogger(),
+				odwPublisher: mockOdwPublisher
+			});
 			await controller(mockReq, mockRes);
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
