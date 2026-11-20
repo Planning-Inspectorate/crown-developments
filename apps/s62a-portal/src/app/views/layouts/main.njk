@@ -15,7 +15,7 @@
 	{{ googleAnalytics({
         id: config.googleAnalyticsId,
         cookieDomain: config.googleAnalyticsCookieDomain,
-        enabled: true,
+        enabled: analyticsCookiesEnabled,
         cspNonce: cspNonce
     }) }}
 {% endblock %}

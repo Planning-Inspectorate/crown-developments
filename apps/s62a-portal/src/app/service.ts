@@ -46,4 +46,8 @@ export class S62APortalService extends Service {
 	get appHostname() {
 		return this.#config.appHostname;
 	}
+
+	get cookieName() {
+		return 'S62aAnalyticsEnabled';
+	}
 }
