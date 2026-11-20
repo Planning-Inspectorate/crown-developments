@@ -1,0 +1,35 @@
+{% macro googleAnalytics(params) %}
+    {% if params.id and params.enabled %}
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ params.id }}"{% if params.cspNonce %} nonce="{{ params.cspNonce }}"{% endif %}></script>
+        <script{% if params.cspNonce %} nonce="{{ params.cspNonce }}"{% endif %}>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+
+            {#
+                Default consent state is set to denied for all storage types.
+                This means that no cookies will be set until the user has given consent.
+                Technically consent has been given already, but we need to set the default state for DPIA/audit purposes.
+                Resulting in default state being denied, and then updated as the user has given consent for analytics storage.
+            #}
+            gtag('consent', 'default', {
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                analytics_storage: 'denied'
+            });
+
+            gtag('consent', 'update', {
+                analytics_storage: 'granted'
+            });
+
+            gtag('js', new Date());
+
+            gtag('config', '{{ params.id }}'{% if params.cookieDomain %}, {
+                cookie_domain: '{{ params.cookieDomain }}'
+            }{% endif %});
+        </script>
+    {% endif %}
+{% endmacro %}

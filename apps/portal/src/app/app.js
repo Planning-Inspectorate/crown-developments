@@ -2,7 +2,7 @@ import { buildRouter } from './router.js';
 import { configureNunjucks } from './nunjucks.js';
 import { addLocalsConfiguration } from '#util/config-middleware.js';
 import { cspDirectives } from '#util/csp-middleware.ts';
-import { buildAnalyticsCookiesMiddleware } from '#util/cookies.js';
+import { buildAnalyticsCookiesMiddleware } from '@pins/crowndev-lib/util/cookies.ts';
 import { cleanEmptyQueryParams, trimEmptyQuery } from '@pins/crowndev-lib/middleware/query-middleware.js';
 import { createBaseApp } from '@planning-inspectorate/core/app';
 import { loadManifest } from '@pins/crowndev-lib/util/manifest.ts';
