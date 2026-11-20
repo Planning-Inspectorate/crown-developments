@@ -97,6 +97,7 @@ module "app_manage" {
     # s62a gov notify
     S62A_GOV_NOTIFY_DISABLED                                = var.apps_config.s62a_gov_notify.disabled
     S62A_GOV_NOTIFY_API_KEY                                 = local.key_vault_refs["s62a-gov-notify-api-key"]
+    S62A_GOV_NOTIFY_REPRESENTATIONS_TOKEN                   = local.key_vault_refs["s62a-gov-notify-representations-token"]
     S62A_GOV_NOTIFY_TEST_TEMPLATE_ID                        = var.apps_config.s62a_gov_notify.templates.test_template_id
     S62A_GOV_NOTIFY_PRE_ACK_TEMPLATE_ID                     = var.apps_config.s62a_gov_notify.templates.pre_ack_template_id
     S62A_GOV_NOTIFY_ACK_PRE_APP_TEMPLATE_ID                 = var.apps_config.s62a_gov_notify.templates.ack_pre_app_template_id
