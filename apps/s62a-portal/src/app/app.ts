@@ -5,6 +5,7 @@ import { addLocalsConfiguration } from '../util/config-middleware.ts';
 import { createBaseApp } from '@planning-inspectorate/core/app';
 import { loadManifest } from '@pins/crowndev-lib/util/manifest.ts';
 import { cspDirectives } from '../util/csp-middleware.ts';
+import { buildAnalyticsCookiesMiddleware } from '@pins/crowndev-lib/util/cookies.ts';
 
 export async function createApp(service: S62APortalService) {
 	const router = buildRouter(service);
@@ -19,6 +20,6 @@ export async function createApp(service: S62APortalService) {
 			// so the Have your say upload route checks CSRF itself
 			/\/have-your-say\/[^/]+\/[^/]+\/upload\/?$/
 		],
-		middlewares: [addLocalsConfiguration(service, manifest)]
+		middlewares: [addLocalsConfiguration(service, manifest), buildAnalyticsCookiesMiddleware(service)]
 	});
 }

@@ -3,7 +3,7 @@ import {
 	readCookieSettingSession,
 	setAnalyticsCookiesPreference,
 	setCookieSettingSession
-} from '#util/cookies.js';
+} from '@pins/crowndev-lib/util/cookies.ts';
 
 /**
  * Builds the Cookie page controller.
