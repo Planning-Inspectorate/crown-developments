@@ -38,4 +38,12 @@ export class S62APortalService extends Service {
 	get isLive() {
 		return this.#config.featureFlags?.isLive;
 	}
+
+	get googleAnalyticsId() {
+		return this.#config.googleAnalyticsId;
+	}
+
+	get appHostname() {
+		return this.#config.appHostname;
+	}
 }

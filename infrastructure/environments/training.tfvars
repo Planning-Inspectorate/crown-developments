@@ -45,8 +45,9 @@ apps_config = {
     max_age = 300
   }
 
-  google_analytics_id  = null
-  microsoft_clarity_id = null
+  google_analytics_id      = null
+  s62a_google_analytics_id = null
+  microsoft_clarity_id     = null
 
   logging = {
     level = "warn"

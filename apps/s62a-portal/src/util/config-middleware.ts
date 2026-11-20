@@ -47,6 +47,8 @@ export function addLocalsConfiguration(service: S62APortalService, manifest: Man
 				}
 			],
 			isLive: service.isLive,
+			googleAnalyticsId: service.googleAnalyticsId,
+			googleAnalyticsCookieDomain: service.appHostname,
 			primaryNavigationLinks: links.map((link) => ({
 				...link,
 				current: link.href === path
