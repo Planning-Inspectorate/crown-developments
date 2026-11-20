@@ -63,6 +63,10 @@
 
 {% block before_content %}{% endblock %}
 
+{% block bodyStart %}
+	{% include "cookies/cookie-banner.njk" %}
+{% endblock %}
+
 {% block content %}
 	{% block pageHeading %}
 		<div class="govuk-grid-row">
