@@ -26,7 +26,10 @@ const COMPANION_ANSWER_KEYS = new Set([
 	/** Fee amount components (question fieldNames: hasPreApplicationFee, hasApplicationFee, eligibleForFeeRefund) */
 	'preApplicationFee',
 	'applicationFee',
-	'applicationFeeRefundAmount'
+	'applicationFeeRefundAmount',
+	/** Site visit date and time component (question fieldName: siteVisitDate) */
+	'siteVisitStartTime',
+	'siteVisitEndTime'
 ]);
 
 /**

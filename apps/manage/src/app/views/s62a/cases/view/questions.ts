@@ -23,6 +23,7 @@ import {
 	S62A_CATEGORIES,
 	S62A_PRE_APPLICATION_STATUSES,
 	S62A_STAGES,
+	SITE_VISIT_TYPE_ID,
 	SITE_VISIT_TYPES,
 	SPECIALISMS,
 	WASTE_TYPES,
@@ -67,6 +68,7 @@ import CustomDatePeriodValidator from '@pins/crowndev-lib/validators/custom-date
 import FeeAmountValidator from '@pins/crowndev-lib/forms/custom-components/fee-amount/fee-amount-validator.js';
 import CILAmountValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-validator.ts';
 import CILAmountLengthValidator from '@pins/crowndev-lib/forms/custom-components/cil-amount/cil-amount-length-validator.ts';
+import SiteVisitDateTimeValidator from '@pins/crowndev-lib/forms/custom-components/site-visit-date-time/validator.ts';
 import { multiContactQuestions, createLpaContactQuestion } from '../util/question-factories.ts';
 import { getApplicantOrganisationOptions } from '../../../cases/util/applicant-organisation-options.ts';
 import TelephoneNumberValidator from '@pins/crowndev-lib/validators/telephone-number-validator.ts';
@@ -2350,13 +2352,20 @@ export function getQuestions(
 			validators: [new DateValidator('hearing issues report published date')]
 		},
 		siteVisit: {
-			type: COMPONENT_TYPES.DATE,
+			type: CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME,
 			title: 'Site visit',
 			question: 'When is the site visit?',
 			hint: 'For example, 27 3 2007',
+			headingHint: 'You must first add the site address or site coordinates',
+			warningText: 'Adding a date will send a notification to the applicant/agent',
 			fieldName: 'siteVisitDate',
 			url: 'site-visit',
-			validators: [new DateValidator('site visit date')]
+			typeFieldName: 'siteVisitTypeId',
+			// An access required site visit (ARSV) also records a start and end time
+			typesWithTimes: [SITE_VISIT_TYPE_ID.ACCESS_REQUIRED],
+			startTimeFieldName: 'siteVisitStartTime',
+			endTimeFieldName: 'siteVisitEndTime',
+			validators: [new SiteVisitDateTimeValidator('site visit date')]
 		},
 		siteVisitType: {
 			type: COMPONENT_TYPES.RADIO,

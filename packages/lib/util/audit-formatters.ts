@@ -1,5 +1,6 @@
 import { formatDate } from './date-util.ts';
 import { joinParts, toNumberText, toText } from '../audit/resolvers/util/values.ts';
+import { formatInTimeZone } from 'date-fns-tz';
 
 /**
  * The address fields formatAddress reads. Addresses from the form and the view
@@ -161,4 +162,23 @@ export function formatContactDetails({
 	const name = [toText(firstName), toText(lastName)].filter(Boolean).join(' ');
 
 	return joinParts([name || undefined, toText(email), toText(phone)]);
+}
+
+/**
+ * The site visit as one value: the date, then the times when both are set.
+ */
+export function formatSiteVisit(date: unknown, startTime: unknown, endTime: unknown): string {
+	const dateText = formatDate(date as Date | string | null | undefined);
+	if (dateText === '-') return '-';
+
+	const start = formatTime(startTime);
+	const end = formatTime(endTime);
+	return start && end ? `${dateText}, ${start} to ${end}` : dateText;
+}
+
+function formatTime(value: unknown): string | undefined {
+	if (!(value instanceof Date) && typeof value !== 'string') return undefined;
+	const date = new Date(value);
+	if (isNaN(date.getTime())) return undefined;
+	return formatInTimeZone(date, 'Europe/London', 'h:mmaaa');
 }

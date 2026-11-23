@@ -528,6 +528,98 @@ describe('buildS62aUpdateCase', () => {
 			assert.deepStrictEqual(targetPublishDateEntries(), []);
 		});
 	});
+
+	describe('site visit type change', () => {
+		let auditEntries: Array<{ action: string; metadata?: Record<string, unknown> }>;
+
+		const save = (answers: Record<string, unknown>) =>
+			buildS62aUpdateCase(mockService)({
+				req: mockReq,
+				res: mockRes,
+				data: { answers }
+			} as unknown as SaveParams);
+
+		const savedEvent = () => mockDbUpdateCalls.at(-1).data.S62aEvent.upsert.update;
+
+		const savedArsv = {
+			id: 'case-123',
+			S62aEvent: {
+				siteVisitTypeId: 'access-required',
+				siteVisitDate: new Date('2027-03-27T00:00:00Z'),
+				siteVisitStartTime: new Date('2027-03-27T10:00:00Z'),
+				siteVisitEndTime: new Date('2027-03-27T12:30:00Z')
+			}
+		};
+
+		beforeEach(() => {
+			auditEntries = [];
+			// As the case details controller sets them, from the question titles
+			mockRes = { locals: { fieldDisplayNames: { siteVisitDate: 'Site visit' } } } as unknown as Partial<Response>;
+			mockReq = {
+				params: { id: 'case-123' },
+				session: { account: { localAccountId: 'user-1' } }
+			} as unknown as Request;
+			Object.assign(mockService, {
+				audit: {
+					recordMany: async (entries: typeof auditEntries) => {
+						auditEntries.push(...entries);
+					}
+				}
+			});
+		});
+
+		it('clears the saved site visit date and times when the type is changed', async () => {
+			caseRecord = savedArsv;
+
+			await save({ siteVisitTypeId: 'unaccompanied' });
+
+			const event = savedEvent();
+			assert.deepStrictEqual(event.SiteVisitType, { connect: { id: 'unaccompanied' } });
+			assert.strictEqual(event.siteVisitDate, null);
+			assert.strictEqual(event.siteVisitStartTime, null);
+			assert.strictEqual(event.siteVisitEndTime, null);
+		});
+
+		it('records the cleared site visit as one entry in the case history', async () => {
+			caseRecord = savedArsv;
+
+			await save({ siteVisitTypeId: 'unaccompanied' });
+
+			const siteVisitEntries = auditEntries.filter((entry) => entry.metadata?.fieldName === 'Site visit');
+			assert.strictEqual(siteVisitEntries.length, 1, JSON.stringify(auditEntries));
+			assert.strictEqual(siteVisitEntries[0].metadata?.oldValue, '27 March 2027, 10:00am to 12:30pm');
+			assert.strictEqual(siteVisitEntries[0].metadata?.newValue, '-');
+		});
+
+		it('keeps the saved site visit details when the same type is saved again', async () => {
+			caseRecord = savedArsv;
+
+			await save({ siteVisitTypeId: 'access-required' });
+
+			const event = savedEvent();
+			assert.strictEqual(event.siteVisitDate, undefined);
+			assert.strictEqual(event.siteVisitStartTime, undefined);
+			assert.strictEqual(event.siteVisitEndTime, undefined);
+		});
+
+		it('records the site visit date and times as one entry when they are saved', async () => {
+			caseRecord = { id: 'case-123', S62aEvent: { siteVisitTypeId: 'access-required' } };
+
+			await save({
+				siteVisitDate: new Date('2027-03-27T00:00:00Z'),
+				siteVisitStartTime: new Date('2027-03-27T10:00:00Z'),
+				siteVisitEndTime: new Date('2027-03-27T12:30:00Z')
+			});
+
+			const event = savedEvent();
+			assert.deepStrictEqual(event.siteVisitStartTime, new Date('2027-03-27T10:00:00Z'));
+			assert.deepStrictEqual(event.siteVisitEndTime, new Date('2027-03-27T12:30:00Z'));
+			assert.deepStrictEqual(
+				auditEntries.map((entry) => entry.metadata),
+				[{ fieldName: 'Site visit', oldValue: '-', newValue: '27 March 2027, 10:00am to 12:30pm' }]
+			);
+		});
+	});
 });
 
 describe('acknowledgePreNotificationEmail', () => {

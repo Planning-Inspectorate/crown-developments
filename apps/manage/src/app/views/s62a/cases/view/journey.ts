@@ -310,8 +310,10 @@ export function createJourney(questions: Record<string, Question>, response: Jou
 				.addQuestion(questions.noticeOfProcedureDate)
 				.endMultiQuestionCondition('event-is-application-1')
 
-				.addQuestion(questions.siteVisit)
 				.addQuestion(questions.siteVisitType)
+				// The date (and times, for some types) depend on the type, so it's chosen first
+				.addQuestion(questions.siteVisit)
+				.withCondition((response: JourneyResponse) => Boolean(response.answers?.siteVisitTypeId))
 
 				.startMultiQuestionCondition('event-is-application-2', isApplicationCase)
 				.addQuestion(questions.hearingDate)

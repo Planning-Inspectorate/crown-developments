@@ -22,6 +22,9 @@ import MultiFileUploadQuestion from './multi-file-uploader/question.ts';
 import CardManageListQuestion, { type CardManageListQuestionParams } from './manage-list/card/question.ts';
 import RepresentationsMultiFileUploadQuestion from './representations-multi-file-uploader/question.ts';
 import NestedFolderQuestion from './nested-folder-radio/question.ts';
+import SiteVisitDateTimeQuestion, {
+	type SiteVisitDateTimeQuestionProps as SiteVisitDateTimeParams
+} from './site-visit-date-time/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -187,6 +190,10 @@ type CardManageListQuestionProps = CardManageListQuestionParams & {
 	type: typeof CUSTOM_COMPONENTS.CARD_MANAGE_LIST;
 };
 
+type SiteVisitDateTimeQuestionProps = Omit<SiteVisitDateTimeParams, 'type'> & {
+	type: typeof CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME;
+};
+
 export type CrownQuestionProps =
 	| QuestionProps
 	| RepresentationAttachmentsQuestionProps
@@ -200,7 +207,8 @@ export type CrownQuestionProps =
 	| TableManageListQuestionProps
 	| DefinedColumnsTableQuestionProps
 	| MultiFileUploaderQuestionProps
-	| CardManageListQuestionProps;
+	| CardManageListQuestionProps
+	| SiteVisitDateTimeQuestionProps;
 
 export const CUSTOM_COMPONENTS = Object.freeze({
 	REPRESENTATION_ATTACHMENTS: 'representation-attachments',
@@ -220,7 +228,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	MULTI_FILE_UPLOADER: 'multi-file-uploader',
 	CARD_MANAGE_LIST: 'card-manage-list',
 	REPS_MULTI_FILE_UPLOADER: 'reps-multi-file-uploader',
-	NESTED_FOLDERS: 'nested-folders'
+	NESTED_FOLDERS: 'nested-folders',
+	SITE_VISIT_DATE_TIME: 'site-visit-date-time'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -241,5 +250,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.MULTI_FILE_UPLOADER]: MultiFileUploadQuestion,
 	[CUSTOM_COMPONENTS.CARD_MANAGE_LIST]: CardManageListQuestion,
 	[CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER]: RepresentationsMultiFileUploadQuestion,
-	[CUSTOM_COMPONENTS.NESTED_FOLDERS]: NestedFolderQuestion
+	[CUSTOM_COMPONENTS.NESTED_FOLDERS]: NestedFolderQuestion,
+	[CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME]: SiteVisitDateTimeQuestion
 } as const);

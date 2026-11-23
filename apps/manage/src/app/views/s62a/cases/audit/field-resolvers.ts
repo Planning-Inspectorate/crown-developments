@@ -146,7 +146,6 @@ const DATE_FIELDS = [
 	'additionalMeetingDate',
 	/** Hearing issues report published date */
 	'issuesReportingPublishedDate',
-	'siteVisitDate',
 	'targetPublishDate',
 	'targetDecisionDate'
 ] as const;
@@ -282,7 +281,6 @@ export const S62A_AUDIT_FIELD_LABELS: Readonly<Record<string, string>> = {
 	hasProposedHousing: 'Has proposed housing',
 	hasAgent: 'Has agent',
 	siteIsVisibleFromPublicLand: 'Site visible from public land',
-	siteVisitDate: 'Site visit date',
 	additionalMeetingDate: 'Additional meeting date',
 	mineralApplicationsDate: 'Mineral applications date',
 
