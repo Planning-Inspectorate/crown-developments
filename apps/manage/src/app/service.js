@@ -184,4 +184,8 @@ export class ManageService extends Service {
 	get s62aRepresentationsToken() {
 		return this.#config.s62aGovNotify.representationsToken;
 	}
+
+	get isSnowModeLive() {
+		return this.#config.featureFlags?.isSnowModeLive;
+	}
 }

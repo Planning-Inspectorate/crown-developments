@@ -1,0 +1,79 @@
+@use 'node_modules/govuk-frontend/dist/govuk/index' as govuk;
+
+.pins-snow {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	visibility: hidden;
+	overflow: hidden;
+	pointer-events: none;
+
+	// Hidden by default; fades in when body.pins-snow--idle is set.
+	opacity: 0;
+	transition:
+		opacity 1.2s ease-in-out,
+		visibility 0s linear 1.2s;
+}
+
+body.pins-snow--idle .pins-snow {
+	visibility: visible;
+	opacity: 1;
+	transition:
+		opacity 1.2s ease-in-out,
+		visibility 0s linear 0s;
+}
+
+.pins-snow__flake {
+	position: absolute;
+	top: -10px;
+	overflow: visible;
+	color: govuk.govuk-colour('blue');
+	opacity: 0.9;
+	filter: drop-shadow(0 0 1px rgb(255 255 255 / 90%));
+	animation-name: pins-snow-fall;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	will-change: transform;
+}
+
+@for $i from 0 through 39 {
+	.pins-snow__flake--#{$i} {
+		// Position / motion
+		$left: ($i * 37) % 100;
+		$duration: 12s + (($i * 13) % 11) * 1s;
+		$delay: (($i * 7) % 20) * -1s;
+		$size: (18 + (($i * 5) % 18)) * 1px;
+		$drift: -20px + (($i * 11) % 60) * 1px;
+		$rot: (($i * 29) % 60) - 30;
+
+		left: #{$left}vw;
+		width: $size;
+		height: $size;
+		animation-duration: $duration;
+		animation-delay: $delay;
+
+		--pins-snow-drift: #{$drift};
+		--flake-rot: #{$rot}deg;
+	}
+}
+
+@keyframes pins-snow-fall {
+	0% {
+		transform: translate3d(0, -10vh, 0) rotate(var(--flake-rot, 0deg));
+	}
+
+	100% {
+		transform: translate3d(var(--pins-snow-drift, 20px), 105vh, 0) rotate(calc(var(--flake-rot, 0deg) + 360deg));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pins-snow {
+		display: none;
+	}
+}
+@media print {
+	.pins-snow {
+		display: none;
+	}
+}
