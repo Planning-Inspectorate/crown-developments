@@ -38,6 +38,7 @@ apps_config = {
     audit_not_live                 = false
     upload_docs_not_live           = false
     retry_not_live                 = false
+    snow_mode                      = true
   }
 
   dynamic_cache_control = {
