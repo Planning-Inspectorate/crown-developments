@@ -46,6 +46,7 @@ variable "apps_config" {
       audit_not_live                 = bool
       upload_docs_not_live           = bool
       retry_not_live                 = bool
+      snow_mode                      = bool
     })
 
     dynamic_cache_control = object({
