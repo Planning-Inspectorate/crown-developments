@@ -1,5 +1,5 @@
 import { joinParts, toNumberText, type GroupedFieldRegistry } from '@pins/crowndev-lib/audit/resolvers/index.ts';
-import { formatContactDetails, formatDayCount } from '@pins/crowndev-lib/util/audit-formatters.ts';
+import { formatContactDetails, formatDayCount, formatSiteVisit } from '@pins/crowndev-lib/util/audit-formatters.ts';
 
 /**
  * S62A questions whose answer is spread over several inputs (multi-field
@@ -36,6 +36,15 @@ export const S62A_GROUPED_FIELDS: GroupedFieldRegistry = {
 
 			return '-';
 		}
+	},
+
+	/**
+	 * The site visit date, plus the start and end time for an access required
+	 * site visit, e.g. "27 March 2027, 10:00am to 12:30pm"
+	 */
+	siteVisitDate: {
+		parts: ['siteVisitDate', 'siteVisitStartTime', 'siteVisitEndTime'],
+		format: (values) => formatSiteVisit(values.siteVisitDate, values.siteVisitStartTime, values.siteVisitEndTime)
 	},
 
 	hearingDuration: {

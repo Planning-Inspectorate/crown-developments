@@ -426,9 +426,13 @@ model S62aEvent {
   issuesReportingPublishedDate DateTime?
 
   /// Site visit — shown for both pre-applications and applications
-  siteVisitDate   DateTime?
-  siteVisitTypeId String?
-  SiteVisitType   S62aSiteVisitType? @relation(fields: [siteVisitTypeId], references: [id])
+  siteVisitDate      DateTime?
+  /// Start of an access required site visit (ARSV), as a full date-time on the site visit date
+  siteVisitStartTime DateTime?
+  /// End of an access required site visit (ARSV), as a full date-time on the site visit date
+  siteVisitEndTime   DateTime?
+  siteVisitTypeId    String?
+  SiteVisitType      S62aSiteVisitType? @relation(fields: [siteVisitTypeId], references: [id])
 }
 
 /// A waste type applicable to an S62A development, with its capacity and throughput

@@ -1,0 +1,145 @@
+{% extends layoutTemplate %}
+
+{% from "govuk/components/date-input/macro.njk" import govukDateInput %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/select/macro.njk" import govukSelect %}
+{% from "govuk/components/warning-text/macro.njk" import govukWarningText %}
+
+{% set day = question.fieldName + "_day" %}
+{% set month = question.fieldName + "_month" %}
+{% set year = question.fieldName + "_year" %}
+
+{#
+	One time input (hour, minute and am/pm), matching the hearing date time input.
+	slot is "start" or "end".
+#}
+{% macro timeInput(question, errors, slot, legend) %}
+	{% set hour = question.fieldName + "_" + slot + "_hour" %}
+	{% set minutes = question.fieldName + "_" + slot + "_minutes" %}
+	{% set period = question.fieldName + "_" + slot + "_period" %}
+	{% set timeError = errors[hour].msg or errors[minutes].msg or errors[period].msg %}
+	<div class="govuk-form-group{% if timeError %} govuk-form-group--error{% endif %}">
+		<fieldset class="govuk-fieldset" role="group" aria-describedby="{{ question.fieldName }}-{{ slot }}-time-hint{% if timeError %} {{ question.fieldName }}-{{ slot }}-time-error{% endif %}">
+			<legend class="govuk-fieldset__legend govuk-fieldset__legend--m">{{ legend }}</legend>
+			<div id="{{ question.fieldName }}-{{ slot }}-time-hint" class="govuk-hint">For example, 9:30am or 2:55pm</div>
+			{% if timeError %}
+				<p id="{{ question.fieldName }}-{{ slot }}-time-error" class="govuk-error-message">
+					<span class="govuk-visually-hidden">Error:</span> {{ timeError }}
+				</p>
+			{% endif %}
+			<div class="govuk-date-input" id="{{ question.fieldName }}-{{ slot }}-time">
+				<div class="govuk-date-input__item">
+					{{ govukInput({
+						classes: "govuk-input--width-2 govuk-input--error" if timeError else "govuk-input--width-2",
+						name: hour,
+						label: { text: "Hour" },
+						id: hour,
+						inputmode: "numeric",
+						value: question.value[hour]
+					}) }}
+				</div>
+				<div class="govuk-date-input__item">
+					{{ govukInput({
+						classes: "govuk-input--width-2 govuk-input--error" if timeError else "govuk-input--width-2",
+						name: minutes,
+						label: { text: "Minute" },
+						id: minutes,
+						inputmode: "numeric",
+						value: question.value[minutes]
+					}) }}
+				</div>
+				<div class="govuk-date-input__item">
+					{{ govukSelect({
+						id: period,
+						name: period,
+						label: { text: "am or pm" },
+						classes: "govuk-select pins-select--width-4 govuk-select--error" if timeError else "govuk-select pins-select--width-4",
+						items: [
+							{ value: "", text: "", selected: not question.value[period] },
+							{ value: "am", text: "AM", selected: question.value[period] == "am" },
+							{ value: "pm", text: "PM", selected: question.value[period] == "pm" }
+						]
+					}) }}
+				</div>
+			</div>
+		</fieldset>
+	</div>
+{% endmacro %}
+
+{% block dynQuestionContent %}
+	<style {% if cspNonce %}nonce={{ cspNonce }}{% endif %}>
+		.pins-select--width-4 {
+			min-width: 4.5em !important;
+			max-width: 4.5em !important;
+		}
+	</style>
+
+	{% set dateError = errors[question.fieldName].msg or errors[day].msg or errors[month].msg or errors[year].msg %}
+
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-l">{{ question.question }}</h1>
+			{% if headingHint %}
+				<p class="govuk-hint" data-cy="site-visit-heading-hint">{{ headingHint }}</p>
+			{% endif %}
+
+			<form action="" method="post" novalidate>
+				{% if _csrf %}<input type="hidden" name="_csrf" value="{{ _csrf }}">{% endif %}
+
+				{{ govukDateInput({
+					id: question.fieldName,
+					fieldset: {
+						legend: {
+							text: "Date",
+							classes: "govuk-fieldset__legend--m"
+						}
+					},
+					hint: question.hint and {
+						text: question.hint
+					},
+					errorMessage: dateError and {
+						text: dateError
+					},
+					items: [
+						{
+							classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[day] else "govuk-input--width-2",
+							name: day,
+							label: "Day",
+							id: day,
+							value: question.value[day]
+						},
+						{
+							classes: "govuk-input--width-2 govuk-input--error" if errors[question.fieldName] or errors[month] else "govuk-input--width-2",
+							name: month,
+							label: "Month",
+							id: month,
+							value: question.value[month]
+						},
+						{
+							classes: "govuk-input--width-4 govuk-input--error" if errors[question.fieldName] or errors[year] else "govuk-input--width-4",
+							name: year,
+							label: "Year",
+							id: year,
+							value: question.value[year]
+						}
+					]
+				}) }}
+
+				{% if showTimes %}
+					{{ timeInput(question, errors, "start", "Start time") }}
+					{{ timeInput(question, errors, "end", "End time") }}
+				{% endif %}
+
+				{% if warningText %}
+					{{ govukWarningText({
+						text: warningText,
+						iconFallbackText: "Warning",
+						attributes: { "data-cy": "site-visit-warning" }
+					}) }}
+				{% endif %}
+
+				{%- include "components/utils/actions.njk" %}
+			</form>
+		</div>
+	</div>
+{% endblock %}

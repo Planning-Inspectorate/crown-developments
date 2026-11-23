@@ -182,8 +182,8 @@ describe('s62a case details journey', () => {
 				segment: 'event',
 				questions: [
 					'noticeOfProcedureDate',
-					'siteVisit',
 					'siteVisitType',
+					'siteVisit',
 					'hearingDate',
 					'hearingDuration',
 					'hearingVenue',
@@ -349,4 +349,52 @@ describe('residential total rows', () => {
 
 		assert.ok(sectionQuestions(journey, 'residential').includes('totalNetGainOrLossOfUnits'));
 	});
+});
+
+describe('site visit rows', () => {
+	const mockReq = {
+		params: { id: 'case-123', tab: 'event' },
+		baseUrl: '/s62a/cases/case-123/event'
+	} as unknown as Request;
+
+	const getEventQuestions = () => {
+		const mockQuestions = new Proxy(
+			{},
+			{
+				get: (_target, prop) => ({ fieldName: prop })
+			}
+		) as unknown as Record<string, Question>;
+		const journey = createJourney(mockQuestions, {} as JourneyResponse, mockReq);
+		const eventSection = journey.sections.find((section) => section.segment === 'event');
+		assert.ok(eventSection, 'event section should exist');
+		return eventSection.questions;
+	};
+
+	const responseWith = (answers: Record<string, unknown>) => ({ answers }) as unknown as JourneyResponse;
+
+	for (const applicationPhaseId of ['pre-application', 'application']) {
+		describe(`for a ${applicationPhaseId} case`, () => {
+			it('should show the site visit type row but not the site visit row when no type is saved', () => {
+				const questions = getEventQuestions();
+				const siteVisitType = questions.find((q) => q.fieldName === 'siteVisitType');
+				const siteVisit = questions.find((q) => q.fieldName === 'siteVisit');
+				const response = responseWith({ applicationPhaseId });
+
+				assert.strictEqual(siteVisitType?.shouldDisplay(response), true);
+				assert.strictEqual(siteVisit?.shouldDisplay(response), false);
+			});
+
+			it('should show the site visit row below the site visit type row once a type is saved', () => {
+				const questions = getEventQuestions();
+				const typeIndex = questions.findIndex((q) => q.fieldName === 'siteVisitType');
+				const siteVisitIndex = questions.findIndex((q) => q.fieldName === 'siteVisit');
+
+				for (const siteVisitTypeId of ['access-required', 'unaccompanied']) {
+					const response = responseWith({ applicationPhaseId, siteVisitTypeId });
+					assert.strictEqual(questions[siteVisitIndex].shouldDisplay(response), true);
+				}
+				assert.strictEqual(siteVisitIndex, typeIndex + 1);
+			});
+		});
+	}
 });

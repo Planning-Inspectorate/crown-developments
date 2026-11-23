@@ -196,6 +196,8 @@ export interface UpdateCaseAnswers {
 	additionalMeetingDate?: Date | null;
 	issuesReportingPublishedDate?: Date | null;
 	siteVisitDate?: Date | null;
+	siteVisitStartTime?: Date | null;
+	siteVisitEndTime?: Date | null;
 	siteVisitTypeId?: string | null;
 
 	// Waste tab

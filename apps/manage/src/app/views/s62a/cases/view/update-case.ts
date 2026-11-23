@@ -32,6 +32,7 @@ import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
 import { S62aManageNotificationService } from '../util/notification-service.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
+import { siteVisitAnswersToClear } from '../util/site-visit.ts';
 
 /**
  * Save handler for S62A Case updates.
@@ -72,6 +73,8 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 		// What happened to the pre-application advice folder, for the case history
 		let folderSyncResult: FolderSyncResult = FOLDER_SYNC_RESULT.UNCHANGED;
 		let derivedAnswers: Record<string, unknown> = {};
+		// Site visit details cleared because the site visit type changed
+		let clearedSiteVisitAnswers: Record<string, unknown> = {};
 
 		try {
 			const s62aCase = await db.s62aCase.findUnique({
@@ -84,6 +87,12 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 			}
 
 			const viewModel = s62aCaseToViewModel(s62aCase);
+
+			// Changing the site visit type clears the date and times saved for the old type
+			// We normally don't do this, but because of the unique nature of site visit datetimes
+			// it felt appropriate to do it for this one to avoid bad time data
+			clearedSiteVisitAnswers = siteVisitAnswersToClear(answers, viewModel);
+			Object.assign(answers, clearedSiteVisitAnswers);
 
 			const mapper = new S62aCaseUpdateMapper(answers, viewModel);
 			const updateInput = mapper.generateUpdateInput();
@@ -149,8 +158,12 @@ export function buildS62aUpdateCase(service: ManageService, clearAnswer = false)
 				caseId: id,
 				userId,
 				previousCase,
-				answers: { ...answersSnapshot, ...derivedAnswers },
-				updatedFieldNames: [...updatedFieldNames, ...Object.keys(derivedAnswers)]
+				answers: { ...answersSnapshot, ...clearedSiteVisitAnswers, ...derivedAnswers },
+				updatedFieldNames: [
+					...updatedFieldNames,
+					...Object.keys(clearedSiteVisitAnswers),
+					...Object.keys(derivedAnswers)
+				]
 			});
 
 			// Recorded after the field changes, so the history reads e.g.

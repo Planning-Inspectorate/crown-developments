@@ -81,7 +81,9 @@ export const EVENT_DATE_FIELDS = Object.freeze([
 	'notificationDate',
 	'additionalMeetingDate',
 	'issuesReportingPublishedDate',
-	'siteVisitDate'
+	'siteVisitDate',
+	'siteVisitStartTime',
+	'siteVisitEndTime'
 ] as const);
 
 export const RESIDENTIAL_BOOLEAN_FIELDS = Object.freeze([
@@ -351,6 +353,8 @@ export interface S62aCaseViewModel {
 	additionalMeetingDate?: Date;
 	issuesReportingPublishedDate?: Date;
 	siteVisitDate?: Date;
+	siteVisitStartTime?: Date;
+	siteVisitEndTime?: Date;
 	siteVisitTypeId?: string;
 
 	// Waste tab
