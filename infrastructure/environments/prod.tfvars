@@ -75,15 +75,15 @@ apps_config = {
     disabled = true
     templates = {
       test_template_id                        = ""
-      pre_ack_template_id                     = ""
-      ack_rep_template_id                     = ""
-      ack_pre_app_template_id                 = ""
-      app_decision_template_id                = ""
-      lpa_decision_template_id                = ""
-      rep_published_template_id               = ""
-      application_received_fee_template_id    = ""
-      application_received_no_fee_template_id = ""
-      ip_decision_template_id                 = ""
+      pre_ack_template_id                     = "c01e9c05-ecb9-4517-a7ee-a8f971b7f7ff"
+      ack_rep_template_id                     = "4911468b-5275-4ec6-9160-e5effe3b9ac0"
+      ack_pre_app_template_id                 = "d521a5ac-c49b-49d7-a8eb-45e17f9ed8cb"
+      app_decision_template_id                = "80d65b13-7db2-485f-9c2f-0f7f1436f9ed"
+      lpa_decision_template_id                = "2c554a29-fbf1-4589-b51d-fac4a9d10a35"
+      rep_published_template_id               = "e0223361-9b68-4105-9da7-8d1f475929a2"
+      application_received_fee_template_id    = "96ac4456-b872-4246-9207-3b04bfcbb725"
+      application_received_no_fee_template_id = "65d172ce-b89e-432a-86df-fcbbd73cc9ec"
+      ip_decision_template_id                 = "0c925a98-0311-4239-b43d-90a784773b77"
     }
   }
 
