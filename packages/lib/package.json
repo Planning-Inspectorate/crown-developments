@@ -17,6 +17,7 @@
     "@prisma/client": "*",
     "cfb": "*",
     "connect-redis": "*",
+    "cookie": "*",
     "express-session": "*",
     "file-type": "*",
     "multer": "*",

@@ -19,6 +19,7 @@
     "archiver": "*",
     "body-parser": "*",
     "connect-redis": "*",
+    "cookie": "*",
     "express": "*",
     "express-session": "*",
     "express-validator": "*",
