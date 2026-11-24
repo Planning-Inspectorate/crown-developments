@@ -131,8 +131,8 @@ describe('Crown public representation routes', () => {
 		});
 	}
 
-	for (const date of [new Date('2026-07-14'), new Date('2026-07-15'), new Date('2026-07-15T23:59:59+01:00')]) {
-		it(`should allow all three routes on or after the publication day (${date.toISOString()})`, async (context) => {
+	for (const date of [new Date('2026-07-14'), new Date('2026-07-15T11:59:59Z'), new Date('2026-07-15T12:00:00Z')]) {
+		it(`should allow all three routes on or after the publication timestamp (${date.toISOString()})`, async (context) => {
 			const state = setup(context, { application: { representationsPublishDate: date } });
 			for (const url of urls) {
 				await request(state.app).get(url).expect(200);
@@ -140,6 +140,19 @@ describe('Crown public representation routes', () => {
 			assert.equal(state.fetchMock.mock.callCount(), 1);
 		});
 	}
+
+	it('should deny all three routes when the publication time has not arrived yet on the same day', async (context) => {
+		const state = setup(context, {
+			application: { representationsPublishDate: new Date('2026-07-15T12:00:00.001Z') }
+		});
+		for (const url of urls) {
+			await request(state.app).get(url).expect(404);
+		}
+		assert.equal(state.db.representation.findMany.mock.callCount(), 0);
+		assert.equal(state.db.representation.findUnique.mock.callCount(), 0);
+		assert.equal(state.db.representationDocument.count.mock.callCount(), 0);
+		assertNoStorage(state);
+	});
 
 	for (const representation of [
 		{ applicationId: 'another-application' },

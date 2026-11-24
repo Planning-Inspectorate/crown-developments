@@ -17,12 +17,11 @@ import {
 import { endOfDay, startOfDay } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { notFoundHandler } from '@planning-inspectorate/core/middleware';
-import { wrapPrismaError } from '@planning-inspectorate/core/util';
-import { isNowAfterStartDate } from '@planning-inspectorate/dynamic-forms';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
+import { wrapPrismaError } from '@planning-inspectorate/core/util';
+import { areRepresentationsPublished, publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 import type { S62APortalService } from '#service';
-import { s62aCaseToRawViewModel, type S62aCaseWithRelations } from '../view-model.ts';
-import { tabText } from '../view-model.ts';
+import { s62aCaseToRawViewModel, type S62aCaseWithRelations, tabText } from '../view-model.ts';
 
 const representationSelect = {
 	reference: true,
@@ -68,7 +67,7 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 		};
 		const { pageSize, skipSize } = getPaginationParams(req);
 		const publishDate = s62aCase.representationsPublishDate;
-		const representationsArePublished = publishDate !== null && isNowAfterStartDate(publishDate);
+		const representationsArePublished = areRepresentationsPublished(publishDate);
 		const queryFilters = toQueryFilters(req.query);
 		const searchValue = normaliseSearchQuery(req.query?.searchCriteria) ?? '';
 		const hasSearch = searchValue.length > 0;
@@ -137,8 +136,7 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 				representationsArePublished
 					? db.s62aRepresentation.findMany({
 							where: {
-								applicationId: id,
-								statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+								...publicRepresentationWhere(id),
 								...searchCriteria,
 								...whereFilters
 							},
@@ -150,8 +148,7 @@ export function buildS62AWrittenRepresentationsPage(service: S62APortalService):
 					: Promise.resolve([]),
 				db.s62aRepresentation.count({
 					where: {
-						applicationId: id,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...publicRepresentationWhere(id),
 						...searchCriteria,
 						...whereFilters
 					}

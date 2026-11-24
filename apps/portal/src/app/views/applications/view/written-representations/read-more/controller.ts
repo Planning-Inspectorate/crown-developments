@@ -7,7 +7,7 @@ import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
-import { areRepresentationsPublished, publicRepresentationWhere } from '../../../../util/representation-access.ts';
+import { areRepresentationsPublished, publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { buildWrittenRepresentationsReadMorePage } from '@pins/crowndev-lib/written-representations/read-more/controller.ts';
 import type { PortalService } from '#service';

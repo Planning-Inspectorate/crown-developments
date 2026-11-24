@@ -4,7 +4,7 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { areRepresentationsPublished, publicRepresentationWhere } from './representation-access.ts';
+import { areRepresentationsPublished, publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 
 /**
  * @typedef {object} DocumentOptions

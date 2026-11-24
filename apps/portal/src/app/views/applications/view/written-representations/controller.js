@@ -4,11 +4,14 @@ import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-
 import { buildWrittenRepresentationsPage } from '@pins/crowndev-lib/written-representations/controller.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { areRepresentationsPublished, publicRepresentationWhere } from '../../../util/representation-access.ts';
+import { areRepresentationsPublished, publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 import { getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
-import { hasQueries, mapWithAndWithoutToBoolean } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
+import {
+	getFiltersAndErrors,
+	hasQueries,
+	mapWithAndWithoutToBoolean
+} from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import { buildCrownFilters } from './filters/filters.ts';
-import { getFiltersAndErrors } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import { parseDateFromParts } from '@pins/crowndev-lib/validators/date-filter-validator.js';
 import { toQueryFilters } from '@pins/crowndev-lib/filters/filter-utils.ts';
 import { endOfDay, startOfDay } from 'date-fns';
