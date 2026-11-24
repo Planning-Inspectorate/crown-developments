@@ -458,8 +458,9 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 	): Promise<AuditData[]> {
 		return this.sendToManyWithAudit(
 			notificationData.map((d) => d.email),
-			(address) => {
-				const contact = notificationData.find((p) => p.email === address) as InterestedPartyNotificationType;
+			(_address, index) => {
+				// Index rather than .find() so that multiple emails will work with the correct name and rep
+				const contact = notificationData[index];
 				return this.sendInterestedPartyDecision(contact, details);
 			},
 			'Failed to send interested party decision notification to one or more email addresses.'

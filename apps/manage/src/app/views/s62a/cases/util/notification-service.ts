@@ -268,8 +268,8 @@ export class S62aManageNotificationService {
 	/**
 	 * Fetches the contact details of everyone who submitted a representation on the case
 	 * (interested parties and statutory consultees), skipping withdrawn representations.
-	 * Contacts without an email are dropped, and duplicate emails (case-insensitive) are only
-	 * included once, so someone with several representations gets one email.
+	 * Contacts without an email are dropped. Duplicate emails are intentionally kept, so each
+	 * representation gets its own email, even when several share the same email address.
 	 */
 	private async getInterestedPartyContacts(
 		db: ManageService['db'],
@@ -288,14 +288,12 @@ export class S62aManageNotificationService {
 			orderBy: { submittedDate: 'asc' }
 		});
 
-		const seenEmails = new Set<string>();
 		const contacts: InterestedPartyNotificationType[] = [];
 
 		for (const { SubmittedByContact: contact } of representations) {
 			const email = contact?.email?.trim();
-			if (!email || seenEmails.has(email.toLowerCase())) continue;
+			if (!email) continue;
 
-			seenEmails.add(email.toLowerCase());
 			contacts.push({
 				email,
 				firstName: contact?.firstName ?? undefined,

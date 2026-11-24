@@ -1317,7 +1317,7 @@ describe('S62aManageNotificationService processInterestedPartyDecision', () => {
 		assert.strictEqual(details.appInfoLink, testAppInfoLink);
 	});
 
-	it('skips contacts without an email and sends once per email address (case-insensitive)', async () => {
+	it('skips contacts without an email and sends to every representation, including duplicate emails', async () => {
 		mockDb.s62aRepresentation.findMany = mock.fn(async () =>
 			representations(
 				{ email: 'Sam@Test.com', firstName: 'Sam', lastName: 'First' },
@@ -1334,6 +1334,7 @@ describe('S62aManageNotificationService processInterestedPartyDecision', () => {
 			sentContacts().map((contact: any) => [contact.email, contact.lastName]),
 			[
 				['Sam@Test.com', 'First'],
+				['sam@test.com', 'Second'],
 				['other@test.com', undefined]
 			]
 		);
