@@ -1636,5 +1636,33 @@ describe('S62aGovNotifyClient interested party decision', () => {
 			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [contacts[0], details]);
 			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [contacts[1], details]);
 		});
+
+		it("should send a separate email to each contact even when emails match, using each contact's own name", async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				interestedPartyDecision: 'ip-decision-template-123'
+			});
+			const sendMock = ctx.mock.method(client as any, 'sendInterestedPartyDecision', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+
+			const contacts = [
+				{ email: 'same@test.com', firstName: 'First' },
+				{ email: 'same@test.com', firstName: 'Second' }
+			];
+
+			const result = await client.sendInterestedPartyDecisionToMany(contacts, details);
+
+			assert.strictEqual(result.length, 2);
+			assert.deepStrictEqual(
+				result.map((r) => r.email),
+				['same@test.com', 'same@test.com']
+			);
+			assert.strictEqual(sendMock.mock.callCount(), 2);
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [contacts[0], details]);
+			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [contacts[1], details]);
+		});
 	});
 });

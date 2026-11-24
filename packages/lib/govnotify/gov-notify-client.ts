@@ -137,14 +137,14 @@ export class GovNotifyClient {
 	 */
 	protected async sendToManyWithAudit(
 		emailAddresses: string[],
-		sendFunction: (address: string) => Promise<Omit<AuditData, 'email'>>,
+		sendFunction: (address: string, index: number) => Promise<Omit<AuditData, 'email'>>,
 		errorMessage: string
 	): Promise<AuditData[]> {
 		if (emailAddresses.length === 0) {
 			throw new Error('No email addresses provided to send notification');
 		}
 
-		const results = await Promise.allSettled(emailAddresses.map((address) => sendFunction(address)));
+		const results = await Promise.allSettled(emailAddresses.map((address, index) => sendFunction(address, index)));
 
 		let atLeastOneFailed = false;
 		const successfulEmails: AuditData[] = [];
