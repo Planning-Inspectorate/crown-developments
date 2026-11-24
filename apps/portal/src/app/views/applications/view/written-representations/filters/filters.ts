@@ -1,5 +1,5 @@
 import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
-import { publicRepresentationWhere } from '../../../../util/representation-access.ts';
+import { publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';

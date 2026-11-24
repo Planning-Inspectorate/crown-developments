@@ -7,7 +7,7 @@ import { mapMimeTypeToDisplayName } from '@pins/crowndev-lib/documents/view-mode
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { buildWrittenRepresentationsReadMorePage } from '@pins/crowndev-lib/written-representations/read-more/controller.ts';
-import { isNowAfterStartDate } from '@planning-inspectorate/dynamic-forms';
+import { areRepresentationsPublished, publicRepresentationWhere } from '@pins/crowndev-lib/util/representations.ts';
 import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { AsyncRequestHandler } from '@planning-inspectorate/core/util';
 import type { DocumentViewModel } from '@pins/crowndev-lib/documents/types.d.ts';
@@ -73,7 +73,7 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 		}
 
 		const representationsPublishDate = s62aCase.representationsPublishDate;
-		if (!representationsPublishDate || !isNowAfterStartDate(representationsPublishDate)) {
+		if (!areRepresentationsPublished(representationsPublishDate)) {
 			return notFoundHandler(req, res);
 		}
 
@@ -87,8 +87,7 @@ export function buildS62AWrittenRepresentationsReadMorePage({ db, logger }: Serv
 		const representation = await db.s62aRepresentation.findUnique({
 			where: {
 				reference: representationReference,
-				applicationId: id,
-				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				...publicRepresentationWhere(id)
 			},
 			select: representationSelect
 		});

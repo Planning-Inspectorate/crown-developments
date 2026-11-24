@@ -1,4 +1,5 @@
-import { formatDateForDisplay, isNowAfterStartDate, nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
+import { formatDateForDisplay, nowIsWithinRange } from '@planning-inspectorate/dynamic-forms';
+import { areRepresentationsPublished } from './representations.ts';
 import { APPLICATION_PROCEDURE_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
 	isWithdrawnOrExpired,
@@ -144,7 +145,7 @@ export function applicationLinks(
 		});
 	}
 
-	if (repsTabAlwaysVisible || (representationsPublishDate && isNowAfterStartDate(representationsPublishDate))) {
+	if (repsTabAlwaysVisible || areRepresentationsPublished(representationsPublishDate)) {
 		links.push({
 			href: `/applications/${id}/written-representations`,
 			text: tabText?.writtenRepresentations ?? 'Written representations'

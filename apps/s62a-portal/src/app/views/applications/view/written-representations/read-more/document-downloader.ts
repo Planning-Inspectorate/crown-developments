@@ -10,6 +10,7 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { resolvePublicFile } from './public-document.ts';
+import { publicRepresentationWhere, representationsPublishedWhere } from '@pins/crowndev-lib/util/representations.ts';
 
 /**
  * A representation attachment as it may be served to the public: `blobName` and `fileName`
@@ -45,11 +46,10 @@ export class DocumentDownloader extends BaseDocumentDownloader<PublicRepresentat
 					S62aRepresentation: {
 						is: {
 							reference: representationReference,
-							applicationId,
-							statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+							...publicRepresentationWhere(applicationId),
 							Application: {
 								is: {
-									representationsPublishDate: { lte: new Date() }
+									...representationsPublishedWhere()
 								}
 							}
 						}
