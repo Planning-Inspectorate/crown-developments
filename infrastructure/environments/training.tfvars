@@ -130,9 +130,10 @@ front_door_config = {
 }
 
 monitoring_config = {
-  app_insights_web_test_enabled        = true
-  manage_app_insights_web_test_enabled = false
-  log_daily_cap                        = 0.2
+  app_insights_web_test_enabled             = true
+  manage_app_insights_web_test_enabled      = false
+  s62a_portal_app_insights_web_test_enabled = false
+  log_daily_cap                             = 0.2
 }
 
 odw_config = {

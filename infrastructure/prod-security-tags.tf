@@ -211,6 +211,14 @@ locals {
       CriticalityRating = "Level 4"
       PersonalData      = "No"
     }
+    application_insights_standard_web_test_s62a_portal = {
+      CriticalityRating = "Level 3"
+      PersonalData      = "No"
+    }
+    monitor_metric_alert_s62a_portal_availability = {
+      CriticalityRating = "Level 4"
+      PersonalData      = "No"
+    }
 
     # ========================================
     # networking.tf
