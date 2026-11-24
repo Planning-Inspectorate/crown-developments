@@ -47,7 +47,7 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { optionalWhere } from '@planning-inspectorate/core/util';
 import { slugify, sentenceCase } from '@pins/crowndev-lib/util/string.ts';
 import { toDecimalOrNull, toIntOrNull } from '@pins/crowndev-lib/util/numbers.ts';
-import { addWorkingDays } from '@pins/crowndev-lib/util/working-days.ts';
+import { addWorkingDays, onOrNextWorkingDay } from '@pins/crowndev-lib/util/working-days.ts';
 
 const DATE_FIELDS_SET = new Set<string>(S62A_DATE_FIELDS);
 const FEE_BOOLEAN_SET = new Set<string>(FEE_BOOLEAN_FIELDS);
@@ -550,6 +550,9 @@ export class S62aCaseUpdateMapper {
 	 * E.g. 6th August 2026 0:00 arrives here as 5th August 2026 23:00 UTC
 	 * because of BST, if we then add 13 weeks to that we will get 4th November
 	 * 2026 23:00 which is now in GMT so it is now wrong.
+	 *
+	 * If the result lands on a weekend or an England and Wales bank holiday,
+	 * it is moved forward to the next working day.
 	 */
 	private applyTargetDecisionDateLogic(
 		datesToUpdate: Prisma.S62aDatesUpdateWithoutS62aCaseInput & Prisma.S62aDatesCreateWithoutS62aCaseInput
@@ -606,7 +609,7 @@ export class S62aCaseUpdateMapper {
 
 		const targetLondon = addWeeks(londonDate, weeksToAdd);
 
-		datesToUpdate.targetDecisionDate = fromZonedTime(targetLondon, 'Europe/London');
+		datesToUpdate.targetDecisionDate = onOrNextWorkingDay(fromZonedTime(targetLondon, 'Europe/London'));
 		return true;
 	}
 

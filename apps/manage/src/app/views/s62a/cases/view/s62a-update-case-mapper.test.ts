@@ -440,6 +440,51 @@ describe('S62aCaseUpdateMapper', () => {
 			assert.deepStrictEqual((result.S62aDates?.upsert?.create as any).targetDecisionDate, expectedDate);
 		});
 
+		it('moves the target decision date forward when it lands on a bank holiday', () => {
+			// Mon 1 Feb 2027 + 8 weeks = Easter Monday 29 Mar 2027 (BST), so the target is Tue 30 Mar 2027 (UK midnight)
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: new Date('2027-02-01T00:00:00Z'),
+				classificationId: 'some-non-major-id',
+				eiaScreening: 'no'
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(
+				(result.S62aDates?.upsert?.create as any).targetDecisionDate,
+				new Date('2027-03-29T23:00:00.000Z')
+			);
+		});
+
+		it('moves the target decision date past Christmas, the weekend and the substitute bank holiday', () => {
+			// Fri 25 Sep 2026 (BST) + 13 weeks = Fri 25 Dec 2026, so the target is Tue 29 Dec 2026 (UK midnight)
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: new Date('2026-09-24T23:00:00Z'),
+				classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+				eiaScreening: 'no'
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(
+				(result.S62aDates?.upsert?.create as any).targetDecisionDate,
+				new Date('2026-12-29T00:00:00.000Z')
+			);
+		});
+
+		it('moves the target decision date to Monday when the valid date is a weekend', () => {
+			// Sat 7 Nov 2026 + 8 weeks = Sat 2 Jan 2027, so the target is Mon 4 Jan 2027
+			const answers: UpdateCaseAnswers = {
+				applicationValidDate: new Date('2026-11-07T00:00:00Z'),
+				classificationId: 'some-non-major-id',
+				eiaScreening: 'no'
+			};
+			const result = new S62aCaseUpdateMapper(answers).generateUpdateInput();
+
+			assert.deepStrictEqual(
+				(result.S62aDates?.upsert?.create as any).targetDecisionDate,
+				new Date('2027-01-04T00:00:00.000Z')
+			);
+		});
+
 		it('recalculates correctly using fallback values from existingCase when only a partial update occurs', () => {
 			const answers: UpdateCaseAnswers = {
 				eiaScreeningOutcome: 'yes'
