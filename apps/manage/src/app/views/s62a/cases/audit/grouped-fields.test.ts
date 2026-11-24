@@ -160,56 +160,6 @@ describe('site visit', () => {
 		assert.equal(formatSiteVisit(null, null, null), '-');
 	});
 
-	it('should audit the date and times as one change', () => {
-		const changes = resolveGroupedFieldChanges(
-			S62A_GROUPED_FIELDS,
-			['siteVisitDate', 'siteVisitStartTime', 'siteVisitEndTime'],
-			{ siteVisitDate: date, siteVisitStartTime: start, siteVisitEndTime: end },
-			{ siteVisitDate: date, siteVisitStartTime: start, siteVisitEndTime: new Date('2027-03-27T13:00:00Z') }
-		);
-		assert.deepEqual(changes, [
-			{
-				fieldName: 'siteVisitDate',
-				oldValue: '27 March 2027, 10:00am to 12:30pm',
-				newValue: '27 March 2027, 10:00am to 1:00pm'
-			}
-		]);
-	});
-
-	it('should not audit a save that changes nothing', () => {
-		const saved = { siteVisitDate: date, siteVisitStartTime: null, siteVisitEndTime: null };
-		assert.deepEqual(resolveGroupedFieldChanges(S62A_GROUPED_FIELDS, Object.keys(saved), saved, { ...saved }), []);
-	});
-});
-
-describe('site visit', () => {
-	const date = new Date('2027-03-27T00:00:00Z');
-	const start = new Date('2027-03-27T10:00:00Z');
-	const end = new Date('2027-03-27T12:30:00Z');
-
-	it('should show the date and times for an access required site visit', () => {
-		assert.equal(formatSiteVisit(date, start, end), '27 March 2027, 10:00am to 12:30pm');
-	});
-
-	it('should show the times in UK time during British Summer Time', () => {
-		assert.equal(
-			formatSiteVisit(
-				new Date('2027-06-30T23:00:00Z'),
-				new Date('2027-07-01T09:00:00Z'),
-				new Date('2027-07-01T11:30:00Z')
-			),
-			'1 July 2027, 10:00am to 12:30pm'
-		);
-	});
-
-	it('should show the date only when there are no times', () => {
-		assert.equal(formatSiteVisit(date, null, null), '27 March 2027');
-	});
-
-	it('should show a dash when there is no date', () => {
-		assert.equal(formatSiteVisit(null, null, null), '-');
-	});
-
 	it('should audit a change to the date and times as one entry', () => {
 		const changes = resolveGroupedFieldChanges(
 			S62A_GROUPED_FIELDS,
