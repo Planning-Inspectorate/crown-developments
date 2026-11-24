@@ -2,7 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { addMonths } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
-import { addWorkingDays, isWorkingDay, subtractWorkingDays } from './working-days.ts';
+import { addWorkingDays, isWorkingDay, onOrNextWorkingDay, subtractWorkingDays } from './working-days.ts';
 import { ENGLAND_AND_WALES_BANK_HOLIDAYS } from './bank-holidays.ts';
 
 /** Formats a date as its UK calendar date, so assertions don't depend on the server time zone. */
@@ -98,6 +98,28 @@ describe('working-days', () => {
 		it('goes back over Easter', () => {
 			// 2 working days before Tue 7 Apr 2026: skips Easter Monday, the weekend and Good Friday
 			assert.strictEqual(ukDay(subtractWorkingDays(bstMidnight('2026-04-07'), 2)), 'Wed 2026-04-01');
+		});
+	});
+
+	describe('onOrNextWorkingDay', () => {
+		it('returns a working day unchanged', () => {
+			const date = new Date('2026-11-18T14:30:00Z');
+			assert.strictEqual(onOrNextWorkingDay(date), date);
+		});
+
+		it('moves a Saturday to the following Monday', () => {
+			assert.strictEqual(ukDay(onOrNextWorkingDay(gmtMidnight('2026-11-21'))), 'Mon 2026-11-23');
+		});
+
+		it('moves Christmas Day past the weekend and the Boxing Day substitute', () => {
+			assert.strictEqual(ukDay(onOrNextWorkingDay(gmtMidnight('2026-12-25'))), 'Tue 2026-12-29');
+		});
+
+		it('moves a bank holiday Monday in British Summer Time to the Tuesday, keeping UK midnight', () => {
+			// Summer bank holiday Mon 31 Aug 2026 => Tue 1 Sep 2026 00:00 UK time
+			const result = onOrNextWorkingDay(bstMidnight('2026-08-31'));
+			assert.strictEqual(result.toISOString(), '2026-08-31T23:00:00.000Z');
+			assert.strictEqual(ukDay(result), 'Tue 2026-09-01');
 		});
 	});
 

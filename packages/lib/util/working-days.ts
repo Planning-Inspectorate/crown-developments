@@ -23,6 +23,27 @@ export function isWorkingDay(date: Date, bankHolidays: ReadonlySet<string> = DEF
 }
 
 /**
+ * Returns the date unchanged if it is a working day, otherwise moves it forward to the
+ * next working day (skipping weekends and England and Wales bank holidays).
+ * Works in UK time and keeps the UK time of day, like addWorkingDays.
+ *
+ * @example onOrNextWorkingDay(Fri 25 Dec 2026) => Tue 29 Dec 2026 (skips the weekend and the Boxing Day substitute)
+ */
+export function onOrNextWorkingDay(date: Date, bankHolidays: ReadonlySet<string> = DEFAULT_BANK_HOLIDAYS): Date {
+	let ukDate = toZonedTime(date, UK_TIME_ZONE);
+
+	if (isUkWorkingDay(ukDate, bankHolidays)) {
+		return date;
+	}
+
+	do {
+		ukDate = addDays(ukDate, 1);
+	} while (!isUkWorkingDay(ukDate, bankHolidays));
+
+	return fromZonedTime(ukDate, UK_TIME_ZONE);
+}
+
+/**
  * Adds (or, with a negative amount, subtracts) working days to a date,
  * skipping weekends and England and Wales bank holidays.
  *
