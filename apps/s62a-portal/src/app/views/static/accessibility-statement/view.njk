@@ -1,0 +1,109 @@
+{% extends "views/layouts/main.njk" %}
+
+{% block pageTitle %}
+	{% set suffix = serviceName | default(config.headerTitle) %}
+	{{ pageTitle | default('Accessibility statement') }} - {{ suffix }}
+{% endblock %}
+
+{% block pageHeading %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<h1 class="govuk-heading-xl">
+				{{ pageHeading }}
+			</h1>
+		</div>
+	</div>
+{% endblock %}
+
+{% block pageContent %}
+	<div class="govuk-grid-row">
+		<div class="govuk-grid-column-two-thirds">
+			<p class="govuk-body">This accessibility statement applies to the Find a local planning application made to the Planning Inspectorate website.</p>
+			<p class="govuk-body">This website is run by Planning Inspectorate. We want as many people as possible to be able to use this website. For example, that means you should be able to:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>change colours, contrast levels and fonts</li>
+				<li>zoom in up to 400% without the text spilling off the screen</li>
+				<li>navigate most of the website using just a keyboard</li>
+				<li>navigate most of the website using speech recognition software</li>
+				<li>listen to most of the website using a screen reader (including the most recent versions of JAWS, NVDA and VoiceOver)</li>
+			</ul>
+			<p class="govuk-body">We’ve also made the website text as simple as possible to understand.</p>
+			<p class="govuk-body">
+				<a class="govuk-link" href="https://mcmw.abilitynet.org.uk/" rel="noreferrer noopener" target="_blank">AbilityNet (opens in a new tab)</a> has advice on making your device easier to use if you have a disability.
+			</p>
+
+			<h2 class="govuk-heading-m">How accessible this service is</h2>
+			<p class="govuk-body">We know some parts of this website are not fully accessible:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>Some links don’t describe their destination out of context.</li>
+				<li>Some pages have no heading level one.</li>
+				<li>Heading hierarchies are not in order within the filter sections.</li>
+				<li>Some page titles aren’t unique.</li>
+				<li>Two level 1 headings are used on the same page.</li>
+				<li>Some inputs are missing visible labels.</li>
+				<li>Some link text does not describe the purpose of the link.</li>
+				<li>Page title doesn’t change when a search is submitted.</li>
+				<li>The all application page scrolls horizontally on smaller or zoomed screens.</li>
+				<li>Date form input labels within a filter section are announced twice on desktop and not announced on mobile.</li>
+				<li>There is an empty link present on the contact page.</li>
+				<li>Screen reader users are navigated out of the page when removing an attachment.</li>
+				<li>No focus indicator on choose attachments button.</li>
+			</ul>
+
+			<h2 class="govuk-heading-m">Feedback and contact information</h2>
+			<p class="govuk-body">If you find any problems not listed on this page or think we’re not meeting accessibility requirements, use our <a class="govuk-link" href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new">customer contact form</a>.</p>
+			<p class="govuk-body">If you need information on this website in a different format:</p>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>Call <a class="govuk-link" href="tel:03034445000">0303 444 5000</a></li>
+				<li>Submit a request via our <a class="govuk-link" href="https://contact-us.planninginspectorate.gov.uk/hc/en-gb/requests/new">customer contact form</a></li>
+			</ul>
+			<p class="govuk-body">We’ll consider your request and get back to you in 10 working days.</p>
+
+			<h2 class="govuk-heading-m">Enforcement procedure</h2>
+			<p class="govuk-body">
+				The Equality and Human Rights Commission (EHRC) is responsible for enforcing the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018 (the ‘accessibility regulations’).
+			</p>
+			<p class="govuk-body">
+				If you’re not happy with how we respond to your complaint,
+				<a class="govuk-link" href="https://www.equalityadvisoryservice.com/" rel="noreferrer noopener" target="_blank">contact the Equality Advisory and Support Service (opens in a new tab)</a>.
+			</p>
+
+			<h2 class="govuk-heading-m">Technical information about this website’s accessibility</h2>
+			<p class="govuk-body">The Planning Inspectorate is committed to making its websites accessible, in accordance with the Public Sector Bodies (Websites and Mobile Applications) (No. 2) Accessibility Regulations 2018.</p>
+
+			<h3 class="govuk-heading-s">Compliance status</h3>
+			<p class="govuk-body">The website has been tested against the Web Content Accessibility Guidelines (WCAG) 2.2 AA standard.</p>
+			<p class="govuk-body">This website is partially compliant with the Web Content Accessibility Guidelines (WCAG) version 2.2 AA standard, due to the following non-compliances (and/or) the following exemptions.</p>
+
+			<h2 class="govuk-heading-m">Non-accessible content</h2>
+			<p class="govuk-body">The content is non-accessible for the following reason(s):</p>
+
+			<h3 class="govuk-heading-s">Non-compliance with the accessibility regulations</h3>
+			<ul class="govuk-list govuk-list--bullet">
+				<li>The “Read more” links do not describe their destination. Screen reader users have to manually explore surrounding content to understand the purpose of the link. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html">2.4.4 Link Purpose (In Context)</a> (Level A).</li>
+				<li>Some pages have no heading level one. Screen reader users may be unsure of the main content on the page. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html">1.3.1 Info and Relationships</a> (Level A).</li>
+				<li>The “Filters” section uses an incorrect heading hierarchy. Screen reader users may have an inaccurate mental model of how the page is organised. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html">1.3.1 Info and Relationships</a> (Level A).</li>
+				<li>There is no unique page title when inside a comment or feedback. Screen reader users and people with multiple tabs open may struggle to identify which page or step they are currently navigating. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/page-titled.html">2.4.2 Page Titled</a> (Level A).</li>
+				<li>A heading level 1 is used as a form label on a page already containing a heading level 1. This may confuse screen reader users navigating by headings. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html">1.3.1 Info and Relationships</a> (Level A).</li>
+				<li>Some inputs are missing visible labels. Screen reader users miss important instructions for what to search for and voice control users may struggle to activate the field. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html">1.3.1 Info and Relationships</a> (Level A).</li>
+				<li>Results per page links do not describe their purpose. Screen reader users may have difficulty understanding the meaning of the numbers. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html">2.4.4 Link Purpose (In Context)</a> (Level A).</li>
+				<li>Screen reader users are not alerted when a search has been submitted. Screen reader users would be unaware that a search has been submitted. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/page-titled.html">2.4.2 Page Titled</a> (Level A).</li>
+				<li>After removing an attachment, screen reader users are navigated out of the web content area. Screen reader and keyboard users may lose their place on the page and have to navigate the page again. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html">2.4.3 Focus Order</a> (Level A).</li>
+				<li>An empty link is present on the page. Keyboard-only users may briefly lose track of their position on the page, and screen reader users will hear an interactive “link” with no explanation of its purpose. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html">2.4.4 Link Purpose (In Context)</a> (Level A), <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html">2.4.7 Focus Visible</a> (Level AA), <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/name-role-value.html">4.1.2 Name, Role, Value</a> (Level A).</li>
+				<li>Date inputs have the same id attribute. Screen readers may hear the label twice on an input, whilst some other screen readers do not announce a name at all. This may make it difficult to understand what information to enter. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/info-and-relationships.html">1.3.1 Info and Relationships</a> (Level A).</li>
+				<li>The choose attachments button does not have visible keyboard focus. Keyboard users may have difficulty knowing when they can activate the choose attachments button. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html">2.4.7 Focus Visible</a> (Level AA).</li>
+				<li>A wide table forces the page to scroll horizontally on small screens and when zoomed in. This may make reading content and interacting with the page disorienting and physically tiring. This fails <a class="govuk-link" href="https://www.w3.org/WAI/WCAG22/Understanding/reflow.html">1.4.10 Reflow</a> (Level AA).</li>
+			</ul>
+			<p class="govuk-body">We expect to resolve these issues by 31st January 2027.</p>
+
+			<h2 class="govuk-heading-m">What we’re doing to improve accessibility</h2>
+			<p class="govuk-body">We are actively working to review and improve accessibility on our service.</p>
+			<p class="govuk-body">We frequently complete easy checks using assistive technology and semi-automated tools.</p>
+			<p class="govuk-body">We conduct yearly accessibility audits.</p>
+
+			<h2 class="govuk-heading-m">Preparation of this accessibility statement</h2>
+			<p class="govuk-body">This statement was prepared on 26th November 2026. It was last reviewed on 26th November 2026.</p>
+			<p class="govuk-body">This website was last tested on 6 November 2026. The test was carried out by the Accessibility Testing team at Solirius Reply.</p>
+		</div>
+	</div>
+{% endblock %}
