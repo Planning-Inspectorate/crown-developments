@@ -90,6 +90,7 @@ describe('Crown written representations read-more controller', () => {
 		const representationQuery = db.representation.findUnique.mock.calls[0].arguments[0];
 		assert.deepStrictEqual(representationQuery.where, {
 			reference: representationReference,
+			applicationId,
 			statusId: REPRESENTATION_STATUS_ID.ACCEPTED
 		});
 		assert.strictEqual(response.render.mock.calls[0].arguments[0], 'read-more/view.njk');
@@ -160,6 +161,20 @@ describe('Crown written representations read-more controller', () => {
 	});
 
 	describe('not-found paths', () => {
+		for (const representationsPublishDate of [null, new Date('2026-07-16')]) {
+			it(`should deny unpublished representations (${representationsPublishDate}) before querying content`, async (context) => {
+				context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-07-15T12:00:00Z') });
+				const db = createDatabase({ application: createApplication({ representationsPublishDate }) });
+				const sharePointDrive = { getDriveItem: mock.fn() };
+				const handler = buildCrownWrittenRepresentationsReadMorePage({ db, logger: mockLogger(), sharePointDrive });
+
+				await assertRenders404Page(handler, createRequest(), false);
+
+				assert.equal(db.representation.findUnique.mock.callCount(), 0);
+				assert.equal(sharePointDrive.getDriveItem.mock.callCount(), 0);
+			});
+		}
+
 		it('returns not found for an invalid application ID without querying the database', async () => {
 			const db = createDatabase();
 			const request = createRequest({ applicationId: 'invalid' });

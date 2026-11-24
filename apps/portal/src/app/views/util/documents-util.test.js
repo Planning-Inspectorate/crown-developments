@@ -178,8 +178,11 @@ describe('documents-util', () => {
 		});
 
 		it('should allow download if document is allowed', async () => {
+			const representationsPublishDate = new Date('2025-03-01');
 			const mockDb = {
-				crownDevelopment: { findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001' })) }
+				crownDevelopment: {
+					findUnique: mock.fn(() => ({ reference: 'CROWN/2025/0000001', representationsPublishDate }))
+				}
 			};
 			const mockSharePoint = {
 				getDriveItem: mock.fn(() => ({
@@ -211,6 +214,10 @@ describe('documents-util', () => {
 			assert.strictEqual(isDocumentAllowed.mock.callCount(), 1);
 			assert.strictEqual(isDocumentAllowed.mock.calls[0].arguments[0].applicationId, applicationId);
 			assert.strictEqual(isDocumentAllowed.mock.calls[0].arguments[0].documentId, 'doc-123');
+			assert.strictEqual(
+				isDocumentAllowed.mock.calls[0].arguments[0].representationsPublishDate,
+				representationsPublishDate
+			);
 			assert.strictEqual(mockSharePoint.getDriveItem.mock.callCount(), 1);
 			assert.strictEqual(mockSharePoint.getDriveItemDownloadUrl.mock.callCount(), 1);
 			assert.strictEqual(mockFetch.mock.callCount(), 1);
@@ -222,12 +229,14 @@ describe('documents-util', () => {
 		const applicationId = 'cfe3dc29-1f63-45e6-81dd-da8183842bf8';
 		const representationReference = 'AB123-CD456';
 		const documentId = 'doc-123';
+		const representationsPublishDate = new Date('2025-03-01');
 
 		it('should return false without querying for an invalid representation reference', async () => {
 			const db = { representationDocument: { count: mock.fn(() => 1) } };
 			for (const ref of ['', 'abc', 'ab123-cd456', 'AB123CD456', undefined]) {
 				const result = await isPublishedRepresentationDocument(db, {
 					applicationId,
+					representationsPublishDate,
 					representationReference: ref,
 					documentId
 				});
@@ -238,7 +247,12 @@ describe('documents-util', () => {
 
 		it('should query for an accepted attachment on an accepted rep for this application', async () => {
 			const db = { representationDocument: { count: mock.fn(() => 1) } };
-			await isPublishedRepresentationDocument(db, { applicationId, representationReference, documentId });
+			await isPublishedRepresentationDocument(db, {
+				applicationId,
+				representationsPublishDate,
+				representationReference,
+				documentId
+			});
 			assert.strictEqual(db.representationDocument.count.mock.callCount(), 1);
 			assert.deepStrictEqual(db.representationDocument.count.mock.calls[0].arguments[0], {
 				where: {
@@ -257,6 +271,7 @@ describe('documents-util', () => {
 			const db = { representationDocument: { count: mock.fn(() => 1) } };
 			const result = await isPublishedRepresentationDocument(db, {
 				applicationId,
+				representationsPublishDate,
 				representationReference,
 				documentId
 			});
@@ -267,10 +282,28 @@ describe('documents-util', () => {
 			const db = { representationDocument: { count: mock.fn(() => 0) } };
 			const result = await isPublishedRepresentationDocument(db, {
 				applicationId,
+				representationsPublishDate,
 				representationReference,
 				documentId
 			});
 			assert.strictEqual(result, false);
+		});
+
+		it('should deny absent and future publication dates without querying documents', async (context) => {
+			context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-07-15T12:00:00Z') });
+			const db = { representationDocument: { count: mock.fn(() => 1) } };
+			for (const date of [null, undefined, new Date('2026-07-16')]) {
+				assert.equal(
+					await isPublishedRepresentationDocument(db, {
+						applicationId,
+						representationReference,
+						documentId,
+						representationsPublishDate: date
+					}),
+					false
+				);
+			}
+			assert.equal(db.representationDocument.count.mock.callCount(), 0);
 		});
 	});
 

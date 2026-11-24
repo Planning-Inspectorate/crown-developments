@@ -2,10 +2,9 @@ import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { fetchPublishedApplication, getApplicationStatus } from '@pins/crowndev-lib/util/applications.ts';
 import { buildWrittenRepresentationsPage } from '@pins/crowndev-lib/written-representations/controller.ts';
-import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { createWhereClause, splitStringQueries } from '@pins/crowndev-lib/util/search-queries.js';
-import { dateIsBeforeToday, dateIsToday } from '@planning-inspectorate/dynamic-forms';
+import { areRepresentationsPublished, publicRepresentationWhere } from '../../../util/representation-access.ts';
 import { getPaginationParams } from '@pins/crowndev-lib/views/pagination/pagination-utils.ts';
 import { hasQueries, mapWithAndWithoutToBoolean } from '@pins/crowndev-lib/written-representations/filters/filters.ts';
 import { buildCrownFilters } from './filters/filters.ts';
@@ -39,11 +38,9 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 		if (!crownDevelopment) {
 			return notFoundHandler(req, res);
 		}
-		const publishedDate = crownDevelopment.representationsPublishDate;
 		const applicationStatus = getApplicationStatus(crownDevelopment.withdrawnDate);
 		const caseFields = { ...crownDevelopment, applicationStatus };
-		const representationsPublished = publishedDate && (dateIsToday(publishedDate) || dateIsBeforeToday(publishedDate));
-		if (!representationsPublished) {
+		if (!areRepresentationsPublished(crownDevelopment.representationsPublishDate)) {
 			return notFoundHandler(req, res);
 		}
 
@@ -117,8 +114,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 			[representations, totalAcceptedRepresentations, totalRepresentations] = await Promise.all([
 				db.representation.findMany({
 					where: {
-						applicationId: id,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...publicRepresentationWhere(id),
 						...searchCriteria,
 						...whereFilters
 					},
@@ -144,8 +140,7 @@ export function buildWrittenRepresentationsListPage({ db, logger }) {
 				}),
 				db.representation.count({
 					where: {
-						applicationId: id,
-						statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
+						...publicRepresentationWhere(id),
 						...searchCriteria,
 						...whereFilters
 					}

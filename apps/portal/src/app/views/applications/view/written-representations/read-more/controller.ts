@@ -7,6 +7,7 @@ import { getDocumentsById } from '@pins/crowndev-lib/documents/get.js';
 import { mapDriveItemToViewModel } from '@pins/crowndev-lib/documents/view-model.js';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { shouldDisplayApplicationUpdatesLink } from '../../../../util/application-util.ts';
+import { areRepresentationsPublished, publicRepresentationWhere } from '../../../../util/representation-access.ts';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { buildWrittenRepresentationsReadMorePage } from '@pins/crowndev-lib/written-representations/read-more/controller.ts';
 import type { PortalService } from '#service';
@@ -69,7 +70,7 @@ export function buildCrownWrittenRepresentationsReadMorePage({
 			}
 		});
 
-		if (!crownDevelopment) {
+		if (!crownDevelopment || !areRepresentationsPublished(crownDevelopment.representationsPublishDate)) {
 			return notFoundHandler(req, res);
 		}
 		const { reference } = crownDevelopment;
@@ -82,7 +83,7 @@ export function buildCrownWrittenRepresentationsReadMorePage({
 		const representation = await db.representation.findUnique({
 			where: {
 				reference: representationReference,
-				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				...publicRepresentationWhere(id)
 			},
 			select: representationSelect
 		});

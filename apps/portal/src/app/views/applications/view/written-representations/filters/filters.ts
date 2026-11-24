@@ -1,4 +1,5 @@
-import { REPRESENTATION_CATEGORY_ID, REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { REPRESENTATION_CATEGORY_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { publicRepresentationWhere } from '../../../../util/representation-access.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import type { Service } from '@pins/crowndev-lib/app/base-service.ts';
 import type { FilterSection, QueryFilters } from '@pins/crowndev-lib/filters/filter-types.ts';
@@ -20,16 +21,16 @@ export async function buildCrownFilters(
 	try {
 		[interestedPartyCount, consulteeCount, withAttachmentsCount, withoutAttachmentsCount] = await Promise.all([
 			db.representation.count({
-				where: { categoryId: interestedParties, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: { categoryId: interestedParties, ...publicRepresentationWhere(id) }
 			}),
 			db.representation.count({
-				where: { categoryId: consultees, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: { categoryId: consultees, ...publicRepresentationWhere(id) }
 			}),
 			db.representation.count({
-				where: { containsAttachments: true, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: { containsAttachments: true, ...publicRepresentationWhere(id) }
 			}),
 			db.representation.count({
-				where: { containsAttachments: false, applicationId: id, statusId: REPRESENTATION_STATUS_ID.ACCEPTED }
+				where: { containsAttachments: false, ...publicRepresentationWhere(id) }
 			})
 		]);
 	} catch (error) {
