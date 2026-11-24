@@ -1959,3 +1959,28 @@ describe('s62aCaseToViewModel', () => {
 		});
 	});
 });
+
+describe('s62aCaseToViewModel statutory consultee and councillor contacts', () => {
+	for (const roleId of ['statutory-consultee', 'councillor']) {
+		it(`maps a ${roleId} additional contact as its own type, not "other"`, () => {
+			const result = s62aCaseToViewModel({
+				id: 'case-hearing-1',
+				reference: 'S62A/2026/0100',
+				S62aToApplicants: [
+					{
+						id: 'rel-1',
+						roleId,
+						Role: { displayName: 'ignored' },
+						Contact: { id: 'contact-1', firstName: 'Sam', email: 'sam@example.com' }
+					}
+				]
+			} as unknown as S62aCaseDbModel);
+
+			const [contact] = result.manageAdditionalContacts ?? [];
+			assert.strictEqual(contact.additionalContactType, roleId);
+			assert.strictEqual(contact.otherContactType, undefined);
+			assert.strictEqual(contact.additionalContactType_otherContactType, undefined);
+			assert.strictEqual(contact.emailAddress, 'sam@example.com');
+		});
+	}
+});

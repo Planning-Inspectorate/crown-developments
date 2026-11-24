@@ -1,7 +1,12 @@
 import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
-import { type RepresentationPublishedCaseContext, S62aManageNotificationService } from './notification-service.ts';
-import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	type HearingNotificationContext,
+	pickHearingInspector,
+	type RepresentationPublishedCaseContext,
+	S62aManageNotificationService
+} from './notification-service.ts';
+import { CONTACT_ROLES_ID, MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
@@ -1371,6 +1376,336 @@ describe('S62aManageNotificationService processInterestedPartyDecision', () => {
 		assert.strictEqual(
 			(mockLogger.error as any).mock.calls[0].arguments[1],
 			'Error dispatching interested party decision email'
+		);
+	});
+});
+
+describe('pickHearingInspector', () => {
+	const inspector = (id: string, appointed?: string, assigned?: string) => ({
+		id,
+		inspectorId: `entra-${id}`,
+		inspectorAppointedDate: appointed ? new Date(appointed) : undefined,
+		inspectorAssignedDate: assigned ? new Date(assigned) : undefined
+	});
+
+	it('returns undefined when there are no inspectors', () => {
+		assert.strictEqual(pickHearingInspector(undefined), undefined);
+		assert.strictEqual(pickHearingInspector([]), undefined);
+	});
+
+	it('picks the inspector with the latest appointed date', () => {
+		const result = pickHearingInspector([
+			inspector('a', '2026-01-10', '2026-12-01'),
+			inspector('b', '2026-03-01'),
+			inspector('c', '2026-02-01')
+		]);
+		assert.strictEqual(result?.id, 'b');
+	});
+
+	it('falls back to the latest assigned date when appointed dates are the same or missing', () => {
+		const result = pickHearingInspector([
+			inspector('a', undefined, '2026-01-01'),
+			inspector('b', undefined, '2026-05-01'),
+			inspector('c')
+		]);
+		assert.strictEqual(result?.id, 'b');
+	});
+
+	it('prefers an appointed inspector over one that is only assigned', () => {
+		const result = pickHearingInspector([inspector('a', undefined, '2026-12-01'), inspector('b', '2026-01-01')]);
+		assert.strictEqual(result?.id, 'b');
+	});
+
+	it('falls back to the most recently added when there are no dates', () => {
+		const result = pickHearingInspector([inspector('a'), inspector('b'), inspector('c')]);
+		assert.strictEqual(result?.id, 'c');
+	});
+});
+
+describe('S62aManageNotificationService processHearingNotification', () => {
+	let mockLogger: Logger;
+	let mockNotifyClient: S62aGovNotifyClient;
+	let service: S62aManageNotificationService;
+	let mockDb: any;
+
+	// Monday 15 March 2027, 10:00am UK time (GMT)
+	const hearingDate = new Date('2027-03-15T10:00:00Z');
+
+	const context = (overrides: Partial<HearingNotificationContext> = {}): HearingNotificationContext => ({
+		caseId: 'case-123',
+		reference: 'S62A/2027/0001',
+		applicationWebLink: 'https://portal.example/applications/case-123/application-information',
+		appointedPersonName: 'Ivy Inspector',
+		emails: { major: 'major@test.com', nonMajor: 'non-major@test.com' },
+		...overrides
+	});
+
+	const hearingAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+		({
+			hearingDate,
+			venue: 'Bristol Council House',
+			classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+			developmentDescription: 'Construction of 12 homes',
+			siteAddress: { addressLine1: '1 Test Street', townCity: 'Bristol', postcode: 'BS1 1AA' },
+			manageAgentContactDetails: [
+				{ agentContactEmail: 'agent@test.com', agentFirstName: 'Abby', agentLastName: 'Agent' }
+			],
+			manageApplicantContactDetails: [
+				{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'Alex', applicantLastName: 'Applicant' }
+			],
+			lpaId: 'not-a-real-lpa',
+			lpaEmailAddress: 'lpa@test.com',
+			lpaFirstName: 'Laura',
+			lpaLastName: 'Planner',
+			...overrides
+		}) as UpdateCaseAnswers;
+
+	const sentRecipients = () =>
+		(mockNotifyClient.sendHearingNotificationToMany as any).mock.calls[0].arguments[0] as {
+			email: string;
+			recipientName: string;
+			group: string;
+		}[];
+	const sentDetails = () => (mockNotifyClient.sendHearingNotificationToMany as any).mock.calls[0].arguments[1];
+
+	beforeEach(() => {
+		mockLogger = { info: mock.fn(), warn: mock.fn(), error: mock.fn() } as unknown as Logger;
+		mockNotifyClient = {
+			sendHearingNotificationToMany: mock.fn(async (recipients: { email: string }[]) =>
+				recipients.map(({ email }) => ({ email, notifyId: 'n', body: 'b', subject: 's' }))
+			)
+		} as unknown as S62aGovNotifyClient;
+		mockDb = { s62aRepresentation: { findMany: mock.fn(async () => []) } };
+		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
+	});
+
+	it('returns wasSent: false without querying when there is no hearing date', async () => {
+		const result = await service.processHearingNotification(
+			hearingAnswers({ hearingDate: undefined }),
+			context(),
+			mockDb
+		);
+
+		assert.strictEqual(result.wasSent, false);
+		assert.strictEqual(mockDb.s62aRepresentation.findMany.mock.callCount(), 0);
+	});
+
+	it('returns wasSent: false and logs a warning when the notify client is null', async () => {
+		const result = await new S62aManageNotificationService(null, mockLogger).processHearingNotification(
+			hearingAnswers(),
+			context(),
+			mockDb
+		);
+
+		assert.strictEqual(result.wasSent, false);
+		assert.deepStrictEqual((mockLogger.warn as any).mock.calls[0].arguments, ['S62A Gov Notify is not enabled...']);
+	});
+
+	it('sends to the agent (not the applicant) and the LPA, without the registration section (Scenarios 3, 8)', async () => {
+		const result = await service.processHearingNotification(hearingAnswers(), context(), mockDb);
+
+		assert.strictEqual(result.wasSent, true);
+		assert.strictEqual(result.auditData?.length, 2);
+		assert.deepStrictEqual(sentRecipients(), [
+			{ email: 'agent@test.com', recipientName: 'Abby Agent', group: 'principal' },
+			{ email: 'lpa@test.com', recipientName: 'Laura Planner', group: 'principal' }
+		]);
+	});
+
+	it('sends to the applicant when there is no agent email (Scenario 9)', async () => {
+		await service.processHearingNotification(hearingAnswers({ manageAgentContactDetails: [] }), context(), mockDb);
+
+		assert.deepStrictEqual(sentRecipients()[0], {
+			email: 'applicant@test.com',
+			recipientName: 'Alex Applicant',
+			group: 'principal'
+		});
+	});
+
+	it('sends to the secondary LPA, addressed to the LPA when there is no contact name', async () => {
+		await service.processHearingNotification(
+			hearingAnswers({
+				hasSecondaryLpa: BOOLEAN_OPTIONS.YES,
+				secondaryLpaId: 'not-a-real-lpa',
+				secondaryLpaEmailAddress: 'lpa2@test.com'
+			} as Partial<UpdateCaseAnswers>),
+			context(),
+			mockDb
+		);
+
+		assert.deepStrictEqual(sentRecipients().at(-1), {
+			email: 'lpa2@test.com',
+			recipientName: 'Secondary LPA',
+			group: 'principal'
+		});
+	});
+
+	it('sends the registration version to statutory consultees and councillors only, not other contact types', async () => {
+		await service.processHearingNotification(
+			hearingAnswers({
+				manageAdditionalContacts: [
+					{
+						additionalContactType: CONTACT_ROLES_ID.STATUTORY_CONSULTEE,
+						organisationName: 'Natural England',
+						emailAddress: 'ne@test.com'
+					},
+					{
+						additionalContactType: CONTACT_ROLES_ID.COUNCILLOR,
+						firstName: 'Cara',
+						lastName: 'Councillor',
+						emailAddress: 'cllr@test.com'
+					},
+					{ additionalContactType: CONTACT_ROLES_ID.STATUTORY_CONSULTEE, organisationName: 'No email' },
+					{ additionalContactType: CONTACT_ROLES_ID.INTERESTED_PARTY, emailAddress: 'ip@test.com' },
+					{ additionalContactType: 'other', otherContactType: 'Local MP', emailAddress: 'mp@test.com' }
+				]
+			}),
+			context(),
+			mockDb
+		);
+
+		const others = sentRecipients().filter((r) => r.group === 'other');
+		assert.deepStrictEqual(others, [
+			{ email: 'ne@test.com', recipientName: 'Natural England', group: 'other' },
+			{ email: 'cllr@test.com', recipientName: 'Cara Councillor', group: 'other' }
+		]);
+	});
+
+	it('queries accepted and awaiting-review representations that asked to be heard', async () => {
+		await service.processHearingNotification(hearingAnswers(), context(), mockDb);
+
+		const [query] = mockDb.s62aRepresentation.findMany.mock.calls[0].arguments;
+		assert.deepStrictEqual(query.where, {
+			applicationId: 'case-123',
+			wantsToBeHeard: true,
+			statusId: { in: [REPRESENTATION_STATUS_ID.ACCEPTED, REPRESENTATION_STATUS_ID.AWAITING_REVIEW] }
+		});
+	});
+
+	it('sends one email per address: a consultee who also asked to be heard gets one (Scenario 5)', async () => {
+		mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+			{ SubmittedByContact: { email: 'NE@Test.com', orgName: 'Natural England (rep)' } },
+			{ SubmittedByContact: { email: 'person@test.com', firstName: 'Pat', lastName: 'Person' } },
+			{ SubmittedByContact: { email: 'person@test.com', firstName: 'Pat', lastName: 'Again' } },
+			{ SubmittedByContact: { email: null, firstName: 'No', lastName: 'Email' } },
+			{ SubmittedByContact: null }
+		]);
+
+		await service.processHearingNotification(
+			hearingAnswers({
+				manageAdditionalContacts: [
+					{
+						additionalContactType: CONTACT_ROLES_ID.STATUTORY_CONSULTEE,
+						organisationName: 'Natural England',
+						emailAddress: 'ne@test.com'
+					}
+				]
+			}),
+			context(),
+			mockDb
+		);
+
+		assert.deepStrictEqual(
+			sentRecipients().filter((r) => r.group === 'other'),
+			[
+				{ email: 'ne@test.com', recipientName: 'Natural England', group: 'other' },
+				{ email: 'person@test.com', recipientName: 'Pat Person', group: 'other' }
+			]
+		);
+	});
+
+	it('sends the registration version once to an LPA contact or agent who also asked to be heard', async () => {
+		mockDb.s62aRepresentation.findMany = mock.fn(async () => [
+			{ SubmittedByContact: { email: 'LPA@test.com', firstName: 'Laura', lastName: 'Planner' } }
+		]);
+
+		await service.processHearingNotification(hearingAnswers(), context(), mockDb);
+
+		assert.deepStrictEqual(sentRecipients(), [
+			{ email: 'LPA@test.com', recipientName: 'Laura Planner', group: 'other' },
+			{ email: 'agent@test.com', recipientName: 'Abby Agent', group: 'principal' }
+		]);
+	});
+
+	it('fills in the hearing details, registration deadline and major Section 62A email', async () => {
+		await service.processHearingNotification(hearingAnswers(), context(), mockDb);
+
+		assert.deepStrictEqual(sentDetails(), {
+			reference: 'S62A/2027/0001',
+			applicationDescription: 'Construction of 12 homes',
+			siteAddress: sentDetails().siteAddress,
+			hearingDate: '15 March 2027',
+			hearingTime: '10:00am',
+			hearingVenue: 'Bristol Council House',
+			appointedPersonName: 'Ivy Inspector',
+			applicationWebLink: 'https://portal.example/applications/case-123/application-information',
+			// 2 working days before Monday 15 March: Thursday 11 March (skips the weekend)
+			registrationDeadline: '11 March 2027',
+			section62aEmail: 'major@test.com'
+		});
+		assert.ok(sentDetails().siteAddress.includes('1 Test Street'));
+	});
+
+	it('skips bank holidays in the registration deadline and uses UK time for the hearing time', async () => {
+		// Tuesday 30 March 2027, 10:00am BST: Easter Monday (29th) and Good Friday (26th) are bank holidays
+		await service.processHearingNotification(
+			hearingAnswers({ hearingDate: new Date('2027-03-30T09:00:00Z') }),
+			context(),
+			mockDb
+		);
+
+		assert.strictEqual(sentDetails().hearingDate, '30 March 2027');
+		assert.strictEqual(sentDetails().hearingTime, '10:00am');
+		assert.strictEqual(sentDetails().registrationDeadline, '24 March 2027');
+	});
+
+	it('uses the non-major Section 62A email for non-major applications', async () => {
+		await service.processHearingNotification(
+			hearingAnswers({ classificationId: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR }),
+			context(),
+			mockDb
+		);
+
+		assert.strictEqual(sentDetails().section62aEmail, 'non-major@test.com');
+	});
+
+	it('uses easting and northing when there is no site address', async () => {
+		await service.processHearingNotification(
+			hearingAnswers({
+				siteAddress: undefined,
+				siteEasting: 350000,
+				siteNorthing: 170000
+			} as Partial<UpdateCaseAnswers>),
+			context(),
+			mockDb
+		);
+
+		assert.strictEqual(sentDetails().siteAddress, 'Easting: 350000, Northing: 170000');
+	});
+
+	it('returns wasSent: true without sending, and logs a warning, when there is nobody to send to', async () => {
+		const result = await service.processHearingNotification(
+			hearingAnswers({ manageAgentContactDetails: [], manageApplicantContactDetails: [], lpaEmailAddress: undefined }),
+			context(),
+			mockDb
+		);
+
+		assert.deepStrictEqual(result, { wasSent: true });
+		assert.strictEqual((mockNotifyClient.sendHearingNotificationToMany as any).mock.callCount(), 0);
+		assert.strictEqual((mockLogger.warn as any).mock.callCount(), 1);
+	});
+
+	it('logs and rethrows when the notify client fails', async () => {
+		(mockNotifyClient as any).sendHearingNotificationToMany = mock.fn(async () => {
+			throw new Error('Notify down');
+		});
+
+		await assert.rejects(() => service.processHearingNotification(hearingAnswers(), context(), mockDb), {
+			message: 'Error encountered during hearing notification email dispatch'
+		});
+		assert.strictEqual(
+			(mockLogger.error as any).mock.calls[0].arguments[1],
+			'Error dispatching hearing notification email'
 		);
 	});
 });

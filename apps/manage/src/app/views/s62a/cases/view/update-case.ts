@@ -29,7 +29,8 @@ import {
 } from '../audit/field-resolvers.ts';
 import { S62A_GROUPED_FIELDS } from '../audit/grouped-fields.ts';
 import { S62A_LIST_RESOLVERS } from '../audit/list-resolvers.ts';
-import { S62aManageNotificationService } from '../util/notification-service.ts';
+import { pickHearingInspector, S62aManageNotificationService } from '../util/notification-service.ts';
+import { getEntraGroupMembers } from '@pins/crowndev-lib/util/entra-groups.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import { sendS62aNotificationAndUpdateFlag } from '@pins/crowndev-lib/util/notification-wrapper.ts';
 import { siteVisitAnswersToClear } from '../util/site-visit.ts';
@@ -284,6 +285,7 @@ function handleUpdateEmails(
 	representationPublishedEmail(answers, previousCase, notificationService, service, id, req);
 	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req, res);
 	interestedPartyDecisionEmail(answers, previousCase, notificationService, service, id, req);
+	hearingNotificationEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -577,6 +579,96 @@ export function interestedPartyDecisionEmail(
 		id,
 		'interestedPartyDecisionEmailSent',
 		'Send Interested Party Decision Notification (Update)',
+		req
+	);
+}
+
+/**
+ * Fallback for the appointed person's name if it can't be found in Entra
+ * (e.g. locally with auth disabled, or the inspector has left the group).
+ */
+export const HEARING_INSPECTOR_NAME_FALLBACK = 'the appointed person';
+
+/**
+ * Looks up the display name of the inspector holding the hearing from the S62A inspectors Entra group,
+ * as the case page does. Inspectors are stored by Entra ID only.
+ */
+export async function resolveHearingInspectorName(
+	previousCase: S62aCaseViewModel,
+	service: ManageService,
+	req: Request
+): Promise<string> {
+	const inspector = pickHearingInspector(previousCase.manageCaseTeamInspectors);
+	if (!inspector?.inspectorId) {
+		service.logger.warn({ caseId: previousCase.id }, 'No appointed inspector found for the hearing notification');
+		return HEARING_INSPECTOR_NAME_FALLBACK;
+	}
+
+	try {
+		const groupMembers = await getEntraGroupMembers({
+			logger: service.logger,
+			initClient: service.getEntraClient,
+			session: req.session,
+			groupIds: service.entraGroupIds
+		});
+		const name = groupMembers.s62aInspectors.find((member) => member.id === inspector.inspectorId)?.displayName;
+		if (name) return name;
+	} catch (error) {
+		service.logger.warn({ error, caseId: previousCase.id }, 'Could not look up the appointed inspector in Entra');
+	}
+
+	service.logger.warn(
+		{ caseId: previousCase.id, inspectorId: inspector.inspectorId },
+		'Appointed inspector not found in Entra, using a generic name in the hearing notification'
+	);
+	return HEARING_INSPECTOR_NAME_FALLBACK;
+}
+
+/**
+ * Sends the hearing notification to all parties the first time the hearing date is saved.
+ * Later edits to the date, time or venue don't send it again.
+ */
+export function hearingNotificationEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag,
+	resolveInspectorName = resolveHearingInspectorName
+): void {
+	const alreadySent = previousCase.hearingNotificationEmailSent === BOOLEAN_OPTIONS.YES;
+
+	if (alreadySent || !answers.hearingDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const emailPromise = (async () => {
+		const appointedPersonName = await resolveInspectorName(previousCase, service, req);
+
+		return notificationService.processHearingNotification(
+			mergedAnswers,
+			{
+				caseId: previousCase.id,
+				reference: previousCase.reference,
+				applicationWebLink: `${service.s62aPortalBaseUrl}/applications/${previousCase.id}/application-information`,
+				appointedPersonName,
+				emails: { major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail }
+			},
+			service.db
+		);
+	})();
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'hearingNotificationEmailSent',
+		'Send Hearing Notification (Update)',
 		req
 	);
 }

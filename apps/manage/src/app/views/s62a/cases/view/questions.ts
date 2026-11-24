@@ -8,8 +8,8 @@ import {
 import {
 	APPLICANT_TYPE_ID,
 	APPLICANT_TYPES,
+	ADDITIONAL_CONTACT_ROLE_IDS,
 	CONTACT_ROLES,
-	CONTACT_ROLES_ID,
 	DECISION_OUTCOMES,
 	INSPECTOR_BANDS,
 	MAJOR_OR_NON_MAJORS,
@@ -98,6 +98,8 @@ import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/mana
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
+import { HEARING_DATE_PREREQUISITES } from './prerequisite-errors.ts';
+import { PrerequisitesValidator } from '@pins/crowndev-lib/validators/prerequisites-validator.ts';
 
 interface QuestionOverrides {
 	isQuestionView?: boolean;
@@ -1911,7 +1913,7 @@ export function getQuestions(
 			conditionalTriggerValue: 'other',
 			conditionalDbFieldName: 'otherContactType',
 			options: [
-				...CONTACT_ROLES.filter((i) => i.id === CONTACT_ROLES_ID.INTERESTED_PARTY).map((t) => ({
+				...CONTACT_ROLES.filter((i) => ADDITIONAL_CONTACT_ROLE_IDS.includes(i.id)).map((t) => ({
 					text: t.displayName,
 					value: t.id
 				})),
@@ -2222,10 +2224,11 @@ export function getQuestions(
 			validators: [new DateValidator('notice of procedure date')]
 		},
 		hearingDate: {
-			type: COMPONENT_TYPES.DATE_TIME,
+			// shows the hint and warning text, which the dynamic-forms DATE_TIME template doesn't
+			type: CUSTOM_COMPONENTS.DATE_TIME_WITH_HINT,
 			title: 'Hearing date',
 			question: 'When is the hearing date?',
-			hint: 'For example, 27 3 2007',
+			hint: 'You must first add the hearing venue and the appointed inspector, and publish the case.',
 			fieldName: 'hearingDate',
 			url: 'hearing-date',
 			timeFormat: 'h:mmaaa',
@@ -2235,10 +2238,35 @@ export function getQuestions(
 					'Hearing date',
 					{ ensureFuture: false, ensurePast: false },
 					{ emptyErrorMessage: 'Enter the hearing date' }
-				)
+				),
+				// The hearing notification email needs this data. Every missing item is shown,
+				// each linking to the page where it's added.
+				new PrerequisitesValidator([
+					{
+						dependencyFieldName: 'hasSiteLocation',
+						isMissing: (hasSiteLocation) => !hasSiteLocation,
+						message: HEARING_DATE_PREREQUISITES.siteLocation.message
+					},
+					{
+						dependencyFieldName: 'manageCaseTeamInspectors',
+						isMissing: (inspectors) => !Array.isArray(inspectors) || inspectors.length === 0,
+						message: HEARING_DATE_PREREQUISITES.inspector.message
+					},
+					{
+						dependencyFieldName: 'publishDate',
+						isMissing: (publishDate) => !publishDate,
+						message: HEARING_DATE_PREREQUISITES.published.message
+					},
+					{
+						dependencyFieldName: 'venue',
+						isMissing: (venue) => typeof venue !== 'string' || !venue.trim(),
+						message: HEARING_DATE_PREREQUISITES.venue.message
+					}
+				])
 			],
 			viewData: {
-				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'hearing-date/remove' }]
+				extraActionButtons: [{ text: 'Remove and save', type: 'submit', formaction: 'hearing-date/remove' }],
+				warningMessage: 'Adding a date will send a notification to all parties.'
 			}
 		},
 		hearingDuration: {

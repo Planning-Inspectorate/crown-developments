@@ -95,6 +95,8 @@ variable "apps_config" {
         application_received_fee_template_id    = string
         application_received_no_fee_template_id = string
         ip_decision_template_id                 = string
+        hearing_principal_parties_template_id   = string
+        hearing_other_parties_template_id       = string
       })
     })
 

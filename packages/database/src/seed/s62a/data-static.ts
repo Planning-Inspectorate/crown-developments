@@ -441,7 +441,9 @@ export const S62A_CATEGORIES = [
 export const CONTACT_ROLES_ID = Object.freeze({
 	APPLICANT: 'applicant',
 	AGENT: 'agent',
-	INTERESTED_PARTY: 'interested-party'
+	INTERESTED_PARTY: 'interested-party',
+	STATUTORY_CONSULTEE: 'statutory-consultee',
+	COUNCILLOR: 'councillor'
 } as const);
 
 export const CONTACT_ROLES = [
@@ -456,8 +458,25 @@ export const CONTACT_ROLES = [
 	{
 		id: CONTACT_ROLES_ID.INTERESTED_PARTY,
 		displayName: 'Interested party'
+	},
+	{
+		id: CONTACT_ROLES_ID.STATUTORY_CONSULTEE,
+		displayName: 'Statutory consultee'
+	},
+	{
+		id: CONTACT_ROLES_ID.COUNCILLOR,
+		displayName: 'Councillor'
 	}
 ];
+
+/**
+ * Contact types offered for additional contacts, other than "Other" (free text).
+ */
+export const ADDITIONAL_CONTACT_ROLE_IDS: readonly string[] = Object.freeze([
+	CONTACT_ROLES_ID.INTERESTED_PARTY,
+	CONTACT_ROLES_ID.STATUTORY_CONSULTEE,
+	CONTACT_ROLES_ID.COUNCILLOR
+]);
 
 /**
  * Folders that are auto-populated into the DB on case creation for

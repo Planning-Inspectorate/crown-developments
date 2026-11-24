@@ -107,6 +107,8 @@ module "app_manage" {
     S62A_GOV_NOTIFY_APPLICATION_RECEIVED_FEE_TEMPLATE_ID    = var.apps_config.s62a_gov_notify.templates.application_received_fee_template_id
     S62A_GOV_NOTIFY_APPLICATION_RECEIVED_NO_FEE_TEMPLATE_ID = var.apps_config.s62a_gov_notify.templates.application_received_no_fee_template_id
     S62A_GOV_NOTIFY_IP_DECISION_TEMPLATE_ID                 = var.apps_config.s62a_gov_notify.templates.ip_decision_template_id
+    S62A_GOV_NOTIFY_HEARING_PRINCIPAL_PARTIES_TEMPLATE_ID   = var.apps_config.s62a_gov_notify.templates.hearing_principal_parties_template_id
+    S62A_GOV_NOTIFY_HEARING_OTHER_PARTIES_TEMPLATE_ID       = var.apps_config.s62a_gov_notify.templates.hearing_other_parties_template_id
 
     S62A_MAJOR_CONTACT_EMAIL     = var.apps_config.s62a_major_contact_email
     S62A_NON_MAJOR_CONTACT_EMAIL = var.apps_config.s62a_non_major_contact_email
