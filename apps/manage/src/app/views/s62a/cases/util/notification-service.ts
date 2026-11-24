@@ -1,12 +1,13 @@
 import type {
 	ContactNotificationType,
+	HearingNotificationRecipient,
 	RepresentationPublishedNotificationType,
 	InterestedPartyNotificationType,
 	S62aGovNotifyClient
 } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { Logger } from 'pino';
-import { MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import { CONTACT_ROLES_ID, MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
@@ -22,6 +23,58 @@ import { getLpaOptions } from '@pins/crowndev-lib/util/questions.ts';
 import type { ManageService } from '#service';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { formatFee } from '@pins/crowndev-lib/util/numbers.ts';
+import { subtractWorkingDays } from '@pins/crowndev-lib/util/working-days.ts';
+import type { CaseTeamInspectorItem } from '../view/view-model.ts';
+
+/** Additional contact types who receive the hearing notification (with the registration section) */
+const HEARING_ADDITIONAL_CONTACT_ROLES: readonly string[] = [
+	CONTACT_ROLES_ID.STATUTORY_CONSULTEE,
+	CONTACT_ROLES_ID.COUNCILLOR
+];
+
+/** Representation statuses whose "wants to be heard" submitters receive the hearing notification */
+const HEARING_REPRESENTATION_STATUSES: string[] = [
+	REPRESENTATION_STATUS_ID.ACCEPTED,
+	REPRESENTATION_STATUS_ID.AWAITING_REVIEW
+];
+
+/** Working days before the hearing that people must register to speak by */
+export const HEARING_REGISTRATION_WORKING_DAYS = 2;
+
+export interface HearingNotificationContext {
+	caseId: string;
+	reference: string;
+	applicationWebLink: string;
+	appointedPersonName: string;
+	emails: { major?: string; nonMajor?: string };
+}
+
+/**
+ * The inspector holding the hearing: the one with the latest appointed date,
+ * then the latest assigned date, then the most recently added.
+ */
+export function pickHearingInspector(
+	inspectors: CaseTeamInspectorItem[] | undefined
+): CaseTeamInspectorItem | undefined {
+	if (!inspectors?.length) return undefined;
+
+	const time = (date?: Date) => (date ? new Date(date).getTime() : -Infinity);
+
+	return inspectors
+		.map((inspector, index) => ({ inspector, index }))
+		.sort(
+			(a, b) =>
+				time(b.inspector.inspectorAppointedDate) - time(a.inspector.inspectorAppointedDate) ||
+				time(b.inspector.inspectorAssignedDate) - time(a.inspector.inspectorAssignedDate) ||
+				b.index - a.index
+		)[0].inspector;
+}
+
+const fullName = (firstName?: string | null, lastName?: string | null) =>
+	[firstName, lastName]
+		.map((part) => part?.trim())
+		.filter(Boolean)
+		.join(' ');
 
 export interface RepresentationPublishedCaseContext {
 	id: string;
@@ -303,6 +356,149 @@ export class S62aManageNotificationService {
 		}
 
 		return contacts;
+	}
+
+	/**
+	 * Sends the hearing notification to all parties when the hearing date is first saved.
+	 *
+	 * - Applicant/agent (agent if they have an email, otherwise the applicant) and the LPA(s)
+	 *   get the version without the "registering to speak" section.
+	 * - Statutory consultees and councillors (additional contacts), and anyone whose accepted or
+	 *   awaiting-review representation asked to be heard, get the version with it.
+	 * - Each email address gets one email. Anyone in both groups gets the version with the
+	 *   registration section.
+	 *
+	 * Returns wasSent: true when there is nobody to send to, so the flag is still set and
+	 * no late emails fire if contacts are added and the hearing date is edited later.
+	 */
+	public async processHearingNotification(
+		answers: UpdateCaseAnswers,
+		context: HearingNotificationContext,
+		db: ManageService['db']
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		const { reference } = context;
+
+		if (!answers.hearingDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const recipients = await this.getHearingRecipients(answers, context.caseId, db);
+
+		if (!recipients.length) {
+			this.logger.warn(
+				{ reference },
+				`No hearing notification recipients found for reference ${reference}. Marking notification as processed without sending.`
+			);
+			return { wasSent: true };
+		}
+
+		const hearingDate = answers.hearingDate;
+		const isMajor = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR;
+
+		try {
+			const auditData = await this.notifyClient.sendHearingNotificationToMany(recipients, {
+				reference,
+				applicationDescription: answers.developmentDescription || '',
+				siteAddress: this.formatAddress(answers),
+				hearingDate: formatDateForDisplay(hearingDate, { format: 'd MMMM yyyy' }),
+				hearingTime: formatDateForDisplay(hearingDate, { format: 'h:mmaaa' }),
+				hearingVenue: answers.venue || '',
+				appointedPersonName: context.appointedPersonName,
+				applicationWebLink: context.applicationWebLink,
+				registrationDeadline: formatDateForDisplay(
+					subtractWorkingDays(new Date(hearingDate), HEARING_REGISTRATION_WORKING_DAYS),
+					{ format: 'd MMMM yyyy' }
+				),
+				section62aEmail: (isMajor ? context.emails.major : context.emails.nonMajor) || ''
+			});
+
+			this.logger.info(
+				{ reference, recipientCount: recipients.length },
+				'Hearing notification emails dispatched successfully'
+			);
+
+			return { wasSent: true, auditData };
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching hearing notification email');
+			throw new Error('Error encountered during hearing notification email dispatch', { cause: error });
+		}
+	}
+
+	/**
+	 * Builds the hearing notification recipients, one per email address (case-insensitive).
+	 * "Other" parties are added first so anyone in both groups gets that version.
+	 *
+	 * Unlike the decision emails, duplicates are removed here: the hearing email has nothing
+	 * specific to a representation in it, so a repeat would be an identical email, and the
+	 * ticket asks for one email to a consultee who also asked to be heard (Scenario 5).
+	 */
+	private async getHearingRecipients(
+		answers: UpdateCaseAnswers,
+		caseId: string,
+		db: ManageService['db']
+	): Promise<HearingNotificationRecipient[]> {
+		const recipients: HearingNotificationRecipient[] = [];
+		const seenEmails = new Set<string>();
+
+		const add = (
+			email: string | null | undefined,
+			recipientName: string,
+			group: HearingNotificationRecipient['group']
+		) => {
+			const trimmed = email?.trim();
+			if (!trimmed || seenEmails.has(trimmed.toLowerCase())) return;
+			seenEmails.add(trimmed.toLowerCase());
+			recipients.push({ email: trimmed, recipientName, group });
+		};
+
+		// Other parties: statutory consultees and councillors added as additional contacts
+		for (const contact of answers.manageAdditionalContacts ?? []) {
+			if (!contact.additionalContactType || !HEARING_ADDITIONAL_CONTACT_ROLES.includes(contact.additionalContactType)) {
+				continue;
+			}
+			add(
+				contact.emailAddress,
+				fullName(contact.firstName, contact.lastName) || contact.organisationName?.trim() || 'Sir or Madam',
+				'other'
+			);
+		}
+
+		// Other parties: anyone whose representation asked to be heard
+		const representations = await db.s62aRepresentation.findMany({
+			where: {
+				applicationId: caseId,
+				wantsToBeHeard: true,
+				statusId: { in: HEARING_REPRESENTATION_STATUSES }
+			},
+			select: {
+				SubmittedByContact: { select: { email: true, firstName: true, lastName: true, orgName: true } }
+			},
+			orderBy: { submittedDate: 'asc' }
+		});
+
+		for (const { SubmittedByContact: contact } of representations) {
+			add(
+				contact?.email,
+				fullName(contact?.firstName, contact?.lastName) || contact?.orgName?.trim() || 'Sir or Madam',
+				'other'
+			);
+		}
+
+		// Principal parties: applicant/agent, then the LPA(s)
+		for (const contact of this.extractNotificationContacts(answers)) {
+			add(contact.email, fullName(contact.firstName, contact.lastName) || 'Applicant/agent', 'principal');
+		}
+
+		for (const contact of this.extractLpaContacts(answers)) {
+			add(contact.email, fullName(contact.firstName, contact.lastName) || contact.fallbackName || 'LPA', 'principal');
+		}
+
+		return recipients;
 	}
 
 	/**

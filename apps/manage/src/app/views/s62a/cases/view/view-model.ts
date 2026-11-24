@@ -1,8 +1,8 @@
 import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { ORGANISATION_ROLES_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import {
+	ADDITIONAL_CONTACT_ROLE_IDS,
 	APPLICANT_TYPE_ID,
-	CONTACT_ROLES_ID,
 	HOUSING_TYPE_ID,
 	SITE_AREA_UNIT_ID
 } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
@@ -399,6 +399,7 @@ export interface S62aCaseViewModel {
 	lpaDecisionEmailSent?: YesNo;
 	acknowledgeApplicationReceivedEmailSent?: YesNo;
 	interestedPartyDecisionEmailSent?: YesNo;
+	hearingNotificationEmailSent?: YesNo;
 }
 
 /**
@@ -418,7 +419,8 @@ const BOOLEAN_FIELDS = Object.freeze([
 	'applicantDecisionEmailSent',
 	'lpaDecisionEmailSent',
 	'acknowledgeApplicationReceivedEmailSent',
-	'interestedPartyDecisionEmailSent'
+	'interestedPartyDecisionEmailSent',
+	'hearingNotificationEmailSent'
 ] as const);
 
 /**
@@ -779,7 +781,7 @@ export function s62aCaseToViewModel(dbCase: S62aCaseDbModel): S62aCaseViewModel 
 			viewModel.manageAdditionalContacts = [];
 
 			for (const ac of additionalContactRecords) {
-				const isOtherType = ac.roleId !== CONTACT_ROLES_ID.INTERESTED_PARTY;
+				const isOtherType = !ADDITIONAL_CONTACT_ROLE_IDS.includes(ac.roleId);
 				const typeValue = isOtherType ? 'other' : ac.roleId;
 				const otherTypeValue = isOtherType ? ac.Role.displayName : undefined;
 

@@ -1396,6 +1396,7 @@ export class S62aCaseUpdateMapper {
 				roleDisplayName = sentenceCase(contact.additionalContactType_otherContactType);
 			} else if (contact.additionalContactType) {
 				roleId = contact.additionalContactType;
+				roleDisplayName = CONTACT_ROLES.find((role) => role.id === roleId)?.displayName || roleDisplayName;
 			}
 
 			const addressData = contact.additionalContactAddress

@@ -86,6 +86,8 @@ apps_config = {
       application_received_fee_template_id    = "96ac4456-b872-4246-9207-3b04bfcbb725"
       application_received_no_fee_template_id = "65d172ce-b89e-432a-86df-fcbbd73cc9ec"
       ip_decision_template_id                 = "0c925a98-0311-4239-b43d-90a784773b77"
+      hearing_principal_parties_template_id   = "f6423842-8196-47d5-928f-9a5cb5917e26"
+      hearing_other_parties_template_id       = "d6ba8be2-ed98-41c2-9134-dd4383124e43"
     }
   }
 

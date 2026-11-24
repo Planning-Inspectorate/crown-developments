@@ -11,6 +11,7 @@ import {
 	validate,
 	validationErrorHandler
 } from '@planning-inspectorate/dynamic-forms';
+import { s62aValidationErrorHandler } from './prerequisite-errors.ts';
 import { JOURNEY_ID } from './journey.ts';
 import { buildS62aUpdateCase } from './update-case.ts';
 import { buildDeleteS62aManageListItemOnConfirmRemove } from './delete.ts';
@@ -104,7 +105,8 @@ export function createRoutes(service: ManageService) {
 		getJourneyResponse,
 		getQuestionJourney,
 		validate,
-		validationErrorHandler,
+		// lists every "add X first" error, each linking to the page where X is added
+		s62aValidationErrorHandler,
 		asyncHandler(updateCase)
 	);
 

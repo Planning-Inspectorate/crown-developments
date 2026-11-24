@@ -1666,3 +1666,112 @@ describe('S62aGovNotifyClient interested party decision', () => {
 		});
 	});
 });
+
+describe('S62aGovNotifyClient hearing notification', () => {
+	const templateIds = { hearingPrincipalParties: 'principal-template', hearingOtherParties: 'other-template' };
+	const details = {
+		reference: 'S62A/2026/0010',
+		applicationDescription: 'Construction of 12 homes',
+		siteAddress: '1 Test Street, Bristol, BS1 1AA',
+		hearingDate: '15 March 2027',
+		hearingTime: '10:00am',
+		hearingVenue: 'Bristol Council House',
+		appointedPersonName: 'Ivy Inspector',
+		applicationWebLink: 'https://portal.example/applications/123/application-information',
+		registrationDeadline: '11 March 2027',
+		section62aEmail: 'section62a@planninginspectorate.gov.uk'
+	};
+
+	describe('sendHearingNotification', () => {
+		for (const [group, templateId] of [
+			['principal', 'principal-template'],
+			['other', 'other-template']
+		] as const) {
+			it(`uses the ${group} parties template with the template's placeholder names`, async (ctx) => {
+				const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+				const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({ notifyId: 'n1' }));
+
+				await client.sendHearingNotification({ email: 'a@test.com', recipientName: 'Alex Applicant', group }, details);
+
+				assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [
+					templateId,
+					'a@test.com',
+					{
+						personalisation: {
+							caseReference: 'S62A/2026/0010',
+							recipientName: 'Alex Applicant',
+							applicationDescription: 'Construction of 12 homes',
+							siteAddress: '1 Test Street, Bristol, BS1 1AA',
+							hearingDate: '15 March 2027',
+							hearingTime: '10:00am',
+							hearingVenue: 'Bristol Council House',
+							appointedPersonName: 'Ivy Inspector',
+							applicationInfoUrl: 'https://portal.example/applications/123/application-information',
+							registrationDeadline: '11 March 2027',
+							section62aEmail: 'section62a@planninginspectorate.gov.uk'
+						},
+						reference: 'S62A/2026/0010'
+					}
+				]);
+			});
+		}
+
+		it('throws and logs a warning when the template for the group is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				hearingPrincipalParties: 'principal-template'
+			});
+			const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({}));
+
+			await assert.rejects(
+				() => client.sendHearingNotification({ email: 'a@test.com', recipientName: 'A', group: 'other' }, details),
+				{ message: 'Hearing notification template not enabled for other parties.' }
+			);
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.strictEqual(sendMock.mock.callCount(), 0);
+		});
+	});
+
+	describe('sendHearingNotificationToMany', () => {
+		it('sends a separate email to each recipient', async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendHearingNotification', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+			const recipients = [
+				{ email: 'agent@test.com', recipientName: 'Abby Agent', group: 'principal' as const },
+				{ email: 'consultee@test.com', recipientName: 'Natural England', group: 'other' as const }
+			];
+
+			const result = await client.sendHearingNotificationToMany(recipients, details);
+
+			assert.strictEqual(result.length, 2);
+			assert.deepStrictEqual(
+				result.map((r) => r.email),
+				['agent@test.com', 'consultee@test.com']
+			);
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [recipients[0], details]);
+			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [recipients[1], details]);
+		});
+
+		it('sends each duplicate email with its own name and template', async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendHearingNotification', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+			const recipients = [
+				{ email: 'shared@test.com', recipientName: 'Laura Planner', group: 'other' as const },
+				{ email: 'shared@test.com', recipientName: 'Bristol City Council', group: 'principal' as const }
+			];
+
+			await client.sendHearingNotificationToMany(recipients, details);
+
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [recipients[0], details]);
+			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [recipients[1], details]);
+		});
+	});
+});

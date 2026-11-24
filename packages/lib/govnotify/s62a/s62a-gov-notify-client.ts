@@ -14,6 +14,10 @@ export interface TemplateIds {
 	acknowledgementOfApplicationReceivedFee?: string;
 	acknowledgementOfApplicationReceivedNoFee?: string;
 	interestedPartyDecision?: string;
+	/** Hearing notification for the applicant/agent and LPA(s): without the "registering to speak" section */
+	hearingPrincipalParties?: string;
+	/** Hearing notification for everyone else: with the "registering to speak" section */
+	hearingOtherParties?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -78,6 +82,31 @@ export type InterestedPartyDecisionDetails = {
 	siteAddress: string;
 	applicationDescription: string;
 	appInfoLink: string;
+};
+
+/**
+ * principal: the applicant/agent and LPA(s), who get the version without the registration section
+ * other: statutory consultees, councillors and anyone who asked to be heard, who get the version with it
+ */
+export type HearingRecipientGroup = 'principal' | 'other';
+
+export type HearingNotificationRecipient = {
+	email: string;
+	recipientName: string;
+	group: HearingRecipientGroup;
+};
+
+export type HearingNotificationDetails = {
+	reference: string;
+	applicationDescription: string;
+	siteAddress: string;
+	hearingDate: string;
+	hearingTime: string;
+	hearingVenue: string;
+	appointedPersonName: string;
+	applicationWebLink: string;
+	registrationDeadline: string;
+	section62aEmail: string;
 };
 
 export type LpaDecisionDetails = {
@@ -464,6 +493,54 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 				return this.sendInterestedPartyDecision(contact, details);
 			},
 			'Failed to send interested party decision notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends the hearing notification to one recipient, using the template for their group
+	 */
+	async sendHearingNotification(
+		recipient: HearingNotificationRecipient,
+		details: HearingNotificationDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const templateId =
+			recipient.group === 'principal' ? this.templateIds.hearingPrincipalParties : this.templateIds.hearingOtherParties;
+
+		if (!templateId) {
+			this.logger.warn({ group: recipient.group }, 'hearing notification template not enabled. ignoring request.');
+			throw new Error(`Hearing notification template not enabled for ${recipient.group} parties.`);
+		}
+
+		return this.sendEmailWithAudit(templateId, recipient.email, {
+			personalisation: {
+				caseReference: details.reference,
+				recipientName: recipient.recipientName,
+				applicationDescription: details.applicationDescription,
+				siteAddress: details.siteAddress,
+				hearingDate: details.hearingDate,
+				hearingTime: details.hearingTime,
+				hearingVenue: details.hearingVenue,
+				appointedPersonName: details.appointedPersonName,
+				applicationInfoUrl: details.applicationWebLink,
+				registrationDeadline: details.registrationDeadline,
+				section62aEmail: details.section62aEmail
+			},
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends a separate hearing notification to each recipient
+	 */
+	async sendHearingNotificationToMany(
+		recipients: HearingNotificationRecipient[],
+		details: HearingNotificationDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			recipients.map((recipient) => recipient.email),
+			// Index rather than .find() so duplicate emails each get the right name and template
+			(_address, index) => this.sendHearingNotification(recipients[index], details),
+			'Failed to send hearing notification to one or more email addresses.'
 		);
 	}
 

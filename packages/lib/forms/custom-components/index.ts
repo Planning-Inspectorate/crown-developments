@@ -25,6 +25,7 @@ import NestedFolderQuestion from './nested-folder-radio/question.ts';
 import SiteVisitDateTimeQuestion, {
 	type SiteVisitDateTimeQuestionProps as SiteVisitDateTimeParams
 } from './site-visit-date-time/question.ts';
+import DateTimeWithHintQuestion, { type DateTimeWithHintQuestionParams } from './date-time-with-hint/question.ts';
 
 type CustomComponentTypes = (typeof CUSTOM_COMPONENTS)[keyof typeof CUSTOM_COMPONENTS];
 
@@ -194,6 +195,10 @@ type SiteVisitDateTimeQuestionProps = Omit<SiteVisitDateTimeParams, 'type'> & {
 	type: typeof CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME;
 };
 
+type DateTimeWithHintQuestionProps = Omit<DateTimeWithHintQuestionParams, 'type' | 'viewFolder'> & {
+	type: typeof CUSTOM_COMPONENTS.DATE_TIME_WITH_HINT;
+};
+
 export type CrownQuestionProps =
 	| QuestionProps
 	| RepresentationAttachmentsQuestionProps
@@ -208,7 +213,8 @@ export type CrownQuestionProps =
 	| DefinedColumnsTableQuestionProps
 	| MultiFileUploaderQuestionProps
 	| CardManageListQuestionProps
-	| SiteVisitDateTimeQuestionProps;
+	| SiteVisitDateTimeQuestionProps
+	| DateTimeWithHintQuestionProps;
 
 export const CUSTOM_COMPONENTS = Object.freeze({
 	REPRESENTATION_ATTACHMENTS: 'representation-attachments',
@@ -229,7 +235,8 @@ export const CUSTOM_COMPONENTS = Object.freeze({
 	CARD_MANAGE_LIST: 'card-manage-list',
 	REPS_MULTI_FILE_UPLOADER: 'reps-multi-file-uploader',
 	NESTED_FOLDERS: 'nested-folders',
-	SITE_VISIT_DATE_TIME: 'site-visit-date-time'
+	SITE_VISIT_DATE_TIME: 'site-visit-date-time',
+	DATE_TIME_WITH_HINT: 'date-time-with-hint'
 } as const);
 
 export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
@@ -251,5 +258,6 @@ export const CUSTOM_COMPONENT_CLASSES = Object.freeze({
 	[CUSTOM_COMPONENTS.CARD_MANAGE_LIST]: CardManageListQuestion,
 	[CUSTOM_COMPONENTS.REPS_MULTI_FILE_UPLOADER]: RepresentationsMultiFileUploadQuestion,
 	[CUSTOM_COMPONENTS.NESTED_FOLDERS]: NestedFolderQuestion,
-	[CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME]: SiteVisitDateTimeQuestion
+	[CUSTOM_COMPONENTS.SITE_VISIT_DATE_TIME]: SiteVisitDateTimeQuestion,
+	[CUSTOM_COMPONENTS.DATE_TIME_WITH_HINT]: DateTimeWithHintQuestion
 } as const);

@@ -2751,3 +2751,22 @@ describe('S62aCaseUpdateMapper', () => {
 		});
 	});
 });
+
+describe('S62aCaseUpdateMapper statutory consultee and councillor contacts', () => {
+	for (const [roleId, displayName] of [
+		['statutory-consultee', 'Statutory consultee'],
+		['councillor', 'Councillor']
+	]) {
+		it(`saves a ${roleId} additional contact with the "${displayName}" role`, () => {
+			const result = new S62aCaseUpdateMapper({
+				manageAdditionalContacts: [{ firstName: 'Sam', emailAddress: 'sam@example.com', additionalContactType: roleId }]
+			} as UpdateCaseAnswers).generateUpdateInput();
+
+			const createOps = result.S62aToApplicants?.create as Prisma.S62aToApplicantCreateWithoutS62AInput[];
+			assert.deepStrictEqual(createOps[0].Role?.connectOrCreate, {
+				where: { id: roleId },
+				create: { id: roleId, displayName }
+			});
+		});
+	}
+});

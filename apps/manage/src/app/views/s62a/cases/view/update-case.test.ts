@@ -8,7 +8,10 @@ import {
 	lpaDecisionEmail,
 	representationPublishedEmail,
 	acknowledgeApplicationReceivedEmail,
-	interestedPartyDecisionEmail
+	interestedPartyDecisionEmail,
+	hearingNotificationEmail,
+	resolveHearingInspectorName,
+	HEARING_INSPECTOR_NAME_FALLBACK
 } from './update-case.ts';
 import type { Request, Response } from 'express';
 import { BOOLEAN_OPTIONS, type SaveParams } from '@planning-inspectorate/dynamic-forms';
@@ -1373,5 +1376,155 @@ describe('interestedPartyDecisionEmail', () => {
 		assert.strictEqual(sendArgs[4], 'Send Interested Party Decision Notification (Update)');
 		assert.strictEqual(sendArgs[5], mockReq);
 		assert.strictEqual(sendArgs.length, 6);
+	});
+});
+
+describe('hearingNotificationEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockResolveName: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processHearingNotification', async () => ({ wasSent: true }));
+		mockService = {
+			s62aPortalBaseUrl: 'https://portal.example',
+			s62aMajorContactEmail: 'major@test.com',
+			s62aNonMajorContactEmail: 'non-major@test.com',
+			db: { marker: 'db' },
+			logger: {}
+		} as unknown as ManageService;
+		mockSendFn = mock.fn();
+		mockResolveName = mock.fn(async () => 'Ivy Inspector');
+		mockReq = { session: { account: { localAccountId: 'user-123' } } };
+	});
+
+	const callTrigger = (answers: any, previousCase: any) =>
+		hearingNotificationEmail(
+			answers,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn,
+			mockResolveName
+		);
+
+	it('does nothing if the hearing date is not in the answers payload', () => {
+		callTrigger({ venue: 'New venue' }, { id: 'case-123', reference: 'REF-1' });
+
+		assert.strictEqual((mockNotificationService.processHearingNotification as any).mock.callCount(), 0);
+		assert.strictEqual(mockSendFn.mock.callCount(), 0);
+	});
+
+	it('does nothing if the hearing notification was already sent (Scenario 4)', () => {
+		callTrigger(
+			{ hearingDate: new Date('2027-03-15T10:00:00Z') },
+			{ id: 'case-123', reference: 'REF-1', hearingNotificationEmailSent: BOOLEAN_OPTIONS.YES }
+		);
+
+		assert.strictEqual(mockResolveName.mock.callCount(), 0);
+		assert.strictEqual((mockNotificationService.processHearingNotification as any).mock.callCount(), 0);
+		assert.strictEqual(mockSendFn.mock.callCount(), 0);
+	});
+
+	it('sends with the case context and sets the hearing flag on first save (Scenario 2)', async () => {
+		const hearingDate = new Date('2027-03-15T10:00:00Z');
+		const previousCase = { id: 'case-123', reference: 'REF-1', venue: 'Bristol Council House' };
+
+		callTrigger({ hearingDate }, previousCase);
+
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], 'hearingNotificationEmailSent');
+		assert.strictEqual(sendArgs[4], 'Send Hearing Notification (Update)');
+		assert.strictEqual(sendArgs[5], mockReq);
+		assert.deepStrictEqual(await sendArgs[0], { wasSent: true });
+
+		assert.deepStrictEqual(mockResolveName.mock.calls[0].arguments, [previousCase, mockService, mockReq]);
+
+		const [mergedAnswers, context, db] = (mockNotificationService.processHearingNotification as any).mock.calls[0]
+			.arguments;
+		assert.strictEqual(mergedAnswers.hearingDate, hearingDate);
+		assert.strictEqual(mergedAnswers.venue, 'Bristol Council House');
+		assert.deepStrictEqual(context, {
+			caseId: 'case-123',
+			reference: 'REF-1',
+			applicationWebLink: 'https://portal.example/applications/case-123/application-information',
+			appointedPersonName: 'Ivy Inspector',
+			emails: { major: 'major@test.com', nonMajor: 'non-major@test.com' }
+		});
+		assert.strictEqual(db, mockService.db);
+	});
+});
+
+describe('resolveHearingInspectorName', () => {
+	const logger = () => ({ warn: mock.fn(), info: mock.fn() });
+	const previousCase = (inspectors?: any[]) => ({ id: 'case-123', manageCaseTeamInspectors: inspectors }) as any;
+	const serviceWith = (members: { id: string; displayName: string }[] | Error, log = logger()) =>
+		({
+			logger: log,
+			entraGroupIds: {
+				caseOfficers: 'g1',
+				inspectors: 'g2',
+				s62aInspectors: 'g3',
+				s62aReaders: 'g4',
+				s62aPlanningOfficers: 'g5'
+			},
+			getEntraClient: () => ({
+				listAllGroupMembers: async (groupId: string) => {
+					if (members instanceof Error) throw members;
+					return groupId === 'g3' ? members : [];
+				}
+			})
+		}) as unknown as ManageService;
+	const req = { session: {} } as unknown as Request;
+
+	it('returns the display name of the inspector holding the hearing from Entra', async () => {
+		const name = await resolveHearingInspectorName(
+			previousCase([
+				{ id: '1', inspectorId: 'entra-old', inspectorAppointedDate: new Date('2026-01-01') },
+				{ id: '2', inspectorId: 'entra-new', inspectorAppointedDate: new Date('2026-06-01') }
+			]),
+			serviceWith([
+				{ id: 'entra-old', displayName: 'Old Inspector' },
+				{ id: 'entra-new', displayName: 'New Inspector' }
+			]),
+			req
+		);
+
+		assert.strictEqual(name, 'New Inspector');
+	});
+
+	it('falls back to a generic name, with a warning, when the inspector is not in Entra', async () => {
+		const log = logger();
+		const name = await resolveHearingInspectorName(
+			previousCase([{ id: '1', inspectorId: 'entra-gone' }]),
+			serviceWith([{ id: 'someone-else', displayName: 'Someone Else' }], log),
+			req
+		);
+
+		assert.strictEqual(name, HEARING_INSPECTOR_NAME_FALLBACK);
+		assert.strictEqual(log.warn.mock.callCount(), 1);
+	});
+
+	it('falls back to a generic name when the Entra lookup fails', async () => {
+		const name = await resolveHearingInspectorName(
+			previousCase([{ id: '1', inspectorId: 'entra-1' }]),
+			serviceWith(new Error('Graph down')),
+			req
+		);
+
+		assert.strictEqual(name, HEARING_INSPECTOR_NAME_FALLBACK);
+	});
+
+	it('falls back to a generic name when the case has no inspector', async () => {
+		const name = await resolveHearingInspectorName(previousCase([]), serviceWith([]), req);
+
+		assert.strictEqual(name, HEARING_INSPECTOR_NAME_FALLBACK);
 	});
 });
