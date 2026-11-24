@@ -1,8 +1,7 @@
 import type { Request, Response } from 'express';
-import type { DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-downloader.ts';
+import type { BaseDocumentInfo, DownloadRequestBody } from '@pins/crowndev-lib/util/base-document-downloader.ts';
 import type { ParamsDictionary } from 'express-serve-static-core';
 import type { S62APortalService } from '#service';
-import type { Prisma } from '@pins/crowndev-database/src/client/client.ts';
 import { BaseDocumentDownloader } from '@pins/crowndev-lib/util/base-document-downloader.ts';
 import { wrapPrismaError } from '@planning-inspectorate/core/util';
 import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
@@ -10,31 +9,28 @@ import { notFoundHandler } from '@planning-inspectorate/core/middleware';
 import { isValidUuidFormat } from '@pins/crowndev-lib/util/uuid.ts';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { resolvePublicFile } from './public-document.ts';
 
-type S62aRepresentationDocument = Prisma.BlobRepresentationDocumentGetPayload<{
-	include: {
-		S62aRepresentation: {
-			include: {
-				Application: {
-					select: { reference: true };
-				};
-			};
-		};
-	};
-}>;
+/**
+ * A representation attachment as it may be served to the public: `blobName` and `fileName`
+ * refer to the approved public version of the file, which is the redacted one if it exists.
+ */
+export interface PublicRepresentationDocument extends BaseDocumentInfo {
+	caseReference: string;
+}
 
-export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentationDocument> {
+export class DocumentDownloader extends BaseDocumentDownloader<PublicRepresentationDocument> {
 	constructor(service: S62APortalService) {
 		super(service.db, service.blobStore, service.logger, service.createZipArchive);
 	}
 
 	/**
-	 * Grabs the data like name, size etc. from the documents needed
+	 * Fetches the published documents, resolved to the file the public is allowed to download
 	 */
 	protected async fetchDocumentsMetadata(
 		documentIds: string[],
 		req: Request
-	): Promise<S62aRepresentationDocument[] | undefined> {
+	): Promise<PublicRepresentationDocument[] | undefined> {
 		if (!req) return;
 
 		const applicationId = getStringParam(req.params, 'applicationId');
@@ -71,7 +67,11 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 			});
 			if (!documents || documents.length === 0) return;
 
-			return documents;
+			return documents.map((document) => ({
+				id: document.id,
+				...resolvePublicFile(document),
+				caseReference: document.S62aRepresentation.Application.reference
+			}));
 		} catch (error) {
 			wrapPrismaError({
 				error,
@@ -85,8 +85,8 @@ export class DocumentDownloader extends BaseDocumentDownloader<S62aRepresentatio
 	/**
 	 * Provides the case reference to prefix the zip file name
 	 */
-	protected getZipFileReference(documents: S62aRepresentationDocument[]): string {
-		return documents[0].S62aRepresentation.Application.reference;
+	protected getZipFileReference(documents: PublicRepresentationDocument[]): string {
+		return documents[0].caseReference;
 	}
 }
 
