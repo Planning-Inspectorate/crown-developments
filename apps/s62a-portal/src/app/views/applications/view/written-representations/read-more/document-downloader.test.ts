@@ -39,14 +39,22 @@ describe('DocumentDownloader', () => {
 	});
 
 	describe('fetchDocumentsMetadata', () => {
-		it('should query blobRepresentationDocument by document IDs and return matching documents', async () => {
+		it('should query blobRepresentationDocument by document IDs and return the public version of each document', async () => {
 			const mockDocs = [
 				{
 					id: 'doc-1',
+					fileName: 'original-1.docx',
+					blobName: 'original-blob-1',
+					redactedBlobName: 'redacted-blob-1',
+					redactedFileName: 'redacted-1.pdf',
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				},
 				{
 					id: 'doc-2',
+					fileName: 'original-2.pdf',
+					blobName: 'original-blob-2',
+					redactedBlobName: null,
+					redactedFileName: null,
 					S62aRepresentation: { Application: { reference: 'CASE/01' } }
 				}
 			];
@@ -54,7 +62,10 @@ describe('DocumentDownloader', () => {
 
 			const result = await (downloader as any).fetchDocumentsMetadata(['doc-1', 'doc-2'], mockReq as Request);
 
-			assert.deepStrictEqual(result, mockDocs);
+			assert.deepStrictEqual(result, [
+				{ id: 'doc-1', blobName: 'redacted-blob-1', fileName: 'redacted-1.pdf', caseReference: 'CASE/01' },
+				{ id: 'doc-2', blobName: 'original-blob-2', fileName: 'original-2.pdf', caseReference: 'CASE/01' }
+			]);
 
 			const calls = mockService.db.blobRepresentationDocument.findMany.mock.calls;
 			assert.strictEqual(calls.length, 1);
@@ -110,14 +121,8 @@ describe('DocumentDownloader', () => {
 	describe('getZipFileReference', () => {
 		it('should return the case reference from the first document metadata', () => {
 			const mockDocs = [
-				{
-					id: 'doc-1',
-					S62aRepresentation: { Application: { reference: 'S62A/2026/001' } }
-				},
-				{
-					id: 'doc-2',
-					S62aRepresentation: { Application: { reference: 'S62A/2026/001' } }
-				}
+				{ id: 'doc-1', blobName: 'blob-1', fileName: 'file-1.pdf', caseReference: 'S62A/2026/001' },
+				{ id: 'doc-2', blobName: 'blob-2', fileName: 'file-2.pdf', caseReference: 'S62A/2026/001' }
 			];
 
 			const reference = (downloader as any).getZipFileReference(mockDocs);
