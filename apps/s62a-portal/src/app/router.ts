@@ -10,6 +10,7 @@ import { buildGuidancePage } from './views/static/guidance/controller.ts';
 import { notFoundPage } from './views/static/error/controller.ts';
 import { buildTermsAndConditionsPage } from './views/static/terms-and-conditions/controller.ts';
 import { createRoutes as createCookieRoutes } from './views/static/cookies/index.ts';
+import { buildAccessibilityStatementPage } from './views/static/accessibility-statement/controller.ts';
 
 /**
  * Main app router
@@ -29,6 +30,7 @@ export function buildRouter(service: S62APortalService): IRouter {
 		router.route('/').get((req, res) => {
 			res.redirect('/applications');
 		});
+		router.use('/accessibility-statement', buildAccessibilityStatementPage());
 		router.use('/contact', buildContactUsPage());
 		router.use('/', appRoutes(service));
 		router.use('/cookies', createCookieRoutes(service));
