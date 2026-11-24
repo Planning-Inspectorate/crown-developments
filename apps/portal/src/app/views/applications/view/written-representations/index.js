@@ -18,9 +18,10 @@ export function createWrittenRepresentationsRoutes(service) {
 	const viewWrittenRepresentationsDocumentPage = buildDocumentView(service, {
 		getAllowedFolderPath: (reference, req) =>
 			representationAttachmentsFolderPath(reference, getStringParam(req.params, 'representationReference')),
-		isDocumentAllowed: ({ applicationId, documentId, req }) =>
+		isDocumentAllowed: ({ applicationId, representationsPublishDate, documentId, req }) =>
 			isPublishedRepresentationDocument(service.db, {
 				applicationId,
+				representationsPublishDate,
 				representationReference: getStringParam(req.params, 'representationReference'),
 				documentId
 			})

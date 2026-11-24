@@ -4,11 +4,12 @@ import { getStringParam } from '@pins/crowndev-lib/util/params.ts';
 import { notFoundHandler } from '@pins/crowndev-lib/middleware/errors.ts';
 import { isValidUniqueReference } from '@pins/crowndev-lib/util/random-reference.js';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
+import { areRepresentationsPublished, publicRepresentationWhere } from './representation-access.ts';
 
 /**
  * @typedef {object} DocumentOptions
  * @property {(reference: string, req: import('express').Request) => string} getAllowedFolderPath - function to get the allowed folder path for a given reference and request
- * @property {(options: { applicationId: string, documentId: string, req: import('express').Request }) => Promise<boolean>} [isDocumentAllowed] - optional function to check if a document is allowed for download
+ * @property {(options: { applicationId: string, representationsPublishDate: Date | null, documentId: string, req: import('express').Request }) => Promise<boolean>} [isDocumentAllowed] - optional function to check if a document is allowed for download
  */
 
 /**
@@ -33,9 +34,12 @@ export function buildDocumentView(service, options, fetchImpl) {
 		if (!crownDevelopment) {
 			return; // 404 already handled
 		}
-		const { id: applicationId, reference } = crownDevelopment;
+		const { id: applicationId, reference, representationsPublishDate } = crownDevelopment;
 
-		if (isDocumentAllowed && !(await isDocumentAllowed({ applicationId, documentId, req }))) {
+		if (
+			isDocumentAllowed &&
+			!(await isDocumentAllowed({ applicationId, representationsPublishDate, documentId, req }))
+		) {
 			logger.warn({ reference, documentId }, 'document is not allowed for download');
 			return notFoundHandler(req, res);
 		}
@@ -92,18 +96,23 @@ export function isDriveItemInFolder(driveItem, folderPath) {
  * @param {string} opt.applicationId
  * @param {string} opt.representationReference
  * @param {string} opt.documentId
+ * @param {Date | null} opt.representationsPublishDate
  * @returns {Promise<boolean>}
  */
-export async function isPublishedRepresentationDocument(db, { applicationId, representationReference, documentId }) {
-	if (!isValidUniqueReference(representationReference)) return false;
+export async function isPublishedRepresentationDocument(
+	db,
+	{ applicationId, representationReference, documentId, representationsPublishDate }
+) {
+	if (!isValidUniqueReference(representationReference) || !areRepresentationsPublished(representationsPublishDate)) {
+		return false;
+	}
 
 	const count = await db.representationDocument.count({
 		where: {
 			statusId: REPRESENTATION_STATUS_ID.ACCEPTED,
 			Representation: {
 				reference: representationReference,
-				applicationId,
-				statusId: REPRESENTATION_STATUS_ID.ACCEPTED
+				...publicRepresentationWhere(applicationId)
 			},
 			OR: [{ redactedItemId: documentId }, { itemId: documentId, redactedItemId: null }]
 		}
