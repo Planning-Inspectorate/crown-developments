@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { createJourney, JOURNEY_ID } from './journey.ts';
+import { createJourney, isSectionOfTab, JOURNEY_ID, tabHasSubSections } from './journey.ts';
 import type { Question, JourneyResponse } from '@planning-inspectorate/dynamic-forms';
 import type { Request } from 'express';
 
@@ -41,7 +41,47 @@ describe('s62a case details journey', () => {
 		assert.strictEqual(journey.taskListTemplate, 'views/s62a/cases/view/view.njk');
 		assert.strictEqual(journey.taskListUrl, '/s62a/cases/case-123/overview');
 
-		assert.strictEqual(journey.makeBaseUrl(mockRes), '/s62a/cases/case-123/overview');
+		// One section named after the tab, so its questions sit under the case: /overview/<question>
+		assert.strictEqual(journey.makeBaseUrl(mockRes), '/s62a/cases/case-123');
+	});
+
+	it('should keep the tab in the base url for a tab with more than one section', () => {
+		const mockRes = {} as unknown as JourneyResponse;
+		const mockReq = {
+			params: { id: 'case-123', tab: 'residential' },
+			baseUrl: '/s62a/cases/case-123/residential'
+		} as unknown as Request;
+		const mockQuestions = new Proxy({}, { get: (_target, prop) => ({ fieldName: prop }) }) as unknown as Record<
+			string,
+			Question
+		>;
+
+		const journey = createJourney(mockQuestions, mockRes, mockReq);
+
+		assert.strictEqual(journey.makeBaseUrl(mockRes), '/s62a/cases/case-123/residential');
+		assert.strictEqual(journey.taskListUrl, '/s62a/cases/case-123/residential');
+	});
+
+	describe('isSectionOfTab', () => {
+		it('matches a section named after its tab', () => {
+			assert.strictEqual(isSectionOfTab('dates', 'dates'), true);
+			assert.strictEqual(isSectionOfTab('dates', 'application-valid'), false);
+		});
+
+		it("matches each of the residential tab's sections", () => {
+			for (const section of ['residential', 'existing', 'proposed']) {
+				assert.strictEqual(isSectionOfTab('residential', section), true, section);
+			}
+			assert.strictEqual(isSectionOfTab('residential', 'dates'), false);
+		});
+	});
+
+	describe('tabHasSubSections', () => {
+		it('is true only for the residential tab', () => {
+			assert.strictEqual(tabHasSubSections('residential'), true);
+			assert.strictEqual(tabHasSubSections('dates'), false);
+			assert.strictEqual(tabHasSubSections('constructor'), false);
+		});
 	});
 
 	it('should create static sections with the correct order and questions', () => {
