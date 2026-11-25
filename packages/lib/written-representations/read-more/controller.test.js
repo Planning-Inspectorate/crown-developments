@@ -162,4 +162,38 @@ describe('buildWrittenRepresentationsReadMorePage', () => {
 			message: 'applicationId must be a single string value'
 		});
 	});
+
+	it('displays "Interested party" when the submitter name is withheld', async () => {
+		const response = createResponse();
+		const handler = buildWrittenRepresentationsReadMorePage(
+			createDevelopment(),
+			createRepresentation({
+				withholdName: true
+			}),
+			representationReference,
+			false
+		);
+
+		await handler(createRequest(), response);
+
+		const [, viewModel] = response.render.mock.calls[0].arguments;
+		assert.strictEqual(viewModel.representationViewModel.representationTitle, 'Interested Party');
+	});
+
+	it('displays real name when the submitter name is not withheld', async () => {
+		const response = createResponse();
+		const handler = buildWrittenRepresentationsReadMorePage(
+			createDevelopment(),
+			createRepresentation({
+				withholdName: false
+			}),
+			representationReference,
+			false
+		);
+
+		await handler(createRequest(), response);
+
+		const [, viewModel] = response.render.mock.calls[0].arguments;
+		assert.strictEqual(viewModel.representationViewModel.representationTitle, 'Alex Example');
+	});
 });

@@ -61,7 +61,9 @@ export function buildWrittenRepresentationsReadMorePage(
 			currentUrl: writtenRepresentationsUrl,
 			backLinkText: 'Back to list',
 			backLinkUrl: writtenRepresentationsUrl,
-			representationViewModel: representationToViewModel(representation),
+			representationViewModel: representationToViewModel(representation, false, {
+				showWithheldNameAsInterestedParty: true
+			}),
 			containsDistressingContent: development.containsDistressingContent || false,
 			usesBlobStorage,
 			documents
