@@ -230,7 +230,7 @@ export function getQuestions(
 			type: COMPONENT_TYPES.NUMBER,
 			title: 'Site area (ha)',
 			question: 'What is the area of the site in hectares?',
-			suffix: 'ha',
+			suffix: { text: 'ha' },
 			hint: 'Optional',
 			fieldName: 'siteArea',
 			url: 'site-area',
