@@ -1564,7 +1564,7 @@ export function getQuestions(
 			fieldName: 'existingSpaces',
 			url: 'existing-spaces',
 			viewData: { continueButtonText: 'Continue' },
-			suffix: 'spaces',
+			suffix: { text: 'spaces' },
 			summaryLabel: 'Existing spaces',
 			summarySuffixes: {
 				['existingSpaces']: 'Existing spaces'
@@ -1596,7 +1596,7 @@ export function getQuestions(
 			fieldName: 'proposedSpaces',
 			url: 'proposed-spaces',
 			viewData: { continueButtonText: 'Continue' },
-			suffix: 'spaces',
+			suffix: { text: 'spaces' },
 			summaryLabel: 'Proposed spaces',
 			summarySuffixes: {
 				['proposedSpaces']: 'Proposed spaces'
