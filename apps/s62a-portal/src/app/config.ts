@@ -146,7 +146,7 @@ export function loadConfig(): Config {
 		// the src directory
 		srcDir: buildConfig.srcDir,
 		session: {
-			redisPrefix: 'portal:',
+			redisPrefix: 's62a-portal:',
 			redis: REDIS_CONNECTION_STRING,
 			secret: secrets
 		},
