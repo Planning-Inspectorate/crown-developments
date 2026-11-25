@@ -31,6 +31,7 @@ const representationSelect = {
 	SubmittedByContact: { select: { firstName: true, lastName: true } },
 	RepresentedContacts: { select: { orgName: true, firstName: true, lastName: true } },
 	Category: { select: { displayName: true } },
+	withholdName: true,
 	Attachments: {
 		where: { statusId: REPRESENTATION_STATUS_ID.ACCEPTED },
 		select: {
