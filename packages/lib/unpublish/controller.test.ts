@@ -194,14 +194,12 @@ describe('unpublish case', () => {
 				const mockRes = { redirect: mock.fn() };
 				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'case-1-ref' }));
 				const mockUnpublishFn = mock.fn(() => Promise.resolve());
-				const mockOnUnpublishSuccess = mock.fn(() => Promise.resolve());
 				const mockOnUnpublished = mock.fn(() => Promise.resolve());
 
 				const unpublishCase = buildSubmitUnpublishCase(
 					{ db: {}, logger: mockLogger() },
 					mockUnpublishFn,
 					mockCaseCheck,
-					mockOnUnpublishSuccess,
 					mockOnUnpublished
 				);
 				await unpublishCase(mockReq, mockRes);
@@ -255,113 +253,55 @@ describe('unpublish case', () => {
 				assert.strictEqual(mockOnUnpublished.mock.callCount(), 0);
 			});
 		});
-	});
-	describe('onUnpublishSuccess callback', () => {
-		it('should call onUnpublishSuccess when all required dependencies are present', async () => {
-			const mockReq = {
-				params: { id: 'case-1' },
-				originalUrl: '/cases/case-1/overview/unpublish',
-				session: {}
-			};
-			const mockRes = { redirect: mock.fn() };
-			const mockDb = {};
-			const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/2026/001' }));
-			const mockUnpublishFn = mock.fn(() => Promise.resolve());
-			const mockOnUnpublishSuccess = mock.fn(() => Promise.resolve());
-			const mockAudit = { recordMany: mock.fn() };
+		describe('caseReference', () => {
+			it('should set caseReference on req when case data is fetched', async () => {
+				const mockReq = {
+					params: { id: 'case-1' },
+					originalUrl: '/s62a/cases/case-1/overview/unpublish',
+					baseUrl: '/s62a/cases/case-1/overview/unpublish',
+					session: {}
+				} as unknown as Request & { caseReference?: string };
 
-			const unpublishCase = buildSubmitUnpublishCase(
-				{ db: mockDb, logger: mockLogger(), audit: mockAudit },
-				mockUnpublishFn,
-				mockCaseCheck,
-				mockOnUnpublishSuccess
-			);
+				const mockRes = { redirect: mock.fn() };
+				const mockDb = {};
+				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/002' }));
+				const mockUnpublishFn = mock.fn(() => Promise.resolve());
+				const mockOnUnpublished = mock.fn(() => Promise.resolve());
 
-			await unpublishCase(mockReq, mockRes);
+				const unpublishCase = buildSubmitUnpublishCase(
+					{ db: mockDb, logger: mockLogger() },
+					mockUnpublishFn,
+					mockCaseCheck,
+					mockOnUnpublished
+				);
 
-			assert.strictEqual(mockOnUnpublishSuccess.mock.callCount(), 1);
-			assert.deepStrictEqual(mockOnUnpublishSuccess.mock.calls[0].arguments, [
-				mockReq,
-				'case-1',
-				'CRN/2026/001',
-				mockAudit
-			]);
-		});
+				await unpublishCase(mockReq, mockRes);
 
-		it('should not call onUnpublishSuccess when audit service is missing', async () => {
-			const mockReq = {
-				params: { id: 'case-1' },
-				originalUrl: '/cases/case-1/overview/unpublish',
-				session: {}
-			};
-			const mockRes = { redirect: mock.fn() };
-			const mockDb = {};
-			const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/2026/001' }));
-			const mockUnpublishFn = mock.fn(() => Promise.resolve());
-			const mockOnUnpublishSuccess = mock.fn(() => Promise.resolve());
+				assert.strictEqual(mockReq.caseReference, 'CRN/002');
+				assert.strictEqual(mockOnUnpublished.mock.callCount(), 1);
+			});
+			it('should not set caseReference when unpublishCaseFetcher returns null', async () => {
+				const mockReq = {
+					params: { id: 'case-1' },
+					originalUrl: '/s62a/cases/case-1/overview/unpublish',
+					baseUrl: '/s62a/cases/case-1/overview/unpublish',
+					session: {}
+				} as unknown as Request & { caseReference?: string };
 
-			const unpublishCase = buildSubmitUnpublishCase(
-				{ db: mockDb, logger: mockLogger() }, // No audit service
-				mockUnpublishFn,
-				mockCaseCheck,
-				mockOnUnpublishSuccess
-			);
+				const mockCaseCheck = mock.fn(() => Promise.resolve(null));
+				const mockUnpublishFn = mock.fn();
 
-			await unpublishCase(mockReq, mockRes);
+				const unpublishCase = buildSubmitUnpublishCase(
+					{ db: {}, logger: mockLogger() },
+					mockUnpublishFn,
+					mockCaseCheck
+				);
 
-			assert.strictEqual(mockOnUnpublishSuccess.mock.callCount(), 0);
-		});
+				await assertRenders404Page(unpublishCase, mockReq, false);
 
-		it('should not call onUnpublishSuccess when case reference is missing', async () => {
-			const mockReq = {
-				params: { id: 'case-1' },
-				originalUrl: '/cases/case-1/overview/unpublish',
-				session: {}
-			};
-			const mockRes = { redirect: mock.fn() };
-			const mockDb = {};
-			const mockCaseCheck = mock.fn(
-				() => Promise.resolve({ id: 'case-1' }) // No reference
-			);
-			const mockUnpublishFn = mock.fn(() => Promise.resolve());
-			const mockOnUnpublishSuccess = mock.fn(() => Promise.resolve());
-			const mockAudit = { recordMany: mock.fn() };
-
-			const unpublishCase = buildSubmitUnpublishCase(
-				{ db: mockDb, logger: mockLogger(), audit: mockAudit },
-				mockUnpublishFn,
-				mockCaseCheck,
-				mockOnUnpublishSuccess
-			);
-
-			await unpublishCase(mockReq, mockRes);
-
-			assert.strictEqual(mockOnUnpublishSuccess.mock.callCount(), 0);
-		});
-
-		it('should not call onUnpublishSuccess when callback function is not provided', async () => {
-			const mockReq = {
-				params: { id: 'case-1' },
-				originalUrl: '/cases/case-1/overview/unpublish',
-				session: {}
-			};
-			const mockRes = { redirect: mock.fn() };
-			const mockDb = {};
-			const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/2026/001' }));
-			const mockUnpublishFn = mock.fn(() => Promise.resolve());
-			const mockAudit = { recordMany: mock.fn() };
-
-			const unpublishCase = buildSubmitUnpublishCase(
-				{ db: mockDb, logger: mockLogger(), audit: mockAudit },
-				mockUnpublishFn,
-				mockCaseCheck
-				// No onUnpublishSuccess callback
-			);
-
-			await unpublishCase(mockReq, mockRes);
-
-			// Should still redirect successfully
-			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+				assert.strictEqual(mockReq.caseReference, undefined);
+				assert.strictEqual(mockUnpublishFn.mock.callCount(), 0);
+			});
 		});
 	});
 });

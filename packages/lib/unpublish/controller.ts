@@ -7,40 +7,27 @@ import type { PrismaClient } from '@pins/crowndev-database/src/client/client.ts'
 import type { PublishOperation, UnpublishCaseFetcher, CaseActionHook } from '../util/types.ts';
 import path from 'node:path';
 import { isValidRedirectUri } from '../util/uri.ts';
-import type { AuditService } from '@pins/crowndev-lib/audit/index.ts';
-
-export type OnUnpublishSuccess = (
-	req: Request,
-	caseId: string,
-	caseReference: string,
-	audit: AuditService
-) => Promise<void> | void;
 
 export function buildSubmitUnpublishCase(
-	{ db, logger, audit }: { db: PrismaClient; logger: Logger; audit?: AuditService },
+	{ db, logger }: { db: PrismaClient; logger: Logger },
 	unpublishCaseFunction: PublishOperation,
-	caseCheckFunction: UnpublishCaseFetcher,
-	onUnpublishSuccess?: OnUnpublishSuccess,
+	unpublishCaseFetcher: UnpublishCaseFetcher,
 	onUnpublished?: CaseActionHook
 ) {
-	return async (req: Request, res: Response) => {
+	return async (req: Request & { caseReference?: string }, res: Response) => {
 		const id = getStringParam(req.params, 'id');
 		logger.info({ id }, 'unpublish case');
 
-		const caseCheck = await caseCheckFunction(db, id);
+		const caseData = (await unpublishCaseFetcher(db, id)) as { reference: string }; // Guard check: verifies case exists before unpublishing
 
-		if (!caseCheck) {
+		if (!caseData) {
 			return notFoundHandler(req, res);
 		}
+		// Extract reference for audit hook
+		req.caseReference = caseData.reference;
 
 		try {
 			await unpublishCaseFunction(db, id);
-
-			const caseReference = (caseCheck as { reference?: string } | null)?.reference;
-
-			if (onUnpublishSuccess && audit && caseReference) {
-				await onUnpublishSuccess(req, id, caseReference, audit);
-			}
 		} catch (error) {
 			wrapPrismaError({
 				error,
