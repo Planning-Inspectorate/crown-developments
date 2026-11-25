@@ -1,6 +1,13 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { formatAddress, formatValue, formatNumber, formatDayCount, formatContactDetails } from './audit-formatters.ts';
+import {
+	formatAddress,
+	formatValue,
+	formatNumber,
+	formatDayCount,
+	formatContactDetails,
+	formatSiteCoordinatesValue
+} from './audit-formatters.ts';
 import { formatDate } from './date-util.ts';
 
 describe('Audit Formatters', () => {
@@ -198,6 +205,34 @@ describe('Audit Formatters', () => {
 
 		it('should return "-" when nothing is set', () => {
 			assert.strictEqual(formatContactDetails({}), '-');
+		});
+	});
+	describe('formatSiteCoordinatesValue', () => {
+		it('should pad numeric coordinates to six digits, including zero', () => {
+			assert.strictEqual(
+				formatSiteCoordinatesValue({ siteEasting: 1, siteNorthing: 0 }),
+				'Easting: 000001, Northing: 000000'
+			);
+		});
+
+		it('should preserve leading zeros in string coordinates', () => {
+			assert.strictEqual(
+				formatSiteCoordinatesValue({ siteEasting: '000001', siteNorthing: '000002' }),
+				'Easting: 000001, Northing: 000002'
+			);
+		});
+
+		it('should return a dash when both coordinates are empty', () => {
+			assert.strictEqual(formatSiteCoordinatesValue({}), '-');
+			assert.strictEqual(formatSiteCoordinatesValue({ siteEasting: null, siteNorthing: undefined }), '-');
+			assert.strictEqual(formatSiteCoordinatesValue({ siteEasting: '', siteNorthing: '' }), '-');
+		});
+
+		it('should return a dash for nullish or non-object input', () => {
+			assert.strictEqual(formatSiteCoordinatesValue(null), '-');
+			assert.strictEqual(formatSiteCoordinatesValue(undefined), '-');
+			assert.strictEqual(formatSiteCoordinatesValue('coordinates'), '-');
+			assert.strictEqual(formatSiteCoordinatesValue(1), '-');
 		});
 	});
 });

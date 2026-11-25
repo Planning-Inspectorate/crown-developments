@@ -165,6 +165,40 @@ export function formatContactDetails({
 }
 
 /**
+ * Formats a single coordinate value for audit display.
+ * Returns '-' for null, undefined, or empty values.
+ */
+function formatSingleCoordinateValue(value: number | string | null | undefined): string {
+	return value === null || value === undefined || value === '' ? '-' : String(value).padStart(6, '0');
+}
+
+/**
+ * Formats both site coordinates value for audit display,
+ * e.g. 'Easting: 123456, Northing: 654321'.
+ * Returns '-' when both values are empty.
+ */
+type SiteCoordinates = {
+	siteEasting?: number | string | null;
+	siteNorthing?: number | string | null;
+};
+
+export function formatSiteCoordinatesValue(value: unknown): string {
+	if (!value || typeof value !== 'object') {
+		return '-';
+	}
+
+	const coordinates = value as SiteCoordinates;
+	const easting = formatSingleCoordinateValue(coordinates.siteEasting);
+	const northing = formatSingleCoordinateValue(coordinates.siteNorthing);
+
+	if (easting === '-' && northing === '-') {
+		return '-';
+	}
+
+	return `Easting: ${easting}, Northing: ${northing}`;
+}
+
+/**
  * The site visit as one value: the date, then the times when both are set.
  */
 export function formatSiteVisit(date: unknown, startTime: unknown, endTime: unknown): string {
