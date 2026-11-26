@@ -127,6 +127,79 @@ describe('Documents Controller', () => {
 			const where = mockService.db.document.count.mock.calls[0].arguments[0].where;
 			assert.deepStrictEqual(where.categoryId, { in: ['cat-1'] });
 		});
+
+		it('should pass mobileFilters with -mobile suffixed date input IDs without mutating desktop filters', async () => {
+			const handler = buildApplicationDocumentsPage(mockService);
+
+			await handler(mockReq as Request, mockRes as Response, mockNext);
+
+			const renderContext = mockRes.render.mock.calls[0].arguments[1];
+			const desktopDateFilter = renderContext.filters.find((f: any) => f.type === 'date-input');
+			const mobileDateFilter = renderContext.mobileFilters.find((f: any) => f.type === 'date-input');
+
+			assert.ok(desktopDateFilter, 'Expected a desktop date-input filter');
+			assert.ok(mobileDateFilter, 'Expected a mobile date-input filter');
+			assert.strictEqual(desktopDateFilter.dateInputs.length, mobileDateFilter.dateInputs.length);
+
+			desktopDateFilter.dateInputs.forEach((desktopInput: any, index: number) => {
+				const mobileInput = mobileDateFilter.dateInputs[index];
+
+				if (desktopInput.id) {
+					assert.ok(!desktopInput.id.endsWith('-mobile'));
+					assert.strictEqual(mobileInput.id, `${desktopInput.id}-mobile`);
+				}
+				if (desktopInput.idPrefix) {
+					assert.ok(!desktopInput.idPrefix.endsWith('-mobile'));
+					assert.strictEqual(mobileInput.idPrefix, `${desktopInput.idPrefix}-mobile`);
+				}
+			});
+
+			const desktopOtherFilters = renderContext.filters.filter((f: any) => f.type !== 'date-input');
+			const mobileOtherFilters = renderContext.mobileFilters.filter((f: any) => f.type !== 'date-input');
+			assert.deepStrictEqual(mobileOtherFilters, desktopOtherFilters);
+		});
+
+		it('should set isMobileFilterOpen to true only when formType is mobile and there are date errors', async () => {
+			mockReq.query = {
+				formType: 'mobile',
+				'publishedDateFrom-day': '99',
+				'publishedDateFrom-month': '99',
+				'publishedDateFrom-year': '2024'
+			};
+
+			const handler = buildApplicationDocumentsPage(mockService);
+			await handler(mockReq as Request, mockRes as Response, mockNext);
+
+			const renderContext = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(renderContext.errorSummary?.length > 0);
+			assert.strictEqual(renderContext.isMobileFilterOpen, true);
+		});
+
+		it('should set isMobileFilterOpen to false when formType is mobile with no errors', async () => {
+			mockReq.query = { formType: 'mobile' };
+
+			const handler = buildApplicationDocumentsPage(mockService);
+			await handler(mockReq as Request, mockRes as Response, mockNext);
+
+			const renderContext = mockRes.render.mock.calls[0].arguments[1];
+			assert.strictEqual(renderContext.errorSummary, null);
+			assert.strictEqual(renderContext.isMobileFilterOpen, false);
+		});
+
+		it('should set isMobileFilterOpen to false when desktop form has date errors', async () => {
+			mockReq.query = {
+				'publishedDateFrom-day': '99',
+				'publishedDateFrom-month': '99',
+				'publishedDateFrom-year': '2024'
+			};
+
+			const handler = buildApplicationDocumentsPage(mockService);
+			await handler(mockReq as Request, mockRes as Response, mockNext);
+
+			const renderContext = mockRes.render.mock.calls[0].arguments[1];
+			assert.ok(renderContext.errorSummary?.length > 0);
+			assert.strictEqual(renderContext.isMobileFilterOpen, false);
+		});
 	});
 
 	describe('buildDownloadDocument', () => {
