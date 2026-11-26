@@ -98,7 +98,7 @@ import ManageListItemsCompleteValidator from '@pins/crowndev-lib/validators/mana
 import type { PreApplicationCaseOption } from '../util/pre-application.ts';
 import NoOptionsValidator from '@pins/crowndev-lib/validators/no-options-validator.ts';
 import NameValidator from '@pins/crowndev-lib/validators/name-validator.ts';
-import { HEARING_DATE_PREREQUISITES } from './prerequisite-errors.ts';
+import { HEARING_DATE_PREREQUISITES, SITE_VISIT_DATE_PREREQUISITES } from './prerequisite-errors.ts';
 import { PrerequisitesValidator } from '@pins/crowndev-lib/validators/prerequisites-validator.ts';
 
 interface QuestionOverrides {
@@ -2393,7 +2393,17 @@ export function getQuestions(
 			typesWithTimes: [SITE_VISIT_TYPE_ID.ACCESS_REQUIRED],
 			startTimeFieldName: 'siteVisitStartTime',
 			endTimeFieldName: 'siteVisitEndTime',
-			validators: [new SiteVisitDateTimeValidator('site visit date')]
+			validators: [
+				new SiteVisitDateTimeValidator('site visit date'),
+				// The site visit notification email needs the site address. The error links to where it's added.
+				new PrerequisitesValidator([
+					{
+						dependencyFieldName: 'hasSiteLocation',
+						isMissing: (hasSiteLocation) => !hasSiteLocation,
+						message: SITE_VISIT_DATE_PREREQUISITES.siteLocation.message
+					}
+				])
+			]
 		},
 		siteVisitType: {
 			type: COMPONENT_TYPES.RADIO,

@@ -25,6 +25,7 @@ export function sendS62aNotificationAndUpdateFlag(
 		| 'acknowledgeApplicationReceivedEmailSent'
 		| 'interestedPartyDecisionEmailSent'
 		| 'hearingNotificationEmailSent'
+		| 'siteVisitNotificationEmailSent'
 		| null,
 	operationName: string,
 	req?: Request,

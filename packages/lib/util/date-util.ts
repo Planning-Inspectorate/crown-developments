@@ -1,4 +1,7 @@
-import { formatInTimeZone } from 'date-fns-tz';
+import { startOfWeek } from 'date-fns';
+import { formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
+
+const UK_TIME_ZONE = 'Europe/London';
 
 /**
  * Formats a date + time value for audit display.
@@ -39,4 +42,15 @@ export function formatDate(value: Date | string | null | undefined, includeTime 
 	}
 
 	return formatInTimeZone(date, 'Europe/London', 'd MMMM yyyy h:mmaaa');
+}
+
+/**
+ * The Monday of the week (Monday to Sunday) that a date falls in, using the UK date.
+ *
+ * Converts to UK time first, so a date saved at midnight UK time in summer
+ * (11pm the day before in UTC) still lands in the right week.
+ * Returns midnight UK time on that Monday.
+ */
+export function mondayOfUkWeek(date: Date): Date {
+	return fromZonedTime(startOfWeek(toZonedTime(date, UK_TIME_ZONE), { weekStartsOn: 1 }), UK_TIME_ZONE);
 }

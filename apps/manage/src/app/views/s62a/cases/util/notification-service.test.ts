@@ -2,11 +2,17 @@ import { describe, it, beforeEach, mock } from 'node:test';
 import assert from 'node:assert';
 import {
 	type HearingNotificationContext,
+	getS62aContactEmail,
 	pickHearingInspector,
 	type RepresentationPublishedCaseContext,
 	S62aManageNotificationService
 } from './notification-service.ts';
-import { CONTACT_ROLES_ID, MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	CONTACT_ROLES_ID,
+	MAJOR_OR_NON_MAJOR_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
+	SITE_VISIT_TYPE_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { UpdateCaseAnswers } from '../view/s62a-update-case-mapper.ts';
 import type { S62aGovNotifyClient } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
@@ -1707,5 +1713,200 @@ describe('S62aManageNotificationService processHearingNotification', () => {
 			(mockLogger.error as any).mock.calls[0].arguments[1],
 			'Error dispatching hearing notification email'
 		);
+	});
+});
+
+describe('S62aManageNotificationService processSiteVisitNotification', () => {
+	let mockLogger: Logger;
+	let mockNotifyClient: S62aGovNotifyClient;
+	let service: S62aManageNotificationService;
+
+	const context = { reference: 'S62A/2027/0002', emails: { major: 'major@test.com', nonMajor: 'non-major@test.com' } };
+
+	// Wednesday 17 March 2027 (GMT), saved at midnight UK time
+	const siteVisitDate = new Date('2027-03-17T00:00:00Z');
+
+	const siteVisitAnswers = (overrides: Partial<UpdateCaseAnswers> = {}): UpdateCaseAnswers =>
+		({
+			siteVisitDate,
+			siteVisitTypeId: SITE_VISIT_TYPE_ID.ACCESS_REQUIRED,
+			siteVisitStartTime: new Date('2027-03-17T10:00:00Z'),
+			siteVisitEndTime: new Date('2027-03-17T12:30:00Z'),
+			applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.APPLICATION,
+			classificationId: MAJOR_OR_NON_MAJOR_ID.MAJOR,
+			developmentDescription: 'Construction of 12 homes',
+			siteAddress: { addressLine1: '1 Test Street', townCity: 'Bristol', postcode: 'BS1 1AA' },
+			manageAgentContactDetails: [
+				{ agentContactEmail: 'agent@test.com', agentFirstName: 'Abby', agentLastName: 'Agent' }
+			],
+			manageApplicantContactDetails: [
+				{ applicantContactEmail: 'applicant@test.com', applicantFirstName: 'Alex', applicantLastName: 'Applicant' }
+			],
+			...overrides
+		}) as UpdateCaseAnswers;
+
+	const sendMock = () => (mockNotifyClient.sendSiteVisitNotificationToMany as any).mock;
+	const sentContacts = () => sendMock().calls[0].arguments[0];
+	const sentDetails = () => sendMock().calls[0].arguments[1];
+
+	beforeEach(() => {
+		mockLogger = { info: mock.fn(), warn: mock.fn(), error: mock.fn() } as unknown as Logger;
+		mockNotifyClient = {
+			sendSiteVisitNotificationToMany: mock.fn(async (contacts: { email: string }[]) =>
+				contacts.map(({ email }) => ({ email, notifyId: 'n', body: 'b', subject: 's' }))
+			)
+		} as unknown as S62aGovNotifyClient;
+		service = new S62aManageNotificationService(mockNotifyClient, mockLogger);
+	});
+
+	it('sends 5a details for an ARSV: date, start and end time, and the major Section 62A email (Scenario 1)', async () => {
+		const result = await service.processSiteVisitNotification(siteVisitAnswers(), context);
+
+		assert.strictEqual(result.wasSent, true);
+		assert.deepStrictEqual(sentDetails(), {
+			reference: 'S62A/2027/0002',
+			caseType: 'planning application',
+			siteAddress: sentDetails().siteAddress,
+			applicationDescription: 'Construction of 12 homes',
+			visitType: 'access-required',
+			visitDate: '17 March 2027',
+			visitStartTime: '10:00am',
+			visitEndTime: '12:30pm',
+			section62aEmail: 'major@test.com'
+		});
+		assert.ok(sentDetails().siteAddress.includes('1 Test Street'));
+	});
+
+	it('uses the non-major Section 62A email for a non-major case', async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({ classificationId: MAJOR_OR_NON_MAJOR_ID.NON_MAJOR }),
+			context
+		);
+
+		assert.strictEqual(sentDetails().section62aEmail, 'non-major@test.com');
+	});
+
+	it('shows ARSV times in UK time in summer', async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({
+				siteVisitDate: new Date('2027-06-15T23:00:00Z'),
+				siteVisitStartTime: new Date('2027-06-16T08:00:00Z'),
+				siteVisitEndTime: new Date('2027-06-16T13:15:00Z')
+			}),
+			context
+		);
+
+		assert.strictEqual(sentDetails().visitDate, '16 June 2027');
+		assert.strictEqual(sentDetails().visitStartTime, '9:00am');
+		assert.strictEqual(sentDetails().visitEndTime, '2:15pm');
+	});
+
+	it('sends 5b details for a USV with the Monday of the week as visitWeek (Scenario 2)', async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({
+				siteVisitTypeId: SITE_VISIT_TYPE_ID.UNACCOMPANIED,
+				siteVisitStartTime: null,
+				siteVisitEndTime: null
+			}),
+			context
+		);
+
+		assert.deepStrictEqual(sentDetails(), {
+			reference: 'S62A/2027/0002',
+			caseType: 'planning application',
+			siteAddress: sentDetails().siteAddress,
+			applicationDescription: 'Construction of 12 homes',
+			visitType: 'unaccompanied',
+			// Wednesday 17 March 2027 is in the week commencing Monday 15 March
+			visitWeek: '15 March 2027'
+		});
+	});
+
+	it("says 'pre-application request' for a pre-application (Scenario 3)", async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({ applicationPhaseId: PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION }),
+			context
+		);
+
+		assert.strictEqual(sentDetails().caseType, 'pre-application request');
+	});
+
+	it('uses the easting and northing when there is no site address', async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({ siteAddress: undefined, siteEasting: '123456', siteNorthing: '654321' } as any),
+			context
+		);
+
+		assert.strictEqual(sentDetails().siteAddress, 'Easting: 123456, Northing: 654321');
+	});
+
+	it('sends to the agent rather than the applicant', async () => {
+		await service.processSiteVisitNotification(siteVisitAnswers(), context);
+
+		assert.deepStrictEqual(sentContacts(), [{ email: 'agent@test.com', firstName: 'Abby', lastName: 'Agent' }]);
+	});
+
+	it('sends to the applicant when there is no agent email address (Scenario 6)', async () => {
+		await service.processSiteVisitNotification(
+			siteVisitAnswers({ manageAgentContactDetails: [{ agentFirstName: 'No', agentLastName: 'Email' }] as any }),
+			context
+		);
+
+		assert.deepStrictEqual(sentContacts(), [{ email: 'applicant@test.com', firstName: 'Alex', lastName: 'Applicant' }]);
+	});
+
+	const notSent: [string, Partial<UpdateCaseAnswers>][] = [
+		['there is no site visit date', { siteVisitDate: null }],
+		['there is no site visit type', { siteVisitTypeId: null }],
+		['an ARSV has no start time', { siteVisitStartTime: null }],
+		['an ARSV has no end time', { siteVisitEndTime: null }],
+		['there is nobody to send to', { manageAgentContactDetails: [], manageApplicantContactDetails: [] }]
+	];
+
+	for (const [when, overrides] of notSent) {
+		it(`returns wasSent: false without sending when ${when}`, async () => {
+			const result = await service.processSiteVisitNotification(siteVisitAnswers(overrides), context);
+
+			assert.strictEqual(result.wasSent, false);
+			assert.strictEqual(sendMock().callCount(), 0);
+		});
+	}
+
+	it('returns wasSent: false when the notify client is null', async () => {
+		const result = await new S62aManageNotificationService(null, mockLogger).processSiteVisitNotification(
+			siteVisitAnswers(),
+			context
+		);
+
+		assert.strictEqual(result.wasSent, false);
+	});
+
+	it('returns the audit data from Notify', async () => {
+		const result = await service.processSiteVisitNotification(siteVisitAnswers(), context);
+
+		assert.deepStrictEqual(result.auditData, [{ email: 'agent@test.com', notifyId: 'n', body: 'b', subject: 's' }]);
+	});
+
+	it('throws when Notify fails', async () => {
+		mockNotifyClient.sendSiteVisitNotificationToMany = mock.fn(async () => {
+			throw new Error('Notify down');
+		}) as any;
+
+		await assert.rejects(() => service.processSiteVisitNotification(siteVisitAnswers(), context), {
+			message: 'Error encountered during site visit email notification dispatch'
+		});
+	});
+});
+
+describe('getS62aContactEmail', () => {
+	const emails = { major: 'major@test.com', nonMajor: 'non-major@test.com' };
+
+	it('returns the major email for a major case', () => {
+		assert.strictEqual(getS62aContactEmail(MAJOR_OR_NON_MAJOR_ID.MAJOR, emails), 'major@test.com');
+	});
+
+	it('returns the non-major email otherwise', () => {
+		assert.strictEqual(getS62aContactEmail(MAJOR_OR_NON_MAJOR_ID.NON_MAJOR, emails), 'non-major@test.com');
+		assert.strictEqual(getS62aContactEmail(undefined, emails), 'non-major@test.com');
 	});
 });

@@ -3,11 +3,17 @@ import type {
 	HearingNotificationRecipient,
 	RepresentationPublishedNotificationType,
 	InterestedPartyNotificationType,
-	S62aGovNotifyClient
+	S62aGovNotifyClient,
+	SiteVisitNotificationDetails
 } from '@pins/crowndev-lib/govnotify/s62a/s62a-gov-notify-client.ts';
 import type { S62aCreateCaseAnswers } from '../create-a-case/s62a-case-mapper.ts';
 import type { Logger } from 'pino';
-import { CONTACT_ROLES_ID, MAJOR_OR_NON_MAJOR_ID } from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
+import {
+	CONTACT_ROLES_ID,
+	MAJOR_OR_NON_MAJOR_ID,
+	PRE_APPLICATION_OR_APPLICATION_ID,
+	SITE_VISIT_TYPE_ID
+} from '@pins/crowndev-database/src/seed/s62a/data-static.ts';
 import type { AgentContactAnswer, ApplicantContactAnswer } from './party-types.ts';
 import type { AuditData } from '@pins/crowndev-lib/govnotify/gov-notify-client.ts';
 import { formatAddress } from '@pins/crowndev-lib/util/audit-formatters.ts';
@@ -24,6 +30,7 @@ import type { ManageService } from '#service';
 import { REPRESENTATION_STATUS_ID } from '@pins/crowndev-database/src/seed/data-static.ts';
 import { formatFee } from '@pins/crowndev-lib/util/numbers.ts';
 import { subtractWorkingDays } from '@pins/crowndev-lib/util/working-days.ts';
+import { mondayOfUkWeek } from '@pins/crowndev-lib/util/date-util.ts';
 import type { CaseTeamInspectorItem } from '../view/view-model.ts';
 
 /** Additional contact types who receive the hearing notification (with the registration section) */
@@ -75,6 +82,21 @@ const fullName = (firstName?: string | null, lastName?: string | null) =>
 		.map((part) => part?.trim())
 		.filter(Boolean)
 		.join(' ');
+
+/**
+ * The Section 62A team email to show in an email: the major team's for a major case, otherwise the non-major team's
+ */
+export function getS62aContactEmail(
+	classificationId: string | null | undefined,
+	emails: { major?: string; nonMajor?: string }
+): string | undefined {
+	return classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+}
+
+export interface SiteVisitNotificationContext {
+	reference: string;
+	emails: { major?: string; nonMajor?: string };
+}
 
 export interface RepresentationPublishedCaseContext {
 	id: string;
@@ -129,8 +151,7 @@ export class S62aManageNotificationService {
 			return { wasSent: false };
 		}
 
-		const s62aEmail =
-			answers.applicationClassification === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+		const s62aEmail = getS62aContactEmail(answers.applicationClassification, emails);
 
 		if (!s62aEmail) {
 			this.logger.warn({ reference }, `No return email address configured ${reference}`);
@@ -398,7 +419,6 @@ export class S62aManageNotificationService {
 		}
 
 		const hearingDate = answers.hearingDate;
-		const isMajor = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR;
 
 		try {
 			const auditData = await this.notifyClient.sendHearingNotificationToMany(recipients, {
@@ -414,7 +434,7 @@ export class S62aManageNotificationService {
 					subtractWorkingDays(new Date(hearingDate), HEARING_REGISTRATION_WORKING_DAYS),
 					{ format: 'd MMMM yyyy' }
 				),
-				section62aEmail: (isMajor ? context.emails.major : context.emails.nonMajor) || ''
+				section62aEmail: getS62aContactEmail(answers.classificationId, context.emails) || ''
 			});
 
 			this.logger.info(
@@ -427,6 +447,101 @@ export class S62aManageNotificationService {
 			this.logger.error({ error, reference }, 'Error dispatching hearing notification email');
 			throw new Error('Error encountered during hearing notification email dispatch', { cause: error });
 		}
+	}
+
+	/**
+	 * Sends the site visit notification to the agent (or the applicant if there's no agent email):
+	 * 5a for an access required site visit (ARSV), with the date and times, or
+	 * 5b for an unaccompanied site visit (USV), with the week commencing date.
+	 *
+	 * Not sent (wasSent: false) when there's no site visit date, no site visit type, an ARSV
+	 * without its times, or nobody to send to.
+	 */
+	public async processSiteVisitNotification(
+		answers: UpdateCaseAnswers,
+		context: SiteVisitNotificationContext
+	): Promise<{ wasSent: boolean; auditData?: AuditData[] }> {
+		const { reference } = context;
+		const { siteVisitDate, siteVisitTypeId } = answers;
+
+		if (!siteVisitDate) {
+			return { wasSent: false };
+		}
+
+		if (!this.notifyClient) {
+			this.logger.warn('S62A Gov Notify is not enabled...');
+			return { wasSent: false };
+		}
+
+		const details = this.buildSiteVisitDetails(answers, new Date(siteVisitDate), context);
+		if (!details) {
+			this.logger.warn(
+				{ reference, siteVisitTypeId },
+				'Site visit type or times missing, so the site visit notification was not sent'
+			);
+			return { wasSent: false };
+		}
+
+		const notificationContacts = this.extractNotificationContacts(answers);
+		if (!notificationContacts.length) {
+			this.logger.warn({ reference }, `No emails to send for reference ${reference}`);
+			return { wasSent: false };
+		}
+
+		try {
+			const auditData = await this.notifyClient.sendSiteVisitNotificationToMany(notificationContacts, details);
+
+			this.logger.info({ reference, visitType: details.visitType }, 'Site visit emails dispatched successfully');
+
+			return { wasSent: true, auditData };
+		} catch (error) {
+			this.logger.error({ error, reference }, 'Error dispatching site visit email');
+			throw new Error('Error encountered during site visit email notification dispatch', { cause: error });
+		}
+	}
+
+	/**
+	 * The details for 5a (ARSV) or 5b (USV), or undefined if the type, or an ARSV's times, are missing
+	 */
+	private buildSiteVisitDetails(
+		answers: UpdateCaseAnswers,
+		siteVisitDate: Date,
+		context: SiteVisitNotificationContext
+	): SiteVisitNotificationDetails | undefined {
+		const { siteVisitTypeId, siteVisitStartTime, siteVisitEndTime } = answers;
+
+		const shared = {
+			reference: context.reference,
+			caseType:
+				answers.applicationPhaseId === PRE_APPLICATION_OR_APPLICATION_ID.PRE_APPLICATION
+					? 'pre-application request'
+					: 'planning application',
+			siteAddress: this.formatAddress(answers),
+			applicationDescription: answers.developmentDescription || ''
+		};
+
+		if (siteVisitTypeId === SITE_VISIT_TYPE_ID.ACCESS_REQUIRED) {
+			if (!siteVisitStartTime || !siteVisitEndTime) return undefined;
+
+			return {
+				...shared,
+				visitType: 'access-required',
+				visitDate: formatDateForDisplay(siteVisitDate, { format: 'd MMMM yyyy' }),
+				visitStartTime: formatDateForDisplay(siteVisitStartTime, { format: 'h:mmaaa' }),
+				visitEndTime: formatDateForDisplay(siteVisitEndTime, { format: 'h:mmaaa' }),
+				section62aEmail: getS62aContactEmail(answers.classificationId, context.emails) || ''
+			};
+		}
+
+		if (siteVisitTypeId === SITE_VISIT_TYPE_ID.UNACCOMPANIED) {
+			return {
+				...shared,
+				visitType: 'unaccompanied',
+				visitWeek: formatDateForDisplay(mondayOfUkWeek(siteVisitDate), { format: 'd MMMM yyyy' })
+			};
+		}
+
+		return undefined;
 	}
 
 	/**
@@ -693,7 +808,7 @@ export class S62aManageNotificationService {
 			: `Easting: ${caseContext.siteEasting}, Northing: ${caseContext.siteNorthing}`;
 
 		const applicationDescription = caseContext.developmentDescription || '';
-		const s62aEmail = caseContext.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+		const s62aEmail = getS62aContactEmail(caseContext.classificationId, emails);
 
 		if (!s62aEmail) {
 			this.logger.warn(
@@ -784,7 +899,7 @@ export class S62aManageNotificationService {
 
 		const applicationFee = answers.hasApplicationFee === BOOLEAN_OPTIONS.YES ? formatFee(answers.applicationFee!) : '';
 
-		const s62aEmail = answers.classificationId === MAJOR_OR_NON_MAJOR_ID.MAJOR ? emails.major : emails.nonMajor;
+		const s62aEmail = getS62aContactEmail(answers.classificationId, emails);
 
 		if (!s62aEmail) {
 			this.logger.warn({ reference }, `No return email address configured ${reference}`);

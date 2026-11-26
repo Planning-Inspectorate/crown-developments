@@ -10,6 +10,7 @@ import {
 	acknowledgeApplicationReceivedEmail,
 	interestedPartyDecisionEmail,
 	hearingNotificationEmail,
+	siteVisitNotificationEmail,
 	resolveHearingInspectorName,
 	HEARING_INSPECTOR_NAME_FALLBACK
 } from './update-case.ts';
@@ -189,6 +190,11 @@ describe('buildS62aUpdateCase', () => {
 				'processAcknowledgementApplicationReceived',
 				async () => ({ wasSent: true })
 			);
+			const siteVisitMock = mock.method(
+				S62aManageNotificationService.prototype,
+				'processSiteVisitNotification',
+				async () => ({ wasSent: true })
+			);
 
 			caseRecord = {
 				id: 'case-123',
@@ -204,11 +210,14 @@ describe('buildS62aUpdateCase', () => {
 				data: {
 					answers: {
 						notificationReceivedDate: '2026-10-30',
-						applicationReceivedDate: new Date('2026-10-30')
+						applicationReceivedDate: new Date('2026-10-30'),
+						siteVisitDate: new Date('2027-03-17')
 					}
 				}
 			} as unknown as SaveParams);
 
+			assert.strictEqual(siteVisitMock.mock.calls.length, 0);
+			siteVisitMock.mock.restore();
 			assert.strictEqual(preNotificationMock.mock.calls.length, 0);
 			assert.strictEqual(preApplicationMock.mock.calls.length, 0);
 			assert.strictEqual(applicationReceivedMock.mock.calls.length, 0);
@@ -1526,5 +1535,88 @@ describe('resolveHearingInspectorName', () => {
 		const name = await resolveHearingInspectorName(previousCase([]), serviceWith([]), req);
 
 		assert.strictEqual(name, HEARING_INSPECTOR_NAME_FALLBACK);
+	});
+});
+
+describe('siteVisitNotificationEmail', () => {
+	let mockNotificationService: S62aManageNotificationService;
+	let mockService: ManageService;
+	let mockSendFn: any;
+	let mockReq: any;
+
+	beforeEach(() => {
+		mockNotificationService = new S62aManageNotificationService(null, null as any);
+		mock.method(mockNotificationService, 'processSiteVisitNotification', async () => ({ wasSent: true }));
+		mockService = {
+			s62aMajorContactEmail: 'major@test.com',
+			s62aNonMajorContactEmail: 'non-major@test.com'
+		} as unknown as ManageService;
+		mockSendFn = mock.fn();
+		mockReq = { session: { account: { localAccountId: 'user-123' } } };
+	});
+
+	const callTrigger = (answers: any, previousCase: any) =>
+		siteVisitNotificationEmail(
+			answers,
+			previousCase,
+			mockNotificationService,
+			mockService,
+			'case-123',
+			mockReq,
+			mockSendFn
+		);
+
+	it('does nothing if the site visit date is not in the answers payload (e.g. only the type was saved)', () => {
+		callTrigger({ siteVisitTypeId: 'unaccompanied' }, { id: 'case-123', reference: 'REF-1' });
+
+		assert.strictEqual((mockNotificationService.processSiteVisitNotification as any).mock.callCount(), 0);
+		assert.strictEqual(mockSendFn.mock.callCount(), 0);
+	});
+
+	it('does nothing when the site visit date is cleared', () => {
+		callTrigger({ siteVisitDate: null }, { id: 'case-123', reference: 'REF-1' });
+
+		assert.strictEqual(mockSendFn.mock.callCount(), 0);
+	});
+
+	it('does nothing if the site visit email was already sent (Scenario 4)', () => {
+		callTrigger(
+			{ siteVisitDate: new Date('2027-03-17') },
+			{ id: 'case-123', reference: 'REF-1', siteVisitNotificationEmailSent: BOOLEAN_OPTIONS.YES }
+		);
+
+		assert.strictEqual((mockNotificationService.processSiteVisitNotification as any).mock.callCount(), 0);
+		assert.strictEqual(mockSendFn.mock.callCount(), 0);
+	});
+
+	it('sends with the saved case data and sets the site visit flag on first save (Scenarios 1, 2 and 7)', async () => {
+		const siteVisitDate = new Date('2027-03-17');
+		const previousCase = {
+			id: 'case-123',
+			reference: 'REF-1',
+			siteVisitTypeId: 'unaccompanied',
+			developmentDescription: 'Homes'
+		};
+
+		callTrigger({ siteVisitDate }, previousCase);
+
+		const sendArgs = mockSendFn.mock.calls[0].arguments;
+		assert.deepStrictEqual(await sendArgs[0], { wasSent: true });
+		assert.strictEqual(sendArgs[1], mockService);
+		assert.strictEqual(sendArgs[2], 'case-123');
+		assert.strictEqual(sendArgs[3], 'siteVisitNotificationEmailSent');
+		assert.strictEqual(sendArgs[4], 'Send Site Visit Notification (Update)');
+		// the request carries the officer who saved the date, for the case history
+		assert.strictEqual(sendArgs[5], mockReq);
+
+		const [mergedAnswers, context] = (mockNotificationService.processSiteVisitNotification as any).mock.calls[0]
+			.arguments;
+		assert.strictEqual(mergedAnswers.siteVisitDate, siteVisitDate);
+		assert.strictEqual(mergedAnswers.siteVisitTypeId, 'unaccompanied');
+		assert.strictEqual(mergedAnswers.developmentDescription, 'Homes');
+		assert.deepStrictEqual(context, {
+			reference: 'REF-1',
+			emails: { major: 'major@test.com', nonMajor: 'non-major@test.com' }
+		});
 	});
 });

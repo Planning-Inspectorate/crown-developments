@@ -18,6 +18,10 @@ export interface TemplateIds {
 	hearingPrincipalParties?: string;
 	/** Hearing notification for everyone else: with the "registering to speak" section */
 	hearingOtherParties?: string;
+	/** Site visit notification 5a: access required site visit (ARSV), with the date and times */
+	siteVisitAccessRequired?: string;
+	/** Site visit notification 5b: unaccompanied site visit (USV), with the week commencing date */
+	siteVisitUnaccompanied?: string;
 }
 
 export interface S62aNotifyConfig extends NotifyConfig {
@@ -108,6 +112,33 @@ export type HearingNotificationDetails = {
 	registrationDeadline: string;
 	section62aEmail: string;
 };
+
+/** Details shared by both site visit letters */
+type SiteVisitBaseDetails = {
+	reference: string;
+	/** 'planning application' or 'pre-application request' */
+	caseType: string;
+	siteAddress: string;
+	applicationDescription: string;
+};
+
+/** 5a: access required site visit (ARSV) */
+export type AccessRequiredSiteVisitDetails = SiteVisitBaseDetails & {
+	visitType: 'access-required';
+	visitDate: string;
+	visitStartTime: string;
+	visitEndTime: string;
+	section62aEmail: string;
+};
+
+/** 5b: unaccompanied site visit (USV) */
+export type UnaccompaniedSiteVisitDetails = SiteVisitBaseDetails & {
+	visitType: 'unaccompanied';
+	/** The Monday of the week of the site visit */
+	visitWeek: string;
+};
+
+export type SiteVisitNotificationDetails = AccessRequiredSiteVisitDetails | UnaccompaniedSiteVisitDetails;
 
 export type LpaDecisionDetails = {
 	reference: string;
@@ -541,6 +572,69 @@ export class S62aGovNotifyClient extends GovNotifyClient {
 			// Index rather than .find() so duplicate emails each get the right name and template
 			(_address, index) => this.sendHearingNotification(recipients[index], details),
 			'Failed to send hearing notification to one or more email addresses.'
+		);
+	}
+
+	/**
+	 * Sends the site visit notification to the applicant/agent:
+	 * 5a for an access required site visit (ARSV), 5b for an unaccompanied site visit (USV)
+	 */
+	async sendSiteVisitNotification(
+		notificationData: ContactNotificationType,
+		details: SiteVisitNotificationDetails
+	): Promise<Omit<AuditData, 'email'>> {
+		const applicantName =
+			[toText(notificationData.firstName), toText(notificationData.lastName)].filter(Boolean).join(' ').trim() ||
+			'Sir or Madam';
+
+		const shared = {
+			caseReference: details.reference,
+			applicantName,
+			caseType: details.caseType,
+			siteAddress: details.siteAddress,
+			applicationDescription: details.applicationDescription
+		};
+
+		const { templateId, personalisation } =
+			details.visitType === 'access-required'
+				? {
+						templateId: this.templateIds.siteVisitAccessRequired,
+						personalisation: {
+							...shared,
+							visitDate: details.visitDate,
+							visitStartTime: details.visitStartTime,
+							visitEndTime: details.visitEndTime,
+							relevantS62aEmail: details.section62aEmail
+						}
+					}
+				: {
+						templateId: this.templateIds.siteVisitUnaccompanied,
+						personalisation: { ...shared, visitWeek: details.visitWeek }
+					};
+
+		if (!templateId) {
+			this.logger.warn({ visitType: details.visitType }, 'site visit template not enabled. ignoring request.');
+			throw new Error('Site visit notification template not enabled.');
+		}
+
+		return this.sendEmailWithAudit(templateId, notificationData.email, {
+			personalisation,
+			reference: details.reference
+		});
+	}
+
+	/**
+	 * Sends the site visit notification to each applicant/agent
+	 */
+	async sendSiteVisitNotificationToMany(
+		notificationData: ContactNotificationType[],
+		details: SiteVisitNotificationDetails
+	): Promise<AuditData[]> {
+		return this.sendToManyWithAudit(
+			notificationData.map((d) => d.email),
+			// Index rather than .find() so duplicate emails each get the right name
+			(_address, index) => this.sendSiteVisitNotification(notificationData[index], details),
+			'Failed to send site visit notification to one or more email addresses.'
 		);
 	}
 

@@ -97,6 +97,8 @@ variable "apps_config" {
         ip_decision_template_id                 = string
         hearing_principal_parties_template_id   = string
         hearing_other_parties_template_id       = string
+        site_visit_access_required_template_id  = string
+        site_visit_unaccompanied_template_id    = string
       })
     })
 

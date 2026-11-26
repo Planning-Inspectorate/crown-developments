@@ -89,6 +89,8 @@ apps_config = {
       ip_decision_template_id                 = "b9f7ddc7-ff52-4239-b559-d1d2e8c3bc12"
       hearing_principal_parties_template_id   = "fe8bb637-7817-43b4-89a2-7116e471ac5a"
       hearing_other_parties_template_id       = "b75788ba-15d3-44e9-837d-f3daa06bb0a3"
+      site_visit_access_required_template_id  = "5c5a33cf-20b3-4766-972e-475bd26d64f3"
+      site_visit_unaccompanied_template_id    = "81e60b48-6bf5-4cf8-965f-175dab04ee9a"
     }
   }
 

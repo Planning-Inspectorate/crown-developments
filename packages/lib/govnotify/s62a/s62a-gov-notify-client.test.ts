@@ -1775,3 +1775,118 @@ describe('S62aGovNotifyClient hearing notification', () => {
 		});
 	});
 });
+
+describe('S62aGovNotifyClient site visit notification', () => {
+	const templateIds = { siteVisitAccessRequired: '5a-template', siteVisitUnaccompanied: '5b-template' };
+	const shared = {
+		reference: 'S62A/2026/0020',
+		caseType: 'planning application',
+		siteAddress: '1 Test Street, Bristol, BS1 1AA',
+		applicationDescription: 'Construction of 12 homes'
+	};
+	const accessRequired = {
+		...shared,
+		visitType: 'access-required' as const,
+		visitDate: '15 March 2027',
+		visitStartTime: '10:00am',
+		visitEndTime: '12:30pm',
+		section62aEmail: 'major@test.com'
+	};
+	const unaccompanied = { ...shared, visitType: 'unaccompanied' as const, visitWeek: '15 March 2027' };
+	const agent = { email: 'agent@test.com', firstName: 'Abby', lastName: 'Agent' };
+
+	describe('sendSiteVisitNotification', () => {
+		it("sends 5a for an ARSV with the date, times and the template's placeholder names", async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({ notifyId: 'n1' }));
+
+			await client.sendSiteVisitNotification(agent, accessRequired);
+
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [
+				'5a-template',
+				'agent@test.com',
+				{
+					personalisation: {
+						caseReference: 'S62A/2026/0020',
+						applicantName: 'Abby Agent',
+						caseType: 'planning application',
+						siteAddress: '1 Test Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of 12 homes',
+						visitDate: '15 March 2027',
+						visitStartTime: '10:00am',
+						visitEndTime: '12:30pm',
+						relevantS62aEmail: 'major@test.com'
+					},
+					reference: 'S62A/2026/0020'
+				}
+			]);
+		});
+
+		it('sends 5b for a USV with the week commencing date and no date or times', async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({ notifyId: 'n1' }));
+
+			await client.sendSiteVisitNotification(agent, { ...unaccompanied, caseType: 'pre-application request' });
+
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [
+				'5b-template',
+				'agent@test.com',
+				{
+					personalisation: {
+						caseReference: 'S62A/2026/0020',
+						applicantName: 'Abby Agent',
+						caseType: 'pre-application request',
+						siteAddress: '1 Test Street, Bristol, BS1 1AA',
+						applicationDescription: 'Construction of 12 homes',
+						visitWeek: '15 March 2027'
+					},
+					reference: 'S62A/2026/0020'
+				}
+			]);
+		});
+
+		it("uses 'Sir or Madam' when the contact has no name", async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({ notifyId: 'n1' }));
+
+			await client.sendSiteVisitNotification({ email: 'a@test.com' }, unaccompanied);
+
+			assert.strictEqual(sendMock.mock.calls[0].arguments[2].personalisation.applicantName, 'Sir or Madam');
+		});
+
+		it('throws and logs a warning when the template for the type is not configured', async (ctx) => {
+			const logger = mockLogger() as any;
+			const client = new S62aGovNotifyClient(logger as unknown as Logger, 'fake-api-key', {
+				siteVisitUnaccompanied: '5b-template'
+			});
+			const sendMock = ctx.mock.method(client as any, 'sendEmailWithAudit', async () => ({}));
+
+			await assert.rejects(() => client.sendSiteVisitNotification(agent, accessRequired), {
+				message: 'Site visit notification template not enabled.'
+			});
+			assert.strictEqual(logger.warn.mock.callCount(), 1);
+			assert.strictEqual(sendMock.mock.callCount(), 0);
+		});
+	});
+
+	describe('sendSiteVisitNotificationToMany', () => {
+		it('sends a separate email to each contact, using the right contact for duplicate emails', async (ctx) => {
+			const client = new S62aGovNotifyClient(mockLogger() as unknown as Logger, 'fake-api-key', templateIds);
+			const sendMock = ctx.mock.method(client as any, 'sendSiteVisitNotification', async () => ({
+				notifyId: 'id',
+				body: 'body',
+				subject: 'subject'
+			}));
+			const contacts = [
+				{ email: 'same@test.com', firstName: 'Abby', lastName: 'Agent' },
+				{ email: 'same@test.com', firstName: 'Bob', lastName: 'Agent' }
+			];
+
+			const result = await client.sendSiteVisitNotificationToMany(contacts, unaccompanied);
+
+			assert.strictEqual(result.length, 2);
+			assert.deepStrictEqual(sendMock.mock.calls[0].arguments, [contacts[0], unaccompanied]);
+			assert.deepStrictEqual(sendMock.mock.calls[1].arguments, [contacts[1], unaccompanied]);
+		});
+	});
+});

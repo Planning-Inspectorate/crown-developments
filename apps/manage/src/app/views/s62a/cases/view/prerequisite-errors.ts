@@ -54,8 +54,20 @@ export const HEARING_DATE_PREREQUISITES = Object.freeze({
 	}
 } satisfies Record<string, Prerequisite>);
 
+/**
+ * Prerequisites for the "When is the site visit?" page (site visit notification).
+ */
+export const SITE_VISIT_DATE_PREREQUISITES = Object.freeze({
+	siteLocation: {
+		message: 'Add the site address or site coordinates before you add the site visit date',
+		path: `${VIEW_TAB_ID.OVERVIEW}/overview/site-address`
+	}
+} satisfies Record<string, Prerequisite>);
+
 const PREREQUISITES_BY_MESSAGE = new Map<string, Prerequisite>(
-	Object.values(HEARING_DATE_PREREQUISITES).map((prerequisite) => [prerequisite.message, prerequisite])
+	[...Object.values(HEARING_DATE_PREREQUISITES), ...Object.values(SITE_VISIT_DATE_PREREQUISITES)].map(
+		(prerequisite) => [prerequisite.message, prerequisite]
+	)
 );
 
 /**
