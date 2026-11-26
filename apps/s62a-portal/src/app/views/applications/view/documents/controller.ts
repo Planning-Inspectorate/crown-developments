@@ -234,6 +234,22 @@ export function buildApplicationDocumentsPage(service: S62APortalService): Reque
 			sectionTitle: 'Date published'
 		});
 
+		// The mobile date inputs need -mobile appended to make sure we don't have two inputs with the same ID
+		const mobileFilters = filters.map((filter) => {
+			if (filter.type !== 'date-input') {
+				return { ...filter };
+			}
+
+			return {
+				...filter,
+				dateInputs: filter.dateInputs.map((dateInput) => ({
+					...dateInput,
+					...(dateInput.id && { id: `${dateInput.id}-mobile` }),
+					...(dateInput.idPrefix && { idPrefix: `${dateInput.idPrefix}-mobile` })
+				}))
+			};
+		});
+
 		res.render('views/applications/view/documents/view.njk', {
 			id,
 			baseUrl,
@@ -257,6 +273,8 @@ export function buildApplicationDocumentsPage(service: S62APortalService): Reque
 			paginationParams,
 			searchValue: typeof queryParams.searchCriteria === 'string' ? queryParams.searchCriteria : '',
 			filters,
+			mobileFilters,
+			isMobileFilterOpen: req.query?.formType === 'mobile' && errorSummaryArray.length > 0,
 			hasQueries: hasQueries(filterQueryParams, ['itemsPerPage', 'page', 'searchCriteria']),
 			filterQueries: getFilterQueryItems(filters),
 			errorSummary: errorSummaryArray.length > 0 ? errorSummaryArray : null
