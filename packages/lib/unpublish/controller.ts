@@ -11,18 +11,20 @@ import { isValidRedirectUri } from '../util/uri.ts';
 export function buildSubmitUnpublishCase(
 	{ db, logger }: { db: PrismaClient; logger: Logger },
 	unpublishCaseFunction: PublishOperation,
-	caseCheckFunction: UnpublishCaseFetcher,
+	unpublishCaseFetcher: UnpublishCaseFetcher,
 	onUnpublished?: CaseActionHook
 ) {
-	return async (req: Request, res: Response) => {
+	return async (req: Request & { caseReference?: string }, res: Response) => {
 		const id = getStringParam(req.params, 'id');
 		logger.info({ id }, 'unpublish case');
 
-		const caseCheck = await caseCheckFunction(db, id);
+		const caseData = (await unpublishCaseFetcher(db, id)) as { reference: string }; // Guard check: verifies case exists before unpublishing
 
-		if (!caseCheck) {
+		if (!caseData) {
 			return notFoundHandler(req, res);
 		}
+		// Extract reference for audit hook
+		req.caseReference = caseData.reference;
 
 		try {
 			await unpublishCaseFunction(db, id);

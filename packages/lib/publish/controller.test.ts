@@ -201,9 +201,15 @@ describe('publish case', () => {
 				};
 				const mockRes = { locals: {}, redirect: mock.fn() };
 				const mockPublishFn = mock.fn(() => Promise.resolve());
+				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'case-1-ref' }));
 				const mockOnPublished = mock.fn(() => Promise.resolve());
 
-				const publishCaseFn = buildPublishCase({ db: {}, logger: mockLogger() }, mockPublishFn, mockOnPublished);
+				const publishCaseFn = buildPublishCase(
+					{ db: {}, logger: mockLogger() },
+					mockPublishFn,
+					mockCaseCheck,
+					mockOnPublished
+				);
 				await publishCaseFn(mockReq, mockRes);
 
 				assert.strictEqual(mockOnPublished.mock.callCount(), 1);
@@ -217,13 +223,117 @@ describe('publish case', () => {
 				const mockPublishFn = mock.fn(() => {
 					throw new Error('Database connection failed');
 				});
+				const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'case-1-ref' }));
 				const mockOnPublished = mock.fn(() => Promise.resolve());
 
-				const publishCaseFn = buildPublishCase({ db: {}, logger: mockLogger() }, mockPublishFn, mockOnPublished);
+				const publishCaseFn = buildPublishCase(
+					{ db: {}, logger: mockLogger() },
+					mockPublishFn,
+					mockCaseCheck,
+					mockOnPublished
+				);
 
 				await assert.rejects(() => publishCaseFn(mockReq, mockRes));
+				assert.strictEqual(mockCaseCheck.mock.callCount(), 1);
+				assert.strictEqual(mockPublishFn.mock.callCount(), 1);
 				assert.strictEqual(mockOnPublished.mock.callCount(), 0);
 			});
+		});
+	});
+	describe('publishCaseFetcher', () => {
+		it('should call publishCaseFetcher when provided and case exists', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				originalUrl: '/cases/case-1/overview/publish'
+			};
+			const mockRes = { locals: {}, redirect: mock.fn() };
+			const mockDb = {};
+			const mockPublishFn = mock.fn(() => Promise.resolve());
+			const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/001' }));
+
+			const publishCaseFn = buildPublishCase({ db: mockDb, logger: mockLogger() }, mockPublishFn, mockCaseCheck);
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockCaseCheck.mock.callCount(), 1);
+			assert.deepStrictEqual(mockCaseCheck.mock.calls[0].arguments, [mockDb, 'case-1']);
+			assert.strictEqual(mockPublishFn.mock.callCount(), 1);
+		});
+
+		it('should return 404 when publishCaseFetcher returns null', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				originalUrl: '/cases/case-1/overview/publish',
+				session: {}
+			};
+			const mockCaseCheck = mock.fn(() => Promise.resolve(null));
+			const mockPublishFn = mock.fn();
+
+			const publishCaseFn = buildPublishCase({ db: {}, logger: mockLogger() }, mockPublishFn, mockCaseCheck);
+
+			await assertRenders404Page(publishCaseFn, mockReq, false);
+			assert.strictEqual(mockPublishFn.mock.callCount(), 0);
+		});
+
+		it('should skip publishCaseFetcher when not provided', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				originalUrl: '/cases/case-1/overview/publish'
+			};
+			const mockRes = { locals: {}, redirect: mock.fn() };
+			const mockDb = {};
+			const mockPublishFn = mock.fn(() => Promise.resolve());
+
+			const publishCaseFn = buildPublishCase(
+				{ db: mockDb, logger: mockLogger() },
+				mockPublishFn
+				// No case for publishCaseFetcher to check
+			);
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockPublishFn.mock.callCount(), 1);
+			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
+		});
+	});
+	describe('caseReference', () => {
+		it('should set caseReference on req when publishCaseFetcher returns case data', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				originalUrl: '/cases/case-1/overview/publish'
+			} as unknown as Request & { caseReference?: string };
+			const mockRes = { locals: {}, redirect: mock.fn() };
+			const mockDb = {};
+			const mockPublishFn = mock.fn(() => Promise.resolve());
+			const mockCaseCheck = mock.fn(() => Promise.resolve({ id: 'case-1', reference: 'CRN/001' }));
+			const mockOnPublished = mock.fn(() => Promise.resolve());
+
+			const publishCaseFn = buildPublishCase(
+				{ db: mockDb, logger: mockLogger() },
+				mockPublishFn,
+				mockCaseCheck,
+				mockOnPublished
+			);
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockReq.caseReference, 'CRN/001');
+			assert.strictEqual(mockOnPublished.mock.callCount(), 1);
+		});
+
+		it('should not set caseReference when publishCaseFetcher does not provided', async () => {
+			const mockReq = {
+				params: { id: 'case-1' },
+				originalUrl: '/cases/case-1/overview/publish'
+			} as unknown as Request & { caseReference?: string };
+			const mockRes = { locals: {}, redirect: mock.fn() };
+			const mockPublishFn = mock.fn(() => Promise.resolve());
+
+			const publishCaseFn = buildPublishCase({ db: {}, logger: mockLogger() }, mockPublishFn);
+
+			await publishCaseFn(mockReq, mockRes);
+
+			assert.strictEqual(mockReq.caseReference, undefined);
 		});
 	});
 });
