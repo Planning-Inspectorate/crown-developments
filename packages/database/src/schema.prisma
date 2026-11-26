@@ -320,6 +320,7 @@ model S62aCase {
   acknowledgeApplicationReceivedEmailSent Boolean? @default(false)
   interestedPartyDecisionEmailSent        Boolean? @default(false)
   hearingNotificationEmailSent            Boolean? @default(false)
+  siteVisitNotificationEmailSent          Boolean? @default(false)
 }
 
 model S62aVehicleParkingCategory {

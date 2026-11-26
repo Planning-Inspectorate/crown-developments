@@ -286,6 +286,7 @@ function handleUpdateEmails(
 	acknowledgeApplicationReceivedEmail(answers, previousCase, notificationService, service, id, req, res);
 	interestedPartyDecisionEmail(answers, previousCase, notificationService, service, id, req);
 	hearingNotificationEmail(answers, previousCase, notificationService, service, id, req);
+	siteVisitNotificationEmail(answers, previousCase, notificationService, service, id, req);
 }
 
 /**
@@ -669,6 +670,44 @@ export function hearingNotificationEmail(
 		id,
 		'hearingNotificationEmailSent',
 		'Send Hearing Notification (Update)',
+		req
+	);
+}
+
+/**
+ * Sends the site visit notification (5a for ARSV, 5b for USV) to the applicant/agent the first time
+ * the site visit date is saved. Later edits, clearing and re-entering the date, or changing the site
+ * visit type don't send it again.
+ */
+export function siteVisitNotificationEmail(
+	answers: UpdateCaseAnswers,
+	previousCase: S62aCaseViewModel,
+	notificationService: S62aManageNotificationService,
+	service: ManageService,
+	id: string,
+	req: Request,
+	sendNotificationFn = sendS62aNotificationAndUpdateFlag
+): void {
+	const alreadySent = previousCase.siteVisitNotificationEmailSent === BOOLEAN_OPTIONS.YES;
+
+	if (alreadySent || !answers.siteVisitDate) return;
+
+	const mergedAnswers = {
+		...previousCase,
+		...answers
+	} as unknown as UpdateCaseAnswers;
+
+	const emailPromise = notificationService.processSiteVisitNotification(mergedAnswers, {
+		reference: previousCase.reference,
+		emails: { major: service.s62aMajorContactEmail, nonMajor: service.s62aNonMajorContactEmail }
+	});
+
+	sendNotificationFn(
+		emailPromise,
+		service,
+		id,
+		'siteVisitNotificationEmailSent',
+		'Send Site Visit Notification (Update)',
 		req
 	);
 }
