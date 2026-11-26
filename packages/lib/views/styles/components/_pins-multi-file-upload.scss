@@ -45,4 +45,9 @@
 		margin-right: 0;
 		margin-left: 10px;
 	}
+
+	// Accessibility CSS that highlights button yellow on focus
+	.moj-multi-file-upload--focused {
+		@include govuk.govuk-focused-text;
+	}
 }
