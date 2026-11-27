@@ -10,6 +10,7 @@ import { formatBytes } from '@pins/crowndev-lib/util/file.ts';
 import { isHearing } from '@pins/crowndev-lib/util/shared-view-model.ts';
 import { addressToViewModel, formatDateForDisplay } from '@planning-inspectorate/dynamic-forms';
 import { formatInTimeZone } from 'date-fns-tz';
+import { mapToCoordinatesString } from '@pins/crowndev-lib/util/site-coordinates.ts';
 
 export type DocumentViewModel = {
 	id: string;
@@ -175,8 +176,8 @@ export function s62aCaseToRawViewModel(s62aCase: S62aCaseWithRelations): S62aCas
 		siteCoordinates:
 			s62aCase.siteEasting && s62aCase.siteNorthing
 				? {
-						easting: s62aCase.siteEasting.toString().padStart(6, '0'),
-						northing: s62aCase.siteNorthing.toString().padStart(6, '0')
+						easting: mapToCoordinatesString(s62aCase.siteEasting),
+						northing: mapToCoordinatesString(s62aCase.siteNorthing)
 					}
 				: undefined,
 
