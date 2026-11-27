@@ -41,9 +41,15 @@
 		}
 	}
 
-	.moj-multi-file-upload__dropzone label + p {
-		margin-right: 0;
-		margin-left: 10px;
+	.moj-multi-file-upload__dropzone {
+		button {
+			margin-bottom: 0;
+
+			+ p {
+				margin-right: 0;
+				margin-left: 10px;
+			}
+		}
 	}
 
 	// Accessibility CSS that highlights button yellow on focus
