@@ -28,8 +28,15 @@ describe('application updates delete controller', () => {
 			const mockRes = {
 				redirect: mock.fn()
 			};
+			const mockOdwPublisher = {
+				publish: mock.fn()
+			};
 
-			const controller = buildDeleteUpdateController({ db: mockDb, logger: mockLogger() });
+			const controller = buildDeleteUpdateController({
+				db: mockDb,
+				logger: mockLogger(),
+				odwPublisher: mockOdwPublisher
+			});
 			await controller(mockReq, mockRes);
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
@@ -39,6 +46,9 @@ describe('application updates delete controller', () => {
 				cases: { 'crown-dev-01': { applicationUpdateStatus: 'Your update was deleted' } }
 			});
 
+			assert.strictEqual(mockOdwPublisher.publish.mock.callCount(), 1);
+			assert.strictEqual(mockOdwPublisher.publish.mock.calls[0].arguments[0], 'application-update');
+			assert.strictEqual(mockOdwPublisher.publish.mock.calls[0].arguments[2], 'delete');
 			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
 			assert.strictEqual(mockDb.crownDevelopment.findUnique.mock.callCount(), 1);
 			assert.strictEqual(mockDb.applicationUpdate.delete.mock.callCount(), 1);
