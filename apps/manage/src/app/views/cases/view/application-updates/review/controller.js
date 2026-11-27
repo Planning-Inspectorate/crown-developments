@@ -55,12 +55,12 @@ export function buildReviewController({ db }) {
 	};
 }
 
-export function buildSaveDraftUpdateController({ db, logger }) {
+export function buildSaveDraftUpdateController({ db, logger, odwPublisher }) {
 	return async (req, res) => {
 		const { id, applicationUpdateId } = validateParams(req.params);
 		const appUpdateSessionData = getApplicationUpdateSessionData(req, applicationUpdateId);
 
-		await db.$transaction(async ($tx) => {
+		const updatedApplicationUpdate = await db.$transaction(async ($tx) => {
 			const crownDevelopment = await $tx.crownDevelopment.findUnique({
 				where: { id },
 				select: { reference: true }
@@ -72,7 +72,7 @@ export function buildSaveDraftUpdateController({ db, logger }) {
 			const now = new Date();
 			const isPublishNow = appUpdateSessionData.publishNow === 'yes';
 
-			await $tx.applicationUpdate.update({
+			const updatedRecord = await $tx.applicationUpdate.update({
 				where: { id: applicationUpdateId, applicationId: id },
 				data: {
 					lastEdited: now,
@@ -87,7 +87,10 @@ export function buildSaveDraftUpdateController({ db, logger }) {
 			});
 
 			logger.info({ reference, applicationUpdateId }, 'application update successfully updated');
+			return { ...updatedRecord, Application: { reference } };
 		});
+
+		await odwPublisher.publish('application-update', updatedApplicationUpdate, 'update');
 
 		addAppUpdateStatus(req, id, `Your update was ${appUpdateSessionData.publishNow === 'yes' ? 'published' : 'saved'}`);
 		clearAppUpdatesFromSession(req, applicationUpdateId);
