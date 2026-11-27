@@ -59,7 +59,37 @@
         constructor(root, config, maximumFiles) {
             super(root, config);
             this.maximumFiles = maximumFiles;
+            this.replaceLabelWithButton();
             this.putButtonBeforeHint();
+        }
+
+        /**
+         * We need to replace the label with a button
+         * so that it can be targeted with voice commands
+         */
+         replaceLabelWithButton() {
+            const fileInput = this.$fileInput || (this.$dropzone && this.$dropzone.querySelector('input[type="file"]'));
+            if (!this.$label || !fileInput) return;
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = this.$label.className;
+            button.textContent = this.$label.textContent;
+
+            const describedBy = fileInput.getAttribute('aria-describedby');
+            if (describedBy) {
+                button.setAttribute('aria-describedby', describedBy);
+            }
+
+            button.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('focus', () => button.focus());
+
+            this.$label.replaceWith(button);
+            this.$label = button;
+
+            fileInput.setAttribute('tabindex', '-1');
+            fileInput.setAttribute('aria-hidden', 'true');
         }
 
         /** MOJ puts its hint before the button, our design has the button first */
