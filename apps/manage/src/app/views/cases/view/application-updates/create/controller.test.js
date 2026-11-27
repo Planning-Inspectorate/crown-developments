@@ -60,7 +60,15 @@ describe('application updates create controller', () => {
 				}
 			};
 
-			const controller = buildSaveController({ db: mockDb, logger: mockLogger() });
+			const mockOdwPublisher = {
+				publish: mock.fn()
+			};
+
+			const controller = buildSaveController({
+				db: mockDb,
+				logger: mockLogger(),
+				odwPublisher: mockOdwPublisher
+			});
 			await controller(mockReq, mockRes);
 
 			assert.strictEqual(mockRes.redirect.mock.callCount(), 1);
@@ -73,6 +81,11 @@ describe('application updates create controller', () => {
 			});
 
 			assert.strictEqual(mockDb.$transaction.mock.callCount(), 1);
+
+			assert.strictEqual(mockOdwPublisher.publish.mock.callCount(), 1);
+			assert.strictEqual(mockOdwPublisher.publish.mock.calls[0].arguments[0], 'application-update');
+			assert.strictEqual(mockOdwPublisher.publish.mock.calls[0].arguments[2], 'create');
+
 			assert.strictEqual(mockDb.applicationUpdate.create.mock.callCount(), 1);
 			assert.deepStrictEqual(mockDb.applicationUpdate.create.mock.calls[0].arguments[0], {
 				data: {
