@@ -11,13 +11,13 @@ export function buildCreateController() {
 	};
 }
 
-export function buildSaveController({ db, logger }) {
+export function buildSaveController({ db, logger, odwPublisher }) {
 	return async (req, res) => {
 		const id = getStringParam(req.params, 'id');
 
 		const answers = getAnswers(res);
 
-		await db.$transaction(async ($tx) => {
+		const newApplicationUpdate = await db.$transaction(async ($tx) => {
 			const crownDevelopment = await $tx.crownDevelopment.findUnique({
 				where: { id },
 				select: { reference: true }
@@ -26,13 +26,14 @@ export function buildSaveController({ db, logger }) {
 
 			logger.info({ reference }, 'creating a new application update');
 
-			const newApplicationUpdate = await $tx.applicationUpdate.create({
+			const createdRecord = await $tx.applicationUpdate.create({
 				data: toCreateInput(answers, id)
 			});
-
-			const newApplicationUpdateId = newApplicationUpdate.id;
-			logger.info({ reference, newApplicationUpdateId }, 'created a new application update');
+			logger.info({ reference, newApplicationUpdateId: createdRecord.id }, 'created a new application update');
+			return { ...createdRecord, Application: { reference } };
 		});
+
+		await odwPublisher.publish('application-update', newApplicationUpdate, 'create');
 
 		addAppUpdateStatus(req, id, `Your update was ${answers.publishNow === 'yes' ? 'published' : 'saved'}`);
 		clearDataFromSession({ req, journeyId: JOURNEY_ID, reqParam: 'id' });
