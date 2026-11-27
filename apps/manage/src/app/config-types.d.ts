@@ -62,4 +62,10 @@ interface Config extends BaseConfig {
 		majorEmail?: string;
 		nonMajorEmail?: string;
 	};
+	serviceBus: {
+		odw: {
+			isLive: boolean;
+			namespace: string;
+		};
+	};
 }
